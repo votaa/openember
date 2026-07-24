@@ -136,7 +136,7 @@ const DEFAULT_KB = {
   evacZones:{"label":"Evacuation Zones","source":"NYC OEM","data":"Zone 1: Mandatory evacuation Cat 1+ hurricanes. Rockaways, Coney Island, Red Hook waterfront.\nZone 2: Advised Cat 2+. Zones 3–6: progressively lower risk inland.\nShelters: 30+ hurricane evacuation centers, ~600,000 capacity.\nContraflow: FDR Drive, BQE, Staten Island Expressway."},
   criticalInfrastructure:{"label":"Critical Infrastructure","source":"NYC OEM / CISA","data":"Hospitals: 11 Level 1 Trauma Centers — Bellevue, Kings County, Lincoln, Jamaica, Staten Island University.\nPower: ConEd East River substations critical. Underground feeders flooded during Sandy.\nSubway: 245 miles track, 472 stations. 52 stations in flood zones."},
   hazardProfiles:{"label":"Hazard Profiles","source":"NYC OEM HMP 2023","data":"HURRICANES: Sandy 2012 Cat 1 — $19B damage. Primary risk: storm surge.\nEXTREME HEAT: 115–150 deaths/year. Protocol at Heat Index ≥100°F.\nFLOODING: Ida 2021 — 13 deaths in basement apartments.\nWINTER STORMS: Jonas 2016 — 27 inches, travel ban."},
-  resources:{"label":"Contacts & Resources","source":"NYC OEM","data":"NYC OEM: 718-422-8700 | nyc.gov/oem\nFDNY: 911 | 718-999-2000 | NYPD: 911 | 646-610-5000\nNWS OKX: 631-924-0517 | Con Edison: 1-800-75-CONED\nNotify NYC: nyc.gov/notifynyc"},
+  resources:{"label":"Contacts & Resources","source":"Nassau OEM / Suffolk OEM / NYC OEM","data":"Nassau OEM: 516-573-9600 | nassaucountyny.gov/oem\nSuffolk OEM: 631-852-4900 | scoem.suffolkcountyny.gov\nNYC OEM (Rockaway): 718-422-8700 | nyc.gov/oem\nNWS OKX: 631-924-0517 | PSEG LI: 1-800-490-0075\nNassau Nixle: text OneNassau to 888777 | SuffolkAlert: text SuffolkAlerts to 67283"},
 }
 const KNOWLEDGE_BASE = (Object.keys(_KB).length > 0) ? _KB : DEFAULT_KB
 
@@ -296,7 +296,7 @@ const NOAA_ENDPOINTS = [
   {id:"nws_forecast",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:`7-Day Forecast — ${CFG.shortName}`,     url: NWS_FORECAST_URL},
   {id:"nws_hourly",    cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Hourly Forecast",                       url:`${NWS_FORECAST_URL}/hourly`},
   {id:"nws_grid",      cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Wind & Precip Grid",                    url:`https://api.weather.gov/gridpoints/${_NWS.office||"OKX"}/${_NWS.grid_x||33},${_NWS.grid_y||37}`},
-  {id:"nws_obs_knyc",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Observations — Central Park",           url:"https://api.weather.gov/stations/KNYC/observations/latest",                                              mapKey:true},
+  {id:"nws_obs_kokx", cat:"NWS",     color:"#60a5fa", icon:"🌩", name:"Observations — Upton NY (OKX)",         url:"https://api.weather.gov/stations/KOKX/observations/latest",                                              mapKey:true},
   {id:"nws_obs_kjfk",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Observations — JFK Airport",            url:"https://api.weather.gov/stations/KJFK/observations/latest",                                              mapKey:true},
   // CO-OPS
   {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},

@@ -28,7 +28,7 @@ export async function* streamOllama(messages, context, abortSignal) {
     return
   }
 
-  const systemPrompt = `You are EMBER — Emergency Management Body of Evidence & Resources — an AI assistant for NYC emergency managers and first responders.
+  const systemPrompt = `YYou are EMBER — Emergency Management Body of Evidence & Resources — an AI assistant for Long Island (Nassau County, Suffolk County, and Rockaway Peninsula) emergency managers and first responders.
 
 KNOWLEDGE BASE:
 ${context}

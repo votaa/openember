@@ -1,0 +1,333 @@
+jurisdiction:
+  name: New York City
+  short_name: NYC
+  state: NY
+  state_full: New York
+  county: New York County
+  center_lat: 40.7128
+  center_lng: -74.006
+  bbox_north: 41.0
+  bbox_south: 40.4
+  bbox_east: -73.7
+  bbox_west: -74.3
+  timezone: America/New_York
+  zoom_default: 10
+nws:
+  office: OKX
+  grid_x: 33
+  grid_y: 37
+  alert_zone: NYZ178
+  obs_stations:
+  - id: KNYC
+    name: Central Park
+    lat: 40.7789
+    lng: -73.9692
+  - id: KJFK
+    name: JFK Airport
+    lat: 40.6413
+    lng: -73.7781
+  - id: KEWR
+    name: Newark
+    lat: 40.6895
+    lng: -74.1745
+  - id: KLGA
+    name: LaGuardia
+    lat: 40.7772
+    lng: -73.8726
+coops_stations:
+- id: '8518750'
+  name: The Battery
+  lat: 40.7003
+  lng: -74.0141
+  is_primary: true
+  flood_thresholds:
+    action: 4.5
+    minor: 5.5
+    moderate: 6.5
+    major: 8.5
+- id: '8516945'
+  name: Kings Point
+  lat: 40.8105
+  lng: -73.7659
+  flood_thresholds:
+    action: 4.5
+    minor: 5.5
+    moderate: 6.5
+    major: 8.5
+- id: '8531680'
+  name: Sandy Hook
+  lat: 40.4669
+  lng: -74.0094
+  flood_thresholds:
+    action: 4.5
+    minor: 5.5
+    moderate: 6.5
+    major: 8.5
+- id: '8518995'
+  name: Governors Island
+  lat: 40.69
+  lng: -74.0167
+  flood_thresholds:
+    action: 4.5
+    minor: 5.5
+    moderate: 6.5
+    major: 8.5
+knowledge_base:
+  flood_zones: 'Zone A: High-risk coastal/tidal flood areas — Lower Manhattan, Red
+    Hook (Brooklyn), Rockaway Peninsula (Queens), Staten Island east shore.
+
+    Zone AE: Special Flood Hazard Areas — Coney Island, Howard Beach, Broad Channel,
+    southern Staten Island.
+
+    Zone VE: Coastal high-hazard with wave action — Far Rockaway, Breezy Point, Sea
+    Gate.
+
+    Zone X (shaded): Moderate flood risk, 0.2% annual chance.
+
+    Post-Sandy (2012): ~88,000 buildings damaged; $19B in damage.
+
+    '
+  evac_zones: 'Zone 1: Mandatory evacuation Cat 1+ hurricanes. Rockaways, Coney Island,
+    South Beach SI, Red Hook waterfront.
+
+    Zone 2: Evacuation advised Cat 2+. Zones 3-6: progressively lower risk inland.
+
+    Shelters: 30+ hurricane evacuation centers, ~600,000 primary capacity.
+
+    Contraflow: FDR Drive, BQE, Staten Island Expressway.
+
+    '
+  critical_infrastructure: 'Hospitals: 11 Level 1 Trauma Centers — Bellevue (Manhattan),
+    Kings County (Brooklyn), Lincoln (Bronx), Staten Island University, Jamaica (Queens).
+
+    Power: ConEd East River substations critical. Underground feeders in Lower Manhattan
+    flooded during Sandy.
+
+    Subway: 245 miles track, 472 stations. 52 stations in flood zones.
+
+    Water: DEP 14 reservoirs, 2 city tunnels. Newtown Creek & North River WWTPs flooded
+    in Sandy.
+
+    Airports: JFK (Zone A/AE), LaGuardia (Zone A).
+
+    '
+  hazard_profiles: 'HURRICANES: Sandy (2012, Cat 1) — $19B damage. Primary risk: storm
+    surge.
+
+    EXTREME HEAT: 115-150 deaths/year. Protocol at Heat Index >= 100F. 500+ cooling
+    centers.
+
+    FLOODING: Ida 2021 — 13 deaths in basement apartments. 22,000+ miles combined
+    sewer.
+
+    WINTER STORMS: Jonas 2016 — 27 inches, travel ban. 2,300 Sanitation plows.
+
+    EARTHQUAKE: Low risk. Historical 1884 M5.5. Unreinforced masonry stock pre-1930.
+
+    TERRORISM/HAZMAT: Highest-risk US city (DHS). JTTF, NYPD Intelligence, FDNY HazMat.
+
+    '
+  resources: 'NYC OEM: 718-422-8700 | nyc.gov/oem | EOC: 165 Cadman Plaza East, Brooklyn
+
+    FDNY: 911 | 718-999-2000 | NYPD: 911 | 646-610-5000
+
+    NYC Health: 311 | FEMA Region 2: 212-680-3600
+
+    NWS OKX: 631-924-0517 | Con Edison: 1-800-75-CONED
+
+    Notify NYC: nyc.gov/notifynyc
+
+    '
+map_points:
+  hospitals:
+    color: '#f87171'
+    icon: 🏥
+    label: Trauma Centers
+    features:
+    - name: Bellevue Hospital
+      lat: 40.7394
+      lng: -73.9754
+      note: Level 1 Trauma | Manhattan
+    - name: Kings County Hospital
+      lat: 40.6551
+      lng: -73.9444
+      note: Level 1 Trauma | Brooklyn
+    - name: Lincoln Medical Center
+      lat: 40.8168
+      lng: -73.9249
+      note: Level 1 Trauma | Bronx
+    - name: Jamaica Hospital
+      lat: 40.7003
+      lng: -73.7958
+      note: Level 1 Trauma | Queens
+    - name: Staten Island University
+      lat: 40.5766
+      lng: -74.1159
+      note: Level 1 Trauma | Staten Island
+    - name: Maimonides Medical Center
+      lat: 40.6356
+      lng: -73.9985
+      note: Level 1 Trauma | Brooklyn
+  shelters:
+    color: '#60a5fa'
+    icon: 🏫
+    label: Evac Shelters
+    features:
+    - name: Boys & Girls HS
+      lat: 40.6797
+      lng: -73.9434
+      note: Evac Center | Brooklyn
+    - name: Brandeis HS
+      lat: 40.796
+      lng: -73.9804
+      note: Evac Center | Manhattan
+    - name: August Martin HS
+      lat: 40.6719
+      lng: -73.777
+      note: Evac Center | Queens
+    - name: PS 14 Staten Island
+      lat: 40.6285
+      lng: -74.0754
+      note: Evac Center | Zone 1
+    - name: Lehman HS
+      lat: 40.878
+      lng: -73.8985
+      note: Evac Center | Bronx
+  gauges:
+    color: '#4ade80'
+    icon: 📡
+    label: Stream Gauges
+    features:
+    - name: Battery Park Tidal Gauge
+      lat: 40.7003
+      lng: -74.0141
+      note: NOAA 8518750 — primary NYC surge gauge
+    - name: Kings Point Tidal Gauge
+      lat: 40.8105
+      lng: -73.7659
+      note: NOAA 8516945 — Long Island Sound
+    - name: Jamaica Bay (Inwood)
+      lat: 40.6226
+      lng: -73.7576
+      note: NOAA tidal — Zone A monitoring
+    - name: Sandy Hook, NJ
+      lat: 40.4669
+      lng: -74.0094
+      note: NOAA 8531680 — outer harbor reference
+  eoc:
+    color: '#facc15'
+    icon: 🏛
+    label: EOC / Command
+    features:
+    - name: NYC EOC
+      lat: 40.6967
+      lng: -73.9896
+      note: Primary EOC — 165 Cadman Plaza East
+    - name: Pier 92 Backup
+      lat: 40.7671
+      lng: -74.0029
+      note: Backup EOC / Mass Casualty staging
+    - name: FEMA Region 2
+      lat: 40.7143
+      lng: -74.0071
+      note: 26 Federal Plaza
+  floodRisk:
+    color: '#fb923c'
+    icon: 💧
+    label: Flood Risk Areas
+    features:
+    - name: Red Hook, Brooklyn
+      lat: 40.6745
+      lng: -74.0097
+      note: Zone AE — flooded Sandy 2012
+    - name: Coney Island
+      lat: 40.5755
+      lng: -73.9707
+      note: Zone AE — 10ft+ surge Sandy
+    - name: Rockaway Peninsula
+      lat: 40.5874
+      lng: -73.8261
+      note: Zone VE/AE — highest surge risk
+    - name: Howard Beach
+      lat: 40.657
+      lng: -73.8378
+      note: Zone AE — interior flood risk
+    - name: South Beach, SI
+      lat: 40.5842
+      lng: -74.0783
+      note: Zone AE — major Sandy impact
+    - name: Lower Manhattan (FiDi)
+      lat: 40.7074
+      lng: -74.0104
+      note: Zone AE — subway/utility risk
+    - name: Breezy Point
+      lat: 40.5587
+      lng: -73.929
+      note: Zone VE — wave action
+socrata:
+  domain: data.cityofnewyork.us
+  preset_datasets:
+  - id: fhrw-4uyv
+    name: 311 Service Requests
+    agency: '311'
+    lat_col: latitude
+    lng_col: longitude
+    label_col: complaint_type
+    color: '#60a5fa'
+    icon: 📞
+    desc: Real-time 311 complaints
+  - id: nuhi-jiwk
+    name: FDNY Incidents
+    agency: FDNY
+    lat_col: latitude
+    lng_col: longitude
+    label_col: incident_type_desc
+    color: '#f87171'
+    icon: 🚒
+    desc: FDNY incident data
+  - id: 2bnn-yakx
+    name: NYC Cooling Centers
+    agency: DOHMH
+    lat_col: latitude
+    lng_col: longitude
+    label_col: site_name
+    color: '#34d399'
+    icon: ❄️
+    desc: Active cooling center locations
+  - id: uqnk-2pcv
+    name: Hurricane Evacuation Centers
+    agency: OEM
+    lat_col: latitude
+    lng_col: longitude
+    label_col: facility_name
+    color: '#facc15'
+    icon: 🏫
+    desc: Designated hurricane evacuation shelters
+  - id: 43nn-pn8y
+    name: NYPD Incidents
+    agency: NYPD
+    lat_col: latitude
+    lng_col: longitude
+    label_col: ofns_desc
+    color: '#a78bfa'
+    icon: 🚔
+    desc: NYPD incident reports
+  - id: 5uac-w243
+    name: NYCHA Developments
+    agency: NYCHA
+    lat_col: latitude
+    lng_col: longitude
+    label_col: development
+    color: '#fb923c'
+    icon: 🏢
+    desc: NYCHA public housing developments
+noaa:
+  alert_state: NY
+  usgs_state: NY
+  fema_state: NY
+branding:
+  app_title: EMBER
+  app_subtitle: Emergency Management Body of Evidence & Resources
+  jurisdiction_line: NYC JURISDICTION
+  primary_color: '#e8372c'
+  logo_emoji: 🚨
