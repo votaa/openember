@@ -396,19 +396,19 @@ def extract_map_readings_from_noaa():
         if isinstance(d, dict) and "properties" in d and "obs" in ep_id:
             p          = d["properties"]
             station_id = ep_id.replace("nws_obs_", "").upper()
-            speed_ms   = p.get("windSpeed",    {}).get("value")
-            gust_ms    = p.get("windGust",     {}).get("value")
+            speed_kmh  = p.get("windSpeed",    {}).get("value")
+            gust_kmh   = p.get("windGust",     {}).get("value")
             dir_deg    = p.get("windDirection",{}).get("value")
             precip_mm  = p.get("precipitationLastHour", {}).get("value")
-            if speed_ms is not None and dir_deg is not None:
+            if speed_kmh is not None and dir_deg is not None:
                 readings[f"__nws_obs_{station_id}__"] = {
-                    "station": station_id,
-                    "speed_mph": round(speed_ms * 2.237, 1),
-                    "gust_mph":  round(gust_ms * 2.237, 1) if gust_ms else None,
-                    "dir_deg":   dir_deg,
-                    "precip_in": round(precip_mm * 0.0393701, 2) if precip_mm else None,
-                    "desc":      p.get("textDescription", ""),
-                    "source":    f"NWS @ {ts}",
+                "station": station_id,
+                "speed_mph": round(speed_kmh * 0.621371, 1),
+                "gust_mph":  round(gust_kmh  * 0.621371, 1) if gust_kmh else None,
+                "dir_deg":   dir_deg,
+                "precip_in": round(precip_mm * 0.0393701, 2) if precip_mm else None,
+                "desc":      p.get("textDescription", ""),
+                "source":    f"NWS @ {ts}",
                 }
     return readings
 
