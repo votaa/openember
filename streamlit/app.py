@@ -1778,15 +1778,16 @@ with tab_chat:
     with st.expander("▸ Quick Queries"):
         qcols = st.columns(2)
         quick = [
-            "Storm surge risk — Lower Manhattan",
-            "Zone 1 assets at risk from Cat 2 hurricane",
-            "Trauma centers and hospital surge capacity",
-            "Current NWS alerts for NYC",
-            "Heat emergency protocol thresholds",
-            "Flash flood — basement apartment risk",
-            "Critical infrastructure in FEMA Zone AE",
-            "What do the current water levels indicate?",
-        ]
+            "Storm surge risk — Long Beach and Fire Island",
+            "Zone A assets at risk from Cat 2 hurricane",
+            "Trauma centers and hospital surge capacity on Long Island",
+            "Current NWS alerts for Long Island",
+            "Heat emergency protocol thresholds Nassau and Suffolk",
+            "Evacuation routes from barrier island communities",
+            "Critical infrastructure in FEMA Zone AE — south shore",
+            "What do the current water levels indicate at Kings Point and Bay Shore?",
+                ]
+
         for i, q in enumerate(quick):
             if qcols[i % 2].button(q, key=f"quick_{i}", use_container_width=True):
                 st.session_state.pending_query = q
