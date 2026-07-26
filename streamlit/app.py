@@ -450,7 +450,7 @@ def fetch_wind_obs():
                              timeout=6, headers={"User-Agent": "EMBER/1.0"})
             if not r.ok: continue
             p = r.json()["properties"]
-            def _mph(ms): return round(ms * 2.237, 0) if ms is not None else None
+            def _mph(kmh): return round(kmh * 0.621371, 0) if kmh is not None else None
             def _in(mm):  return round(mm * 0.0393701, 2) if mm is not None else None
             results.append({**s,
                 "speed_mph": _mph(p.get("windSpeed",           {}).get("value")),
