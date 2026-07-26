@@ -428,28 +428,67 @@ export const LIVE_ENDPOINTS = [
 
 // ─── Map Layer Data ────────────────────────────────────────────────────────────
 export const MAP_LAYERS = {
-
   hospitals: {
-    label: "Trauma Centers & Key Hospitals",
-    color: "#f87171",
-    icon: "🏥",
-    features: [
-      // Level 1
-      { name: "NYU Langone Hospital — Long Island",    lat: 40.7505, lng: -73.6434, county: "Nassau",  note: "Level 1 Adult & Pediatric Trauma | Nassau's ONLY Level 1 | 259 Davids Ave, Mineola" },
-      { name: "Stony Brook University Medical Center", lat: 40.9129, lng: -73.1195, county: "Suffolk", note: "Level 1 Adult & Pediatric Trauma | Suffolk's ONLY Level 1 | East Loop Rd, Stony Brook" },
-      { name: "Good Samaritan University Hospital",    lat: 40.6973, lng: -73.3037, county: "Suffolk", note: "Level 1 Adult Trauma (ACS verified 2023) | Only Level 1 on LI south shore | 1000 Montauk Hwy, West Islip" },
-      // Level 2
-      { name: "NYU Langone Hospital — Suffolk",        lat: 40.7659, lng: -72.9924, county: "Suffolk", note: "Level 2 Adult Trauma (elevated Oct 2024, ACS verified 2025) | 101 Hospital Rd, East Patchogue" },
-      { name: "Northwell Huntington Hospital",         lat: 40.8762, lng: -73.4274, county: "Suffolk", note: "Level 2 Trauma | 270 Park Ave, Huntington" },
-      // Level 3 / Key Community
-      { name: "Nassau University Medical Center",      lat: 40.7295, lng: -73.5576, county: "Nassau",  note: "Public hospital | Special Medical Needs Shelter hub | 2201 Hempstead Tpke, East Meadow" },
-      { name: "South Nassau Communities Hospital",     lat: 40.6354, lng: -73.6381, county: "Nassau",  note: "Level 3 Trauma | South shore receiving | 1 Health Rd, Oceanside" },
-      { name: "Southampton Hospital",                  lat: 40.8837, lng: -72.3849, county: "Suffolk", note: "Level 3 Trauma | Primary East End receiving | 240 Meeting House Lane, Southampton" },
-      { name: "Peconic Bay Medical Center",            lat: 40.9137, lng: -72.6551, county: "Suffolk", note: "Level 3 Trauma | North Fork / East End hub | 1300 Roanoke Ave, Riverhead" },
-      // NYC / Rockaway
-      { name: "NYC H+H Queens Hospital Center",        lat: 40.7007, lng: -73.7949, county: "Queens",  note: "Level 1 Trauma (NYC) | Primary receiving for Rockaway residents | 82-68 164th St, Jamaica" },
-    ]
-  },
+  label: "Trauma Centers & Key Hospitals",
+  color: "#f87171",
+  icon: "🏥",
+  features: [
+    // ── Nassau — Level 1 ───────────────────────────────────────────────
+    { name: "North Shore University Hospital",
+      lat: 40.7765, lng: -73.6993, county: "Nassau",
+      trauma_level: "Level 1", helipad: true, faa_helipad_id: "7NY3/6NK3",
+      note: "Level 1 Adult & Pediatric | ACS-verified | NYS DOH Regional L1 | 300 Community Dr, Manhasset | 516-562-0100" },
+    { name: "Nassau University Medical Center",
+      lat: 40.7226, lng: -73.5512, county: "Nassau",
+      trauma_level: "Level 1", helipad: true, faa_helipad_id: "0NK4",
+      note: "Level 1 Adult | NYS DOH designated | Special Medical Needs Shelter hub | 2201 Hempstead Tpke, East Meadow | 516-572-3000" },
+    { name: "NYU Langone Hospital — Long Island",
+      lat: 40.7430, lng: -73.6410, county: "Nassau",
+      trauma_level: "Level 1", helipad: false,
+      note: "Level 1 Adult | ACS-verified | 259 1st St, Mineola | 516-663-0333" },
+    // ── Nassau — Level 2 ───────────────────────────────────────────────
+    { name: "Mount Sinai South Nassau Hospital",
+      lat: 40.6472, lng: -73.6358, county: "Nassau",
+      trauma_level: "Level 2", helipad: false,
+      note: "Level 2 Adult | ACS-verified | formerly South Nassau Communities Hospital | 1 Health Rd, Oceanside | 516-632-3000" },
+    // ── Suffolk — Level 1 ──────────────────────────────────────────────
+    { name: "Stony Brook University Hospital",
+      lat: 40.9103, lng: -73.1163, county: "Suffolk",
+      trauma_level: "Level 1", helipad: true, faa_helipad_id: "6NY6",
+      note: "Level 1 Adult & Pediatric | ACS-verified | NYS DOH Regional L1 | 101 Nicolls Rd, Stony Brook | 631-444-4000" },
+    { name: "South Shore University Hospital",
+      lat: 40.7258, lng: -73.2393, county: "Suffolk",
+      trauma_level: "Level 1", helipad: true,
+      note: "Level 1 Adult | ACS-verified Aug 2024 | NYS DOH state designation pending | 301 E Main St, Bay Shore | 631-968-3000" },
+    { name: "Good Samaritan University Hospital",
+      lat: 40.6932, lng: -73.3040, county: "Suffolk",
+      trauma_level: "Level 1", helipad: false,
+      note: "Level 1 Adult / Level 2 Pediatric | ACS-verified | 1000 Montauk Hwy, West Islip | 631-376-3000" },
+    // ── Suffolk — Level 2 ──────────────────────────────────────────────
+    { name: "NYU Langone Hospital — Suffolk",
+      lat: 40.7726, lng: -72.9772, county: "Suffolk",
+      trauma_level: "Level 2", helipad: false,
+      note: "Level 2 Adult | NYS DOH Oct 2024 | ACS-verified Jul 2025 | 101 Hospital Rd, East Patchogue | 631-654-7100" },
+    { name: "Northwell Huntington Hospital",
+      lat: 40.8762, lng: -73.4274, county: "Suffolk",
+      trauma_level: "Level 2", helipad: false,
+      note: "Level 2 Trauma | North Shore receiving | 270 Park Ave, Huntington | 631-351-2000" },
+    // ── Suffolk — Level 3 / East End ───────────────────────────────────
+    { name: "Southampton Hospital",
+      lat: 40.8837, lng: -72.3849, county: "Suffolk",
+      trauma_level: "Level 3", helipad: false,
+      note: "Level 3 Trauma | Primary East End receiving | nearest L1 is Stony Brook 45+ mi | 240 Meeting House Lane | 631-726-8200" },
+    { name: "Peconic Bay Medical Center",
+      lat: 40.9137, lng: -72.6551, county: "Suffolk",
+      trauma_level: "Level 3", helipad: false,
+      note: "Level 3 Trauma | North Fork / East End hub | 1300 Roanoke Ave, Riverhead | 631-548-6000" },
+    // ── Queens / Rockaway ──────────────────────────────────────────────
+    { name: "NYC H+H Queens Hospital Center",
+      lat: 40.7007, lng: -73.7949, county: "Queens",
+      trauma_level: "Level 1", helipad: false,
+      note: "Level 1 Trauma (NYC) | Primary receiving for Rockaway residents | 82-68 164th St, Jamaica | 718-883-3000" },
+  ]
+},
 
   shelters: {
     label: "Evacuation Shelters / Centers",
