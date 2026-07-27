@@ -25,11 +25,23 @@ export const NYC_STATIONS = {
     sandy_hook: "8531680", // Sandy Hook, NJ — regional surge reference
     montauk:    "8510560", // Montauk — outer harbor
   },
-  ncei: {
+  ncei:   {
+ 
+    // --- Existing Baseline References ---
+
     central_park: "GHCND:USW00094728", // Central Park daily summaries
     jfk:          "GHCND:USW00094789", // JFK Airport
     laguardia:    "GHCND:USW00014732", // LaGuardia Airport
-  }
+
+    // --- Suffolk County (Major Automated Surface Observing Systems) ---
+    islip_macarthur: "GHCND:USW00004781", // Islip Long Island MacArthur Airport
+    westhampton_beach: "GHCND:USW00094745", // Westhampton Beach / Gabreski Airport (NWS: FOK)
+    shirley_brookhaven: "GHCND:USW00094791", // Shirley / Brookhaven Airport (NWS: HWV)
+    montauk_point: "GHCND:USW00094793", // Montauk Point ASOS
+
+    // --- Nassau County & Western Long Island (Major Automated Surface Observing Systems) ---
+    farmingdale_republic: "GHCND:USW00054787", // Farmingdale / Republic Airport (NWS: FRG)
+  
 }
 
 // ── NOAA API category definitions ─────────────────────────────────────────────
@@ -50,7 +62,7 @@ export const NOAA_CATEGORIES = {
       {
         id: "nws_alerts_urgent",
         name: "Urgent Alerts (Extreme/Severe)",
-        url: "https://api.weather.gov/alerts/active?area=NY&severity=Extreme,Severe&status=Actual",
+        url: "https://api.weather.gov/alerts/active?area=NY&severity=Extreme,Severe&status=actual",
         desc: "Only extreme and severe active alerts — highest priority",
         tags: ["alerts","extreme","severe"],
       },
@@ -92,7 +104,7 @@ export const NOAA_CATEGORIES = {
       {
         id: "nws_radar_stations",
         name: "Radar Stations — NY Region",
-        url: "https://api.weather.gov/radar/stations?stationType=WSR-88D&state=NY",
+        url: "hhttps://api.weather.gov/radar/stations/KOKX",
         desc: "NEXRAD WSR-88D radar stations covering New York",
         tags: ["radar","nexrad"],
       },
@@ -113,7 +125,7 @@ export const NOAA_CATEGORIES = {
       {
         id: "nws_products_okx",
         name: "Text Products — NWS OKX",
-        url: "https://api.weather.gov/products?office=OKX&limit=10",
+        url: "https://api.weather.gov/products?office=KOKX&limit=10",
         desc: "Latest NWS text products issued by OKX (Area Forecast Discussion, Coastal Hazards, etc.)",
         tags: ["products","text","AFD","forecast discussion"],
       },
