@@ -104,7 +104,7 @@ export const NOAA_CATEGORIES = {
       {
         id: "nws_radar_stations",
         name: "Radar Stations — NY Region",
-        url: "hhttps://api.weather.gov/radar/stations/KOKX",
+        url: "https://api.weather.gov/radar/stations/KOKX",
         desc: "NEXRAD WSR-88D radar stations covering New York",
         tags: ["radar","nexrad"],
       },

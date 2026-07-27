@@ -292,7 +292,7 @@ async function* streamOllama(messages, context, signal, apiKey) {
 const NOAA_ENDPOINTS = [
   // NWS
   {id:"nws_alerts",    cat:"NWS",    color:"#60a5fa", icon:"🌩", name:`Active Alerts — ${CFG.state}`,          url: NWS_ALERT_URL,                                                                                          mapKey:true},
-  {id:"nws_alerts_sv", cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Extreme/Severe Alerts",                 url:`https://api.weather.gov/alerts/active?area=${CFG.state}&severity=Extreme,Severe&status=Actual`,         mapKey:true},
+  {id:"nws_alerts_sv", cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Extreme/Severe Alerts",                 url:`https://api.weather.gov/alerts/active?area=${CFG.state}&severity=Extreme,Severe&status=actual`,         mapKey:true},
   {id:"nws_forecast",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:`7-Day Forecast — ${CFG.shortName}`,     url: NWS_FORECAST_URL},
   {id:"nws_hourly",    cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Hourly Forecast",                       url:`${NWS_FORECAST_URL}/hourly`},
   {id:"nws_grid",      cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Wind & Precip Grid",                    url:`https://api.weather.gov/gridpoints/${_NWS.office||"OKX"}/${_NWS.grid_x||33},${_NWS.grid_y||37}`},
