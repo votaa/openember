@@ -168,14 +168,14 @@ const MAP_LAYER_TOGGLES = [
   {id:"eoc",label:"EOC / CMD",color:"#facc15"},
 ]
 const QUICK_QUERIES = [
-  "Storm surge risk — Lower Manhattan",
-  "Zone 1 evacuation assets at risk from Cat 2 hurricane",
-  "Trauma centers and hospital surge capacity",
-  `Current NWS weather alerts for ${CFG.shortName}`,
-  "Heat emergency protocol — thresholds and cooling centers",
-  "Flash flood response — basement apartment risk",
-  "Critical infrastructure in FEMA Zone AE",
-  "What are the current water levels at Battery Park?",
+  "Storm surge risk — Long Beach and Fire Island",
+  "Zone A assets at risk from Cat 2 hurricane",         
+  "Trauma centers and hospital surge capacity on Long Island",
+  "Current NWS alerts for Long Island",
+  "Heat emergency protocol thresholds Nassau and Suffolk",
+  "Evacuation routes from barrier island communities",
+  "Critical infrastructure in FEMA Zone AE — south shore",
+  "What do the current water levels indicate at Kings Point and Bay Shore?",
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
