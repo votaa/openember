@@ -177,7 +177,7 @@ def render_wizard():
     # ── Section 5: Map Points ─────────────────────────────────────────────────
     with st.expander("📍 Step 5 — Map Points", expanded=False):
         st.caption("Static markers that always appear on the operational map. Add your hospitals, shelters, EOC locations, and flood risk areas.")
-        st.info("For large numbers of locations, consider using the NYC Open Data / Socrata tab to pull them dynamically instead of hardcoding here.")
+        st.info("For large numbers of locations, consider using the Open Data / Socrata tab to pull them dynamically instead of hardcoding here.")
 
         map_categories = {
             "hospitals":  ("Hospitals / Trauma Centers", "#f87171", "🏥"),
@@ -213,7 +213,7 @@ def render_wizard():
 
     # ── Section 6: Socrata / Open Data ────────────────────────────────────────
     with st.expander("🗽 Step 6 — Open Data Portal", expanded=False):
-        st.caption("Configure your municipality's Socrata open data domain. This unlocks the NYC Open Data tab for your city's datasets.")
+        st.caption("Configure your municipality's Socrata open data domain. This unlocks the Open Data tab for your city's datasets.")
 
         soc_domain = st.text_input(
             "Socrata Domain",
@@ -305,10 +305,10 @@ def render_wizard():
             )
 
     with col_reset:
-        if st.button("↺ Reset to NYC", use_container_width=True,
-                     help="Revert to the built-in NYC configuration"):
-            nyc_path = Path(__file__).parent.parent / "config" / "jurisdiction.yaml"
-            # The NYC yaml is the default — just reload
+        if st.button("↺ Reset to LI", use_container_width=True,
+                     help="Revert to the LI Jurisdiction configuration"):
+            # config/jurisdiction.yaml is the LI config — clear cached station
+            # lookups and reload so the form re-reads from that file.
             st.session_state["_wiz_nws"] = {}
             st.session_state["_wiz_coops"] = []
             st.rerun()
