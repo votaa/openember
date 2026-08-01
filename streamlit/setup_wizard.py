@@ -213,11 +213,11 @@ def render_wizard():
 
     # ── Section 6: Socrata / Open Data ────────────────────────────────────────
     with st.expander("🗽 Step 6 — Open Data Portal", expanded=False):
-        st.caption("Configure your municipality's Socrata open data domain. This unlocks the Open Data tab for your city's datasets.")
+        st.caption("Configure your municipality's Socrata open data domain. This unlocks the  Open Data tab for your city's datasets.")
 
         soc_domain = st.text_input(
             "Socrata Domain",
-            value=ex("socrata","domain","data.cityofnewyork.us"),
+            value=ex("socrata","domain","opendata.suffolkcountyny.gov"),
             help="e.g. data.baltimorecity.gov · data.cityofchicago.org · data.sfgov.org · data.seattle.gov"
         )
 
@@ -305,10 +305,10 @@ def render_wizard():
             )
 
     with col_reset:
-        if st.button("↺ Reset to LI", use_container_width=True,
-                     help="Revert to the LI Jurisdiction configuration"):
-            # config/jurisdiction.yaml is the LI config — clear cached station
-            # lookups and reload so the form re-reads from that file.
+        if st.button("↺ Reset to NYC", use_container_width=True,
+                     help="Revert to the built-in NYC configuration"):
+            nyc_path = Path(__file__).parent.parent / "config" / "jurisdiction.yaml"
+            # The NYC yaml is the default — just reload
             st.session_state["_wiz_nws"] = {}
             st.session_state["_wiz_coops"] = []
             st.rerun()
