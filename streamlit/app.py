@@ -1559,7 +1559,7 @@ with tab_nyc:
 
     # ── Custom endpoint ────────────────────────────────────────────────────────
     st.markdown("**Custom Dataset URL**")
-    st.caption("Paste any NYC Open Data resource URL or dataset ID to fetch and map it")
+    st.caption("Paste any NY Open Data resource URL or dataset ID to fetch and map it")
     ccol1, ccol2 = st.columns([3, 1])
     with ccol1:
         custom_id = st.text_input("Dataset ID or URL", placeholder="e.g. fhrw-4uyv or https://data.cityofnewyork.us/resource/fhrw-4uyv.json", key="nyc_custom_id")
