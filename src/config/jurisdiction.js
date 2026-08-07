@@ -22,8 +22,8 @@ export const JURISDICTION = {
 };
 export const NWS = {
   "office": "OKX",
-  "grid_x": 33,
-  "grid_y": 37,
+  "grid_x": 62,
+  "grid_y": 50,
   "alert_zone": "NYZ178",
   "obs_stations": [
     {
@@ -33,28 +33,58 @@ export const NWS = {
       "lng": -72.8638
     },
     {
-      "id": "KJFK",
-      "name": "JFK Airport",
-      "lat": 40.6413,
-      "lng": -73.7781
-    },
-    {
       "id": "KFRG",
       "name": "Republic Airport (Farmingdale)",
       "lat": 40.7288,
       "lng": -73.4138
     },
     {
-      "id": "KHTO",
-      "name": "East Hampton Airport",
-      "lat": 40.9596,
-      "lng": -72.2518
+      "id": "KISP",
+      "name": "Long Island MacArthur Airport",
+      "lat": 40.7952,
+      "lng": -73.1002
+    },
+    {
+      "id": "KHWV",
+      "name": "Brookhaven Airport",
+      "lat": 40.8219,
+      "lng": -72.8694
+    },
+    {
+      "id": "KFOK",
+      "name": "Gabreski Airport",
+      "lat": 40.8437,
+      "lng": -72.6318
+    },
+    {
+      "id": "KMTP",
+      "name": "Montauk Airport",
+      "lat": 41.0765,
+      "lng": -71.9208
+    },
+    {
+      "id": "KJFK",
+      "name": "JFK Airport",
+      "lat": 40.6413,
+      "lng": -73.7781
+    },
+    {
+      "id": "KLGA",
+      "name": "LaGuardia Airport",
+      "lat": 40.7772,
+      "lng": -73.8726
+    },
+    {
+      "id": "KBDR",
+      "name": "Bridgeport Airport",
+      "lat": 41.1635,
+      "lng": -73.1262
     }
   ],
   "alert_url": "https://api.weather.gov/alerts/active?area=NY",
-  "forecast_url": "https://api.weather.gov/gridpoints/OKX/33,37/forecast",
-  "hourly_url": "https://api.weather.gov/gridpoints/OKX/33,37/forecast/hourly",
-  "gridpoint_url": "https://api.weather.gov/gridpoints/OKX/33,37"
+  "forecast_url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+  "hourly_url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+  "gridpoint_url": "https://api.weather.gov/gridpoints/OKX/62,50"
 };
 export const COOPS_STATIONS = [
   {
@@ -151,7 +181,7 @@ export const KNOWLEDGE_BASE = {
   "criticalInfrastructure": {
     "label": "Critical Infrastructure",
     "source": "Local OEM",
-    "data": "Hospitals — Level 1 Trauma: NYU Langone LI (Mineola, Nassau — only Nassau L1); Stony Brook SUMC (Suffolk — only Suffolk L1 adult + peds); Good Samaritan (West Islip — only L1 on LI south shore).\nLevel 2 Trauma: NYU Langone Suffolk (East Patchogue, elevated Oct 2024); Northwell Huntington Hospital.\nLevel 3 Trauma: South Nassau Communities (Oceanside); Southampton Hospital (East End); Peconic Bay Medical Center (Riverhead).\nNOTE: No trauma center on Fire Island, Long Beach, or Rockaway Peninsula itself.\nPower: PSEG Long Island (LIPA) — Sandy caused ~1.1M outages, 3+ week restoration. National Grid (gas). Substations vulnerable at Oceanside, Bay Shore, Patchogue.\nRail: LIRR 11 branches, ~300K daily riders. Long Beach Branch most flood-vulnerable; Wreck Lead Bridge (Reynolds Channel) hardened post-Sandy ($120M).\nBay Park Sewage Treatment Plant (East Rockaway): serves ~800K; tunnel to NYC plant completed 2023 post-Sandy resiliency project.\nCoast Guard: Stations at Fire Island, Jones Beach (reduced ops 2024), Eatons Neck, Shinnecock, Moriches, Montauk.\n"
+    "data": "Hospitals — Nassau Level 1 Trauma (3): North Shore University Hospital (Manhasset, ACS + NYS DOH Regional L1); Nassau University Medical Center (East Meadow, NYS DOH L1); NYU Langone LI (Mineola, ACS L1).\nNassau Level 2: Mount Sinai South Nassau (Oceanside, formerly South Nassau Communities).\nSuffolk Level 1 Trauma (3): Stony Brook University Hospital (ACS + NYS DOH Regional L1, adult + peds); South Shore University Hospital (Bay Shore, ACS L1 Aug 2024, NYS DOH state designation pending); Good Samaritan University Hospital (West Islip, ACS L1 adult / L2 peds).\nSuffolk Level 2: NYU Langone Suffolk (East Patchogue, ACS-verified Jul 2025); Northwell Huntington Hospital.\nSuffolk Level 3 / East End: Southampton Hospital; Peconic Bay Medical Center (Riverhead).\nNOTE: No trauma center on Fire Island, Long Beach barrier island, or Rockaway Peninsula itself. South Shore University Hospital NYS state L1 designation still pending as of 2025.\nHelipads: North Shore UH (FAA 7NY3/6NK3), NUMC (FAA 0NK4), Stony Brook (FAA 6NY6), South Shore UH — critical for medevac routing decisions.\n"
   },
   "hazardProfiles": {
     "label": "Hazard Profiles",
@@ -171,73 +201,87 @@ export const MAP_LAYERS = {
     "icon": "🏥",
     "features": [
       {
-        "name": "NYU Langone LI (Mineola)",
-        "lat": 40.7505,
-        "lng": -73.6434,
-        "note": "Level 1 Adult & Peds | Nassau ONLY Level 1",
+        "name": "North Shore University Hospital",
+        "lat": 40.7765,
+        "lng": -73.6993,
+        "note": "Level 1 Adult & Pediatric Trauma | ACS-verified | NYS DOH Regional L1 | 300 Community Dr, Manhasset | 516-562-0100",
         "borough": ""
       },
       {
-        "name": "Stony Brook SUMC",
-        "lat": 40.9129,
-        "lng": -73.1195,
-        "note": "Level 1 Adult & Peds | Suffolk ONLY Level 1",
+        "name": "Nassau University Medical Center",
+        "lat": 40.7226,
+        "lng": -73.5512,
+        "note": "Level 1 Adult Trauma | NYS DOH designated | Special Medical Needs Shelter hub | 2201 Hempstead Tpke, East Meadow | 516-572-3000",
         "borough": ""
       },
       {
-        "name": "Good Samaritan (West Islip)",
-        "lat": 40.6973,
-        "lng": -73.3037,
-        "note": "Level 1 Adult | Only Level 1 on LI south shore",
+        "name": "NYU Langone Hospital — Long Island",
+        "lat": 40.743,
+        "lng": -73.641,
+        "note": "Level 1 Adult Trauma | ACS-verified | 259 1st St, Mineola | 516-663-0333",
         "borough": ""
       },
       {
-        "name": "NYU Langone Suffolk (E. Patchogue)",
-        "lat": 40.7659,
-        "lng": -72.9924,
-        "note": "Level 2 Adult Trauma | Elevated Oct 2024",
+        "name": "Mount Sinai South Nassau Hospital",
+        "lat": 40.6472,
+        "lng": -73.6358,
+        "note": "Level 2 Adult Trauma | ACS-verified | formerly South Nassau Communities Hospital | 1 Health Rd, Oceanside | 516-632-3000",
+        "borough": ""
+      },
+      {
+        "name": "Stony Brook University Hospital",
+        "lat": 40.9103,
+        "lng": -73.1163,
+        "note": "Level 1 Adult & Pediatric Trauma | ACS-verified | NYS DOH Regional L1 | 101 Nicolls Rd, Stony Brook | 631-444-4000",
+        "borough": ""
+      },
+      {
+        "name": "South Shore University Hospital",
+        "lat": 40.7258,
+        "lng": -73.2393,
+        "note": "Level 1 Adult Trauma | ACS-verified Aug 2024 | NYS DOH state designation pending | formerly Southside Hospital | 301 E Main St, Bay Shore | 631-968-3000",
+        "borough": ""
+      },
+      {
+        "name": "Good Samaritan University Hospital",
+        "lat": 40.6932,
+        "lng": -73.304,
+        "note": "Level 1 Adult / Level 2 Pediatric Trauma | ACS-verified | 1000 Montauk Hwy, West Islip | 631-376-3000",
+        "borough": ""
+      },
+      {
+        "name": "NYU Langone Hospital — Suffolk",
+        "lat": 40.7726,
+        "lng": -72.9772,
+        "note": "Level 2 Adult Trauma | NYS DOH Oct 2024 | ACS-verified Jul 2025 | 101 Hospital Rd, East Patchogue | 631-654-7100",
         "borough": ""
       },
       {
         "name": "Northwell Huntington Hospital",
         "lat": 40.8762,
         "lng": -73.4274,
-        "note": "Level 2 Trauma | North Shore",
-        "borough": ""
-      },
-      {
-        "name": "Nassau University Medical Center",
-        "lat": 40.7295,
-        "lng": -73.5576,
-        "note": "Public hospital | Special Medical Needs Shelter hub",
-        "borough": ""
-      },
-      {
-        "name": "South Nassau Communities Hospital",
-        "lat": 40.6354,
-        "lng": -73.6381,
-        "note": "Level 3 Trauma | South shore receiving | Oceanside",
+        "note": "Level 2 Trauma | North Shore receiving | 270 Park Ave, Huntington | 631-351-2000",
         "borough": ""
       },
       {
         "name": "Southampton Hospital",
         "lat": 40.8837,
         "lng": -72.3849,
-        "note": "Level 3 Trauma | Primary East End receiving",
+        "note": "Level 3 Trauma | Primary East End receiving | nearest L1 is Stony Brook 45+ mi | 240 Meeting House Lane | 631-726-8200",
         "borough": ""
       },
       {
         "name": "Peconic Bay Medical Center",
         "lat": 40.9137,
         "lng": -72.6551,
-        "note": "Level 3 Trauma | North Fork / Riverhead",
+        "note": "Level 3 Trauma | North Fork / East End hub | 1300 Roanoke Ave, Riverhead | 631-548-6000",
         "borough": ""
       },
       {
         "name": "NYC H+H Queens Hospital Center",
         "lat": 40.7007,
         "lng": -73.7949,
-        "note": "Level 1 Trauma (NYC) | Primary Rockaway receiving",
+        "note": "Level 1 Trauma (NYC) | Primary receiving for Rockaway Peninsula residents | 82-68 164th St, Jamaica | 718-883-3000",
         "borough": ""
       }
     ]
