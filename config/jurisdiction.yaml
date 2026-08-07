@@ -23,18 +23,38 @@ nws:
     name: Upton NY (OKX)
     lat: 40.8651
     lng: -72.8638
-  - id: KJFK
-    name: JFK Airport
-    lat: 40.6413
-    lng: -73.7781
   - id: KFRG
     name: Republic Airport (Farmingdale)
     lat: 40.7288
     lng: -73.4138
-  - id: KHTO
-    name: East Hampton Airport
-    lat: 40.9596
-    lng: -72.2518
+  - id: KISP
+    name: Long Island MacArthur Airport
+    lat: 40.7952
+    lng: -73.1002
+  - id: KHWV
+    name: Brookhaven Airport
+    lat: 40.8219
+    lng: -72.8694
+  - id: KFOK
+    name: Gabreski Airport
+    lat: 40.8437
+    lng: -72.6318
+  - id: KMTP
+    name: Montauk Airport
+    lat: 41.0765
+    lng: -71.9208
+  - id: KJFK
+    name: JFK Airport
+    lat: 40.6413
+    lng: -73.7781
+  - id: KLGA
+    name: LaGuardia Airport
+    lat: 40.7772
+    lng: -73.8726
+  - id: KBDR
+    name: Bridgeport Airport
+    lat: 41.1635
+    lng: -73.1262
 
 coops_stations:
 - id: '8516945'

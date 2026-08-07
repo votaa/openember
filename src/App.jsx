@@ -21,6 +21,20 @@ const _SOC   = _SOC_raw   || {}
 const _BR    = _BR_raw    || {}
 const _COOPS = _COOPS_raw || []
 
+// Regional NWS/METAR observation stations used by the WIND OBS map layer.
+// Prioritize Long Island airports, with nearby stations for western Sound/JFK context.
+const WIND_STATIONS = [
+  { id: "KFRG", name: "Republic Airport",              lat: 40.7288, lng: -73.4134 },
+  { id: "KISP", name: "Long Island MacArthur Airport", lat: 40.7952, lng: -73.1002 },
+  { id: "KHWV", name: "Brookhaven Airport",            lat: 40.8219, lng: -72.8694 },
+  { id: "KFOK", name: "Gabreski Airport",              lat: 40.8437, lng: -72.6318 },
+  { id: "KMTP", name: "Montauk Airport",               lat: 41.0765, lng: -71.9208 },
+  { id: "KOKX", name: "NWS Upton",                     lat: 40.8651, lng: -72.8638 },
+  { id: "KJFK", name: "JFK Airport",                   lat: 40.6413, lng: -73.7781 },
+  { id: "KLGA", name: "LaGuardia Airport",             lat: 40.7772, lng: -73.8726 },
+  { id: "KBDR", name: "Bridgeport Airport",            lat: 41.1635, lng: -73.1262 },
+]
+
 const CFG = {
   name:       _J.name       || "New York City",
   shortName:  _J.short_name || "NYC",
@@ -409,16 +423,17 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
 
   // Wind obs
   useEffect(() => {
-    if (!ready || !showWind || !leafRef.current || !windRef.current) return
+    if (!ready || !leafRef.current || !windRef.current) return
     const map = leafRef.current
-    windRef.current.addTo(map)
-    const STATIONS = [
-      {id:"KNYC",name:"Central Park",lat:40.7789,lng:-73.9692},
-      {id:"KJFK",name:"JFK Airport",lat:40.6413,lng:-73.7781},
-      {id:"KEWR",name:"Newark",lat:40.6895,lng:-74.1745},
-      {id:"KLGA",name:"LaGuardia",lat:40.7772,lng:-73.8726},
-    ]
-    Promise.all(STATIONS.map(s =>
+
+    if (!showWind) {
+      windRef.current.clearLayers()
+      if (map.hasLayer(windRef.current)) map.removeLayer(windRef.current)
+      return
+    }
+
+    if (!map.hasLayer(windRef.current)) windRef.current.addTo(map)
+    Promise.all(WIND_STATIONS.map(s =>
       fetch(`https://api.weather.gov/stations/${s.id}/observations/latest`, {signal:AbortSignal.timeout(6000),headers:{"User-Agent":"EMBER/1.0"}})
         .then(r=>r.ok?r.json():null).then(d=>{
           if (!d) return null
