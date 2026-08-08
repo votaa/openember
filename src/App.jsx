@@ -29,7 +29,6 @@ const WIND_STATIONS = [
   { id: "KHWV", name: "Brookhaven Airport",            lat: 40.8219, lng: -72.8694 },
   { id: "KFOK", name: "Gabreski Airport",              lat: 40.8437, lng: -72.6318 },
   { id: "KMTP", name: "Montauk Airport",               lat: 41.0765, lng: -71.9208 },
-  { id: "KOKX", name: "NWS Upton",                     lat: 40.8651, lng: -72.8638 },
   { id: "KJFK", name: "JFK Airport",                   lat: 40.6413, lng: -73.7781 },
   { id: "KLGA", name: "LaGuardia Airport",             lat: 40.7772, lng: -73.8726 },
   { id: "KBDR", name: "Bridgeport Airport",            lat: 41.1635, lng: -73.1262 },
@@ -310,7 +309,6 @@ const NOAA_ENDPOINTS = [
   {id:"nws_forecast",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:`7-Day Forecast — ${CFG.shortName}`,     url: NWS_FORECAST_URL},
   {id:"nws_hourly",    cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Hourly Forecast",                       url:`${NWS_FORECAST_URL}/hourly`},
   {id:"nws_grid",      cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Wind & Precip Grid",                    url:`https://api.weather.gov/gridpoints/${_NWS.office||"OKX"}/${_NWS.grid_x||33},${_NWS.grid_y||37}`},
-  {id:"nws_obs_kokx", cat:"NWS",     color:"#60a5fa", icon:"🌩", name:"Observations — Upton NY (OKX)",         url:"https://api.weather.gov/stations/KOKX/observations/latest",                                              mapKey:true},
   {id:"nws_obs_kjfk",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Observations — JFK Airport",            url:"https://api.weather.gov/stations/KJFK/observations/latest",                                              mapKey:true},
   // CO-OPS
   {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},

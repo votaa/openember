@@ -146,7 +146,6 @@ if _cfg_map_points:
     MAP_POINTS = _cfg_map_points
 
 WIND_STATIONS = CFG.nws_obs_stations or [
-    {"id": "KOKX", "name": "NWS Upton", "lat": 40.8651, "lng": -72.8638},
     {"id": "KFRG", "name": "Republic Airport", "lat": 40.7288, "lng": -73.4138},
     {"id": "KISP", "name": "Long Island MacArthur Airport", "lat": 40.7952, "lng": -73.1002},
     {"id": "KHWV", "name": "Brookhaven Airport", "lat": 40.8219, "lng": -72.8694},
