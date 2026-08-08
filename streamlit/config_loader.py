@@ -136,7 +136,12 @@ class JurisdictionConfig:
     # ── NWS ───────────────────────────────────────────────────────────────────
     @property
     def nws_office(self) -> str:
-        return self._raw.get("nws", {}).get("office", "OKX")
+        return self._raw.get("nws", {}).get("office", "OKX").upper()
+
+    @property
+    def nws_products_office(self) -> str:
+        office = self.nws_office
+        return office if len(office) == 4 else f"K{office}"
 
     @property
     def nws_grid(self) -> tuple[int, int]:
