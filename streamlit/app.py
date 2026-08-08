@@ -145,24 +145,39 @@ _cfg_map_points = CFG.map_points
 if _cfg_map_points:
     MAP_POINTS = _cfg_map_points
 
+WIND_STATIONS = CFG.nws_obs_stations or [
+    {"id": "KOKX", "name": "NWS Upton", "lat": 40.8651, "lng": -72.8638},
+    {"id": "KFRG", "name": "Republic Airport", "lat": 40.7288, "lng": -73.4138},
+    {"id": "KISP", "name": "Long Island MacArthur Airport", "lat": 40.7952, "lng": -73.1002},
+    {"id": "KHWV", "name": "Brookhaven Airport", "lat": 40.8219, "lng": -72.8694},
+    {"id": "KFOK", "name": "Gabreski Airport", "lat": 40.8437, "lng": -72.6318},
+    {"id": "KMTP", "name": "Montauk Airport", "lat": 41.0765, "lng": -71.9208},
+]
+
 NOAA_ENDPOINTS = [
-    {"id": "nws_alerts_ny",     "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Active Alerts — NY",             "url": "https://api.weather.gov/alerts/active?area=NY",                                                                                        "desc": "All active NWS alerts for New York State",               "tags": ["alerts","flood","tornado","winter storm"]},
-    {"id": "nws_alerts_severe", "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Extreme/Severe Alerts Only",      "url": "https://api.weather.gov/alerts/active?area=NY&severity=Extreme,Severe&status=actual",                                                    "desc": "Only extreme and severe active alerts",                   "tags": ["extreme","severe","priority"]},
-    {"id": "nws_forecast_nyc",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "7-Day Forecast — NYC",            "url": "https://api.weather.gov/gridpoints/OKX/33,37/forecast",                                                                                 "desc": "NWS OKX 7-day text forecast for NYC metro",               "tags": ["forecast","7-day","temperature"]},
-    {"id": "nws_forecast_hrly", "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Hourly Forecast — NYC",           "url": "https://api.weather.gov/gridpoints/OKX/33,37/forecast/hourly",                                                                          "desc": "Hour-by-hour forecast — temp, wind, precipitation prob",  "tags": ["hourly","wind","precipitation"]},
-    {"id": "nws_grid_wind",     "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Wind & Precip Grid — NYC",        "url": "https://api.weather.gov/gridpoints/OKX/33,37",                                                                                          "desc": "Full NWS gridpoint — wind, gusts, direction, QPF",        "tags": ["wind","QPF","precipitation","grid"]},
-    {"id": "nws_obs_knyc",      "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Observations — Central Park",     "url": "https://api.weather.gov/stations/KNYC/observations/latest",                                                                             "desc": "Latest surface observation from Central Park",            "tags": ["observations","current conditions","temperature"]},
-    {"id": "nws_obs_kjfk",      "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Observations — JFK Airport",      "url": "https://api.weather.gov/stations/KJFK/observations/latest",                                                                             "desc": "Latest surface observation from JFK",                     "tags": ["observations","airport","coastal"]},
-    {"id": "nws_products_okx",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Text Products — NWS OKX",         "url": "https://api.weather.gov/products?office=OKX&limit=10",                                                                                  "desc": "Latest NWS text products: AFD, Coastal Hazards, etc.",    "tags": ["AFD","forecast discussion","text products"]},
-    {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery",       "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level at The Battery — primary NYC surge gauge", "tags": ["water level","surge","battery"]},
-    {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Battery 48h", "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
-    {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",       "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
-    {"id": "coops_sandy_hook",  "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Sandy Hook, NJ",    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level at Sandy Hook — outer harbor ref",   "tags": ["water level","sandy hook","outer harbor"]},
-    {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — The Battery Station",      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at The Battery",        "tags": ["wind","meteorological"]},
+    {"id": "nws_alerts_ny",     "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Active Alerts — {CFG.state}",            "url": CFG.nws_alert_url,        "desc": f"All active NWS alerts for {CFG.state_full}",             "tags": ["alerts","flood","coastal","winter storm"]},
+    {"id": "nws_alerts_severe", "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": "Extreme/Severe Alerts Only",             "url": f"{CFG.nws_alert_url}&severity=Extreme,Severe&status=actual", "desc": "Only extreme and severe active alerts",                 "tags": ["extreme","severe","priority"]},
+    {"id": "nws_forecast_li",   "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"7-Day Forecast — {CFG.short_name}",      "url": CFG.nws_forecast_url,     "desc": f"NWS {CFG.nws_office} 7-day forecast for {CFG.name}",     "tags": ["forecast","7-day","temperature"]},
+    {"id": "nws_forecast_hrly", "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Hourly Forecast — {CFG.short_name}",     "url": CFG.nws_hourly_url,       "desc": "Hour-by-hour forecast — temp, wind, precipitation prob", "tags": ["hourly","wind","precipitation"]},
+    {"id": "nws_grid_wind",     "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Wind & Precip Grid — {CFG.short_name}",  "url": CFG.nws_gridpoint_url,    "desc": "Full NWS gridpoint — wind, gusts, direction, QPF",       "tags": ["wind","QPF","precipitation","grid"]},
+    *[
+        {"id": f"nws_obs_{s['id'].lower()}", "cat": "NWS", "color": "#60a5fa", "icon": "🌩",
+         "name": f"Observations — {s['name']}", "url": f"https://api.weather.gov/stations/{s['id']}/observations/latest",
+         "desc": f"Latest surface observation from {s['name']}", "tags": ["observations","airport","wind","current conditions"]}
+        for s in WIND_STATIONS
+    ],
+    {"id": "nws_products_okx",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Text Products — NWS {CFG.nws_office}", "url": f"https://api.weather.gov/products?office={CFG.nws_office}&limit=10", "desc": "Latest NWS text products: AFD, Coastal Hazards, etc.", "tags": ["AFD","forecast discussion","text products"]},
+    {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",          "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
+    {"id": "coops_fire_island", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Fire Island USCG",     "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515186&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level near Fire Island inlet",             "tags": ["water level","fire island","great south bay"]},
+    {"id": "coops_bay_shore",   "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Bay Shore",           "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515102&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Great South Bay",                  "tags": ["water level","bay shore","great south bay"]},
+    {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery Reference","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "NY Harbor surge reference used for regional comparison",   "tags": ["water level","surge","battery","reference"]},
+    {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Kings Point 48h","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8516945&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
+    {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — Kings Point Station",        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at Kings Point",        "tags": ["wind","meteorological","long island sound"]},
     {"id": "coops_stations_ny", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "All CO-OPS Stations — NY",        "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=waterlevels&state=NY",                                       "desc": "All active water level stations in New York state",        "tags": ["stations","inventory"]},
     {"id": "ncei_datasets",     "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "NCEI Dataset Catalog",            "url": "https://www.ncei.noaa.gov/access/services/support/v3/datasets.json",                                                                    "desc": "Full catalog of all NCEI datasets",                        "tags": ["catalog","datasets","metadata"]},
-    {"id": "ncei_daily_cp",     "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — Central Park",  "url": "DYNAMIC_CP",  "dynamic": True, "desc": "Last 7 days of daily weather from Central Park",           "tags": ["daily summaries","temperature","precipitation","snow"]},
-    {"id": "ncei_daily_jfk",    "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — JFK Airport",   "url": "DYNAMIC_JFK", "dynamic": True, "desc": "Last 7 days of daily weather from JFK Airport",             "tags": ["daily summaries","jfk","coastal"]},
+    {"id": "ncei_daily_frg",    "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — Republic Airport", "url": "DYNAMIC_FRG", "dynamic": True, "desc": "Last 7 days of daily weather from Republic Airport",      "tags": ["daily summaries","farmingdale","republic","wind"]},
+    {"id": "ncei_daily_hwv",    "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — Brookhaven Airport","url": "DYNAMIC_HWV", "dynamic": True, "desc": "Last 7 days of daily weather from Brookhaven Airport",    "tags": ["daily summaries","brookhaven","shirley","wind"]},
+    {"id": "ncei_daily_fok",    "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — Gabreski Airport",  "url": "DYNAMIC_FOK", "dynamic": True, "desc": "Last 7 days of daily weather from Gabreski Airport",      "tags": ["daily summaries","westhampton","gabreski","wind"]},
     {"id": "ncei_storm_meta",   "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Storm Events Dataset Metadata",   "url": "https://www.ncei.noaa.gov/access/services/support/v3/datasets/storm-events.json",                                                      "desc": "Metadata for NCEI storm events database",                  "tags": ["storm events","metadata","historical"]},
     {"id": "spc_watches",       "cat": "SPC",    "color": "#f87171", "icon": "⚡", "name": "Active Watches (Tornado/SVR)",    "url": "https://www.spc.noaa.gov/products/watch/ActiveWW.txt",   "text": True,  "desc": "Currently active SPC watches",                             "tags": ["watches","tornado","severe thunderstorm"]},
     {"id": "spc_day1",          "cat": "SPC",    "color": "#f87171", "icon": "⚡", "name": "Day 1 Convective Outlook",        "url": "https://www.spc.noaa.gov/products/outlook/day1otlk.txt", "text": True,  "desc": "SPC Day 1 convective outlook — categorical severe risk",   "tags": ["convective","outlook","severe"]},
@@ -172,19 +187,19 @@ NOAA_ENDPOINTS = [
 ]
 
 MAP_CONNECTED_IDS = {
-    "coops_battery", "coops_kings_point", "coops_sandy_hook",
+    "coops_battery", "coops_kings_point", "coops_fire_island", "coops_bay_shore",
     "coops_predictions", "coops_wind",
     "nws_alerts_ny", "nws_alerts_severe",
-    "nws_obs_knyc", "nws_obs_kjfk",
+    *{f"nws_obs_{s['id'].lower()}" for s in WIND_STATIONS},
 }
 
 REFRESH_INTERVALS = {
-    "coops_battery": 300, "coops_kings_point": 300, "coops_sandy_hook": 300,
+    "coops_battery": 300, "coops_kings_point": 300, "coops_fire_island": 300, "coops_bay_shore": 300,
     "coops_wind": 300, "coops_predictions": 1800,
     "nws_alerts_ny": 180, "nws_alerts_severe": 180,
-    "nws_obs_knyc": 300, "nws_obs_kjfk": 300,
-    "nws_forecast_nyc": 3600, "nws_forecast_hrly": 3600, "nws_grid_wind": 3600,
-    "ncei_daily_cp": 86400, "ncei_daily_jfk": 86400,
+    **{f"nws_obs_{s['id'].lower()}": 300 for s in WIND_STATIONS},
+    "nws_forecast_li": 3600, "nws_forecast_hrly": 3600, "nws_grid_wind": 3600,
+    "ncei_daily_frg": 86400, "ncei_daily_hwv": 86400, "ncei_daily_fok": 86400,
 }
 
 LIVING_ATLAS_FILTERS = {
@@ -201,13 +216,6 @@ LIVING_ATLAS_FILTERS = {
 ITEM_TYPES = ["", "Feature Layer", "Map Service", "Image Service",
               "Vector Tile Layer", "Web Map", "Web Scene", "Feature Collection",
               "StoryMap", "Dashboard"]
-
-WIND_STATIONS = [
-    {"id": "KNYC", "name": "Central Park", "lat": 40.7789, "lng": -73.9692},
-    {"id": "KJFK", "name": "JFK Airport",  "lat": 40.6413, "lng": -73.7781},
-    {"id": "KEWR", "name": "Newark",       "lat": 40.6895, "lng": -74.1745},
-    {"id": "KLGA", "name": "LaGuardia",    "lat": 40.7772, "lng": -73.8726},
-]
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS — all defined at module level before any UI code
@@ -278,8 +286,13 @@ def resolve_url(ep):
     today    = _dt.date.today().isoformat()
     week_ago = (_dt.date.today() - _dt.timedelta(days=7)).isoformat()
     base = "https://www.ncei.noaa.gov/access/services/data/v1?dataset=daily-summaries&dataTypes=TMAX,TMIN,PRCP,SNOW,AWND&format=json&units=standard"
-    if ep["id"] == "ncei_daily_cp":  return f"{base}&stations=USW00094728&startDate={week_ago}&endDate={today}"
-    if ep["id"] == "ncei_daily_jfk": return f"{base}&stations=USW00094789&startDate={week_ago}&endDate={today}"
+    station_ids = {
+        "ncei_daily_frg": "GHCND:USW00054787",
+        "ncei_daily_hwv": "GHCND:USW00094791",
+        "ncei_daily_fok": "GHCND:USW00094745",
+    }
+    if ep["id"] in station_ids:
+        return f"{base}&stations={station_ids[ep['id']]}&startDate={week_ago}&endDate={today}"
     return ep["url"]
 
 def fetch_noaa_ep(ep):
@@ -470,7 +483,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
-    m = folium.Map(location=[40.7128, -74.006], zoom_start=10,
+    m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
                    tiles="CartoDB dark_matter", prefer_canvas=True)
     # NEXRAD radar tiles with 5-min cache buster
     if show_radar:
@@ -1020,7 +1033,7 @@ def esri_feature_popup_html(feature: dict, layer_name: str, color: str) -> str:
 for k, v in [
     ("messages",     [{"role": "assistant", "content":
                         f"EMBER initialized — Emergency Management Body of Evidence & Resources\n"
-                        f"Backend: Ollama Cloud · {OLLAMA_MODEL}\nJurisdiction: New York City\n\n"
+                        f"Backend: Ollama Cloud · {OLLAMA_MODEL}\nJurisdiction: {CFG.name}\n\n"
                         f"Knowledge base loaded · NOAA feeds auto-fetching · Radar & wind on by default\n"
                         f"Tidal gauges: fetching live CO-OPS water levels for all NY stations\n"
                         f"Click a map marker or type a query to begin."}]),
