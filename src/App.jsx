@@ -40,6 +40,7 @@ const CFG = {
   state:      _J.state      || "NY",
   center:     _J.center     || [40.7128, -74.006],
   zoom:       _J.zoom       || 10,
+  bbox:       _J.bbox       || null,
 }
 const NWS_ALERT_URL    = _NWS.alert_url    || `https://api.weather.gov/alerts/active?area=${CFG.state}`
 const NWS_FORECAST_URL = _NWS.forecast_url || `https://api.weather.gov/gridpoints/OKX/33,37/forecast`
@@ -50,6 +51,7 @@ const OLLAMA_KEY_ENV     = import.meta.env?.VITE_OLLAMA_API_KEY || ""
 
 // ── localStorage config — persists across sessions, overrides build-time defaults ──
 const LS_KEY = "ember_config_v1"
+const MAP_WIDTH_LS_KEY = "ember_map_width"
 
 function loadLocalConfig() {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") } catch { return {} }
@@ -59,6 +61,17 @@ function saveLocalConfig(cfg) {
 }
 function clearLocalConfig() {
   try { localStorage.removeItem(LS_KEY) } catch {}
+}
+function loadMapWidth(defaultWidth) {
+  try {
+    const width = parseFloat(localStorage.getItem(MAP_WIDTH_LS_KEY))
+    return Number.isFinite(width) ? width : defaultWidth
+  } catch {
+    return defaultWidth
+  }
+}
+function saveMapWidth(width) {
+  try { localStorage.setItem(MAP_WIDTH_LS_KEY, String(width)) } catch {}
 }
 
 // Merge: localStorage values override build-time values
@@ -347,7 +360,7 @@ function summarizeNOAA(result) {
 
 // ── Map component ─────────────────────────────────────────────────────────────
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick }) {
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth }) {
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
   const layerRefs = useRef({})
@@ -363,6 +376,12 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19, subdomains:"abcd"
       }).addTo(map)
+      if (CFG.bbox) {
+        map.fitBounds([
+          [CFG.bbox.south, CFG.bbox.west],
+          [CFG.bbox.north, CFG.bbox.east],
+        ], { padding: [24, 24] })
+      }
 
       // Radar
       const epoch5 = Math.floor(Date.now()/300000)
@@ -402,6 +421,11 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       setReady(true)
     }).catch(e => console.error("Leaflet init failed:", e))
   }, [])
+
+  useEffect(() => {
+    if (!leafRef.current) return
+    requestAnimationFrame(() => leafRef.current?.invalidateSize())
+  }, [mapWidth])
 
   // Layer visibility
   useEffect(() => {
@@ -531,7 +555,11 @@ export default function App() {
   const [noaaCat, setNoaaCat]           = useState("ALL")
   const [noaaCache, setNoaaCache]       = useState({})
   const [showQuick, setShowQuick]       = useState(false)
-  const [mapWidth, setMapWidth]         = useState(42)
+  const MAP_WIDTH_DEFAULT = 80
+  const MAP_WIDTH_MIN = 60
+  const MAP_WIDTH_MAX = 88
+  const clampMapWidth = width => Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX, width))
+  const [mapWidth, setMapWidth]         = useState(() => loadMapWidth(MAP_WIDTH_DEFAULT))
   const [liveReadings, setLiveReadings] = useState({})
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
   const abortRef   = useRef(null)
@@ -539,6 +567,7 @@ export default function App() {
   const endRef     = useRef(null)
 
   useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}) }, [messages])
+  useEffect(() => { saveMapWidth(mapWidth) }, [mapWidth])
 
   const fetchAPIs = async () => {
     setFetching(true)
@@ -662,14 +691,33 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} />
+          <MapPanel activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} />
           {/* Resize handle */}
-          <div onMouseDown={e=>{
+          <div onPointerDown={e=>{
+            e.preventDefault()
+            const handle=e.currentTarget
+            const pointerId=e.pointerId
+            handle.setPointerCapture?.(pointerId)
             const startX=e.clientX,startW=mapWidth
-            const onMove=ev=>{const dx=ev.clientX-startX;setMapWidth(Math.max(25,Math.min(65,startW+dx/window.innerWidth*100)))}
-            const onUp=()=>{document.removeEventListener("mousemove",onMove);document.removeEventListener("mouseup",onUp)}
-            document.addEventListener("mousemove",onMove);document.addEventListener("mouseup",onUp)
-          }} style={{position:"absolute",top:0,right:0,width:6,height:"100%",cursor:"col-resize",zIndex:10,background:"transparent"}} />
+            const getNextWidth=clientX=>clampMapWidth(startW+(clientX-startX)/window.innerWidth*100)
+            const onMove=ev=>{
+              if (ev.pointerId!==pointerId) return
+              setMapWidth(getNextWidth(ev.clientX))
+            }
+            const onUp=ev=>{
+              if (ev.pointerId!==pointerId) return
+              const finalWidth=getNextWidth(ev.clientX)
+              setMapWidth(finalWidth)
+              saveMapWidth(finalWidth)
+              handle.releasePointerCapture?.(pointerId)
+              document.removeEventListener("pointermove",onMove)
+              document.removeEventListener("pointerup",onUp)
+              document.removeEventListener("pointercancel",onUp)
+            }
+            document.addEventListener("pointermove",onMove)
+            document.addEventListener("pointerup",onUp)
+            document.addEventListener("pointercancel",onUp)
+          }} style={{position:"absolute",top:0,right:-6,width:16,height:"100%",cursor:"col-resize",zIndex:10,background:"transparent",touchAction:"none"}} />
         </div>
 
         {/* Right panel */}
