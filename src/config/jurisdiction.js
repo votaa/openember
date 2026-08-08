@@ -27,12 +27,6 @@ export const NWS = {
   "alert_zone": "NYZ178",
   "obs_stations": [
     {
-      "id": "KOKX",
-      "name": "Upton NY (OKX)",
-      "lat": 40.8651,
-      "lng": -72.8638
-    },
-    {
       "id": "KFRG",
       "name": "Republic Airport (Farmingdale)",
       "lat": 40.7288,
