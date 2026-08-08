@@ -280,10 +280,9 @@ export const NOAA_CATEGORIES = {
       {
         id: "spc_active_watches",
         name: "Active Watches — Tornado / Severe Thunderstorm",
-        url: "https://www.spc.noaa.gov/products/watch/ActiveWW.txt",
-        desc: "Currently active SPC tornado and severe thunderstorm watches — plain text",
+        url: "https://api.weather.gov/alerts/active?status=actual&event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&zone=NYC059,NYC103,NYC081",
+        desc: "Currently active tornado and severe thunderstorm watches for Nassau, Suffolk, and Queens",
         tags: ["watches","tornado","severe thunderstorm","active"],
-        format: "text",
       },
       {
         id: "spc_day1_outlook",

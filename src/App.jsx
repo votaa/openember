@@ -317,7 +317,7 @@ const NOAA_ENDPOINTS = [
   {id:"coops_sandy",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Sandy Hook",              url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_wind",    cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Wind — The Battery",                    url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER"},
   // SPC / SWPC
-  {id:"spc_watches",   cat:"SPC",    color:"#f87171", icon:"⚡", name:"Active SPC Watches",                    url:"https://www.spc.noaa.gov/products/watch/ActiveWW.txt",                                                  text:true},
+  {id:"spc_watches",   cat:"SPC",    color:"#f87171", icon:"⚡", name:"Active SPC Watches",                    url:"https://api.weather.gov/alerts/active?status=actual&event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&zone=NYC059,NYC103,NYC081"},
   {id:"spc_day1",      cat:"SPC",    color:"#f87171", icon:"⚡", name:"Day 1 Convective Outlook",              url:"https://www.spc.noaa.gov/products/outlook/day1otlk.txt",                                                text:true},
   {id:"swpc_alerts",   cat:"SWPC",   color:"#a78bfa", icon:"☀️", name:"Space Weather Alerts",                  url:"https://services.swpc.noaa.gov/products/alerts.json"},
   {id:"swpc_kp",       cat:"SWPC",   color:"#a78bfa", icon:"☀️", name:"Planetary K-Index",                     url:"https://services.swpc.noaa.gov/json/planetary_k_index_1m.json"},
