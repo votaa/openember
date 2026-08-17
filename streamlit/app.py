@@ -477,11 +477,12 @@ def fetch_wind_obs():
     return results
 
 def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
-              live_readings=None, gauge_data=None, map_layers=None):
+              live_readings=None, gauge_data=None, map_layers=None, map_points=None):
     live_readings = live_readings or {}
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
+    map_points    = map_points or MAP_POINTS
     m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
                    tiles="CartoDB dark_matter", prefer_canvas=True)
     # NEXRAD radar tiles with 5-min cache buster
@@ -535,7 +536,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
 
         tg_fg.add_to(m)
     # Marker layers
-    for key, layer in MAP_POINTS.items():
+    for key, layer in map_points.items():
         if key not in active_layers: continue
         fg = folium.FeatureGroup(name=layer["label"])
         for f in layer["features"]:
@@ -1050,6 +1051,7 @@ for k, v in [
     ("gauge_stations", []),     # CO-OPS station list for NY (dynamic)
     ("gauge_fetched_at", _dt.datetime.min), # last fetch timestamp
     ("map_layers",  []),        # user-added map layers: [{id, name, type, color, icon, features, ...}]
+    ("_runtime_map_points", MAP_POINTS), # setup wizard edits before/reload after save
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
@@ -1289,7 +1291,8 @@ map_data = st_folium(
     build_map(active_layers, show_radar=show_radar, show_wind=show_wind,
               wind_obs=wind_obs, live_readings=live_rdgs,
               gauge_data=st.session_state.gauge_data,
-              map_layers=st.session_state.map_layers),
+              map_layers=st.session_state.map_layers,
+              map_points=st.session_state.get("_runtime_map_points", MAP_POINTS)),
     width="100%", height=380, returned_objects=["last_object_clicked_popup"]
 )
 

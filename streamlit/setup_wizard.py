@@ -7,6 +7,7 @@ and writes/updates config/jurisdiction.yaml.
 
 import streamlit as st
 import yaml
+import copy
 from pathlib import Path
 from config_loader import (
     save_config, load_config, get_example_yaml,
@@ -21,8 +22,11 @@ def render_wizard():
     st.markdown("## ⚙️ Jurisdiction Setup Wizard")
     st.markdown(
         "Configure EMBER for your municipality. Complete each section below. "
-        "Your answers are saved to `config/jurisdiction.yaml` and take effect immediately on next reload."
+        "Your answers are saved to `config/jurisdiction.yaml` and map point edits apply after saving."
     )
+    if st.session_state.get("_wiz_saved_path"):
+        saved_path = st.session_state.pop("_wiz_saved_path")
+        st.success(f"✓ Saved to `{saved_path}`. Map point edits are applied.")
 
     # Load existing config as starting values if it exists
     existing = {}
@@ -32,6 +36,15 @@ def render_wizard():
 
     def ex(section, key, default=""):
         return existing.get(section, {}).get(key, default)
+
+    def normalize_map_points(raw_points):
+        normalized = copy.deepcopy(raw_points or {})
+        if "flood_risk" in normalized and "floodRisk" not in normalized:
+            normalized["floodRisk"] = normalized.pop("flood_risk")
+        return normalized
+
+    if "_wiz_map_points" not in st.session_state:
+        st.session_state["_wiz_map_points"] = normalize_map_points(existing.get("map_points", {}))
 
     changed = False  # Track whether to show save button
 
@@ -182,14 +195,22 @@ def render_wizard():
         map_categories = {
             "hospitals":  ("Hospitals / Trauma Centers", "#f87171", "🏥"),
             "shelters":   ("Evacuation Shelters",         "#60a5fa", "🏫"),
+            "gauges":     ("Stream Gauges",               "#4ade80", "📡"),
             "eoc":        ("EOC / Command Posts",         "#facc15", "🏛"),
-            "flood_risk": ("High Flood Risk Areas",       "#fb923c", "💧"),
+            "floodRisk":  ("High Flood Risk Areas",       "#fb923c", "💧"),
         }
 
         map_points_out = {}
         for cat_key, (cat_label, cat_color, cat_icon) in map_categories.items():
             st.markdown(f"**{cat_icon} {cat_label}**")
-            existing_feats = existing.get("map_points", {}).get(cat_key, {}).get("features", [])
+            cat_state = st.session_state["_wiz_map_points"].setdefault(
+                cat_key,
+                {"label": cat_label, "color": cat_color, "icon": cat_icon, "features": []},
+            )
+            cat_state["label"] = cat_label
+            cat_state["color"] = cat_color
+            cat_state["icon"] = cat_icon
+            existing_feats = cat_state.setdefault("features", [])
 
             features_out = []
             for fi in range(max(len(existing_feats), 1)):
@@ -201,9 +222,11 @@ def render_wizard():
                 with mc4: fnot = st.text_input("Note",     value=prev_f.get("note",""), key=f"{cat_key}_note_{fi}")
                 if fn:
                     features_out.append({"name": fn, "lat": flat, "lng": flng, "note": fnot})
+                if fi < len(existing_feats):
+                    existing_feats[fi] = {"name": fn, "lat": flat, "lng": flng, "note": fnot}
 
             if st.button(f"+ Add {cat_label} row", key=f"add_{cat_key}"):
-                existing.setdefault("map_points", {}).setdefault(cat_key, {}).setdefault("features", []).append({})
+                st.session_state["_wiz_map_points"][cat_key]["features"].append({})
                 st.rerun()
 
             map_points_out[cat_key] = {
@@ -286,8 +309,9 @@ def render_wizard():
             }
             try:
                 saved_path = save_config(config_data)
-                st.success(f"✓ Saved to `{saved_path}`. Reload the page to apply your configuration.")
-                st.balloons()
+                st.session_state["_runtime_map_points"] = map_points_out
+                st.session_state["_wiz_saved_path"] = str(saved_path)
+                st.rerun()
             except Exception as e:
                 st.error(f"Save failed: {e}")
 
@@ -311,6 +335,8 @@ def render_wizard():
             # The NYC yaml is the default — just reload
             st.session_state["_wiz_nws"] = {}
             st.session_state["_wiz_coops"] = []
+            st.session_state.pop("_wiz_map_points", None)
+            st.session_state.pop("_runtime_map_points", None)
             st.rerun()
 
     st.divider()

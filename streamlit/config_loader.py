@@ -236,6 +236,7 @@ class JurisdictionConfig:
         raw_mp = self._raw.get("map_points", {})
         result = {}
         for key, cat in raw_mp.items():
+            normalized_key = "floodRisk" if key == "flood_risk" else key
             features = []
             for f in cat.get("features", []):
                 feat = {
@@ -247,7 +248,10 @@ class JurisdictionConfig:
                 if f.get("borough"):
                     feat["borough"] = f["borough"]
                 features.append(feat)
-            result[key] = {
+            if normalized_key in result:
+                result[normalized_key]["features"].extend(features)
+                continue
+            result[normalized_key] = {
                 "label":    cat.get("label", key),
                 "color":    cat.get("color", "#60a5fa"),
                 "icon":     cat.get("icon",  "📍"),
