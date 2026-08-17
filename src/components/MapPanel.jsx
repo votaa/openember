@@ -118,6 +118,30 @@ function buildPopupHTML(color, icon, f, reading) {
   </div>`
 }
 
+function buildMarkerGroups(L, mapLayers, onMarkerClick) {
+  const groups = {}
+  for (const [key, layer] of Object.entries(mapLayers)) {
+    const group    = L.layerGroup()
+    const features = Array.isArray(layer.features) ? layer.features : []
+    const lColor   = layer.color  || "#60a5fa"
+    const lIcon    = layer.icon   || "📍"
+    const lLabel   = layer.label  || key
+    features.forEach(f => {
+      if (!f.lat || !f.lng) return   // skip malformed features
+      const marker = L.marker([f.lat, f.lng], { icon: makeIcon(L, lColor, lIcon) })
+      marker._emberKey     = key
+      marker._emberFeature = f
+      marker._emberColor   = lColor
+      marker._emberIcon    = lIcon
+      marker.bindPopup(buildPopupHTML(lColor, lIcon, f, null))
+      marker.on("click", () => onMarkerClick?.({ ...f, layerLabel: lLabel, color: lColor }))
+      group.addLayer(marker)
+    })
+    groups[key] = group
+  }
+  return groups
+}
+
 export default function MapPanel({ activeLayers, onMarkerClick, showRadar, showWind, liveReadings = {}, mapLayers }) {
   const MAP_LAYERS = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : NYC_MAP_LAYERS
   const mapRef     = useRef(null)
@@ -158,27 +182,6 @@ export default function MapPanel({ activeLayers, onMarkerClick, showRadar, showW
       const windGroup = L.layerGroup()
       windRef.current = windGroup
 
-      // ── Marker layers ──────────────────────────────────────────────────────
-      for (const [key, layer] of Object.entries(MAP_LAYERS)) {
-        const group    = L.layerGroup()
-        const features = Array.isArray(layer.features) ? layer.features : []
-        const lColor   = layer.color  || "#60a5fa"
-        const lIcon    = layer.icon   || "📍"
-        const lLabel   = layer.label  || key
-        features.forEach(f => {
-          if (!f.lat || !f.lng) return   // skip malformed features
-          const marker = L.marker([f.lat, f.lng], { icon: makeIcon(L, lColor, lIcon) })
-          marker._emberKey     = key
-          marker._emberFeature = f
-          marker._emberColor   = lColor
-          marker._emberIcon    = lIcon
-          marker.bindPopup(buildPopupHTML(lColor, lIcon, f, null))
-          marker.on("click", () => onMarkerClick?.({ ...f, layerLabel: lLabel, color: lColor }))
-          group.addLayer(marker)
-        })
-        layerRefs.current[key] = group
-      }
-
       leafletRef.current = map
       setReady(true)
     })
@@ -187,6 +190,21 @@ export default function MapPanel({ activeLayers, onMarkerClick, showRadar, showW
       if (leafletRef.current) { leafletRef.current.remove(); leafletRef.current = null }
     }
   }, [])
+
+  // ── Rebuild marker layers when runtime map-point data changes ─────────────
+  useEffect(() => {
+    if (!ready || !leafletRef.current) return
+    const map = leafletRef.current
+    import("leaflet").then(({ default: L }) => {
+      for (const group of Object.values(layerRefs.current)) {
+        if (map.hasLayer(group)) map.removeLayer(group)
+      }
+      layerRefs.current = buildMarkerGroups(L, MAP_LAYERS, onMarkerClick)
+      for (const [key, group] of Object.entries(layerRefs.current)) {
+        if (activeLayers.includes(key)) group.addTo(map)
+      }
+    })
+  }, [MAP_LAYERS, activeLayers, onMarkerClick, ready])
 
   // ── Enrich gauge popups when live readings arrive ──────────────────────────
   useEffect(() => {

@@ -57,7 +57,7 @@ function loadLocalConfig() {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}") } catch { return {} }
 }
 function saveLocalConfig(cfg) {
-  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)) } catch {}
+  try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); return true } catch { return false }
 }
 function clearLocalConfig() {
   try { localStorage.removeItem(LS_KEY) } catch {}
@@ -360,7 +360,8 @@ function summarizeNOAA(result) {
 
 // ── Map component ─────────────────────────────────────────────────────────────
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth }) {
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers }) {
+  const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
   const layerRefs = useRef({})
@@ -396,7 +397,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       windRef.current = L.layerGroup()
 
       // Marker layers
-      for (const [key, layer] of Object.entries(MAP_LAYERS)) {
+      for (const [key, layer] of Object.entries(runtimeMapLayers)) {
         const group = L.layerGroup()
         const features = Array.isArray(layer.features) ? layer.features : []
         const color = layer.color || "#60a5fa"
@@ -534,7 +535,7 @@ export default function App() {
   const saveConfig = (updates) => {
     const merged = { ...localConfig, ...updates }
     setLocalConfig(merged)
-    saveLocalConfig(merged)
+    if (!saveLocalConfig(merged)) console.warn("EMBER config could not be saved to localStorage")
   }
   const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: Ollama Cloud · ${OLLAMA_MODEL}${!getRuntimeKey()?" · ⚠ NO API KEY":""  }\n\nKnowledge base loaded · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
   const [input, setInput]               = useState("")
@@ -561,6 +562,7 @@ export default function App() {
   const clampMapWidth = width => Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX, width))
   const [mapWidth, setMapWidth]         = useState(() => loadMapWidth(MAP_WIDTH_DEFAULT))
   const [liveReadings, setLiveReadings] = useState({})
+  const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
   const abortRef   = useRef(null)
   const fileInputRef = useRef(null)
@@ -568,6 +570,13 @@ export default function App() {
 
   useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}) }, [messages])
   useEffect(() => { saveMapWidth(mapWidth) }, [mapWidth])
+  useEffect(() => {
+    const onStorage = e => {
+      if (e.key === LS_KEY) setLocalConfig(loadLocalConfig())
+    }
+    window.addEventListener("storage", onStorage)
+    return () => window.removeEventListener("storage", onStorage)
+  }, [])
 
   const fetchAPIs = async () => {
     setFetching(true)
@@ -691,7 +700,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -962,6 +971,30 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
 }
 
 // ── Settings Panel ────────────────────────────────────────────────────────────
+function FeatureTable({ rows, setRows, color }) {
+  return (
+    <div>
+      {rows.map((f, i) => (
+        <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 2fr auto",gap:4,marginBottom:4,alignItems:"center"}}>
+          <input value={f.name||""} onChange={e=>{const n=[...rows];n[i]={...n[i],name:e.target.value};setRows(n)}} placeholder="Name"
+            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
+          <input value={f.lat||""} onChange={e=>{const n=[...rows];n[i]={...n[i],lat:parseFloat(e.target.value)||0};setRows(n)}} placeholder="Lat" type="number" step="0.0001"
+            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
+          <input value={f.lng||""} onChange={e=>{const n=[...rows];n[i]={...n[i],lng:parseFloat(e.target.value)||0};setRows(n)}} placeholder="Lng" type="number" step="0.0001"
+            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
+          <input value={f.note||""} onChange={e=>{const n=[...rows];n[i]={...n[i],note:e.target.value};setRows(n)}} placeholder="Note"
+            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
+          <button onClick={()=>setRows(rows.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:12,padding:"0 4px"}}>✕</button>
+        </div>
+      ))}
+      <button onClick={()=>setRows([...rows,{name:"",lat:0,lng:0,note:""}])}
+        style={{marginTop:4,padding:"3px 10px",borderRadius:4,fontSize:9,border:`1px solid ${color}44`,background:"transparent",color,cursor:"pointer",fontFamily:"monospace"}}>
+        + Add row
+      </button>
+    </div>
+  )
+}
+
 function SettingsPanel({ localConfig, onSave, onReset }) {
   const lc = localConfig || {}
   const lj = lc.jurisdiction || {}
@@ -1015,7 +1048,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
       }
     })
     setSaved(true)
-    setTimeout(() => { setSaved(false); window.location.reload() }, 1200)
+    setTimeout(() => setSaved(false), 1200)
   }
 
   const discoverNWS = async () => {
@@ -1047,29 +1080,6 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
   const label = (text) => <div style={{fontSize:9,color:"#556",fontWeight:700,letterSpacing:"0.06em",marginBottom:3,marginTop:8}}>{text}</div>
   const sectionBtn = (id, lbl) => (
     <button onClick={()=>setSection(id)} style={{padding:"5px 12px",borderRadius:4,fontSize:9.5,fontWeight:700,border:`1px solid ${section===id?"#4ade8066":"#1a1e28"}`,background:section===id?"#4ade8015":"transparent",color:section===id?"#4ade80":"#556",cursor:"pointer",fontFamily:"inherit"}}>{lbl}</button>
-  )
-
-  // Feature table editor
-  const FeatureTable = ({ rows, setRows, color }) => (
-    <div>
-      {rows.map((f, i) => (
-        <div key={i} style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 2fr auto",gap:4,marginBottom:4,alignItems:"center"}}>
-          <input value={f.name||""} onChange={e=>{const n=[...rows];n[i]={...n[i],name:e.target.value};setRows(n)}} placeholder="Name"
-            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
-          <input value={f.lat||""} onChange={e=>{const n=[...rows];n[i]={...n[i],lat:parseFloat(e.target.value)||0};setRows(n)}} placeholder="Lat" type="number" step="0.0001"
-            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
-          <input value={f.lng||""} onChange={e=>{const n=[...rows];n[i]={...n[i],lng:parseFloat(e.target.value)||0};setRows(n)}} placeholder="Lng" type="number" step="0.0001"
-            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
-          <input value={f.note||""} onChange={e=>{const n=[...rows];n[i]={...n[i],note:e.target.value};setRows(n)}} placeholder="Note"
-            style={{background:"#0d1117",border:"1px solid #1a1e28",borderRadius:3,padding:"3px 6px",color:"#e0e0e8",fontFamily:"monospace",fontSize:10,outline:"none"}}/>
-          <button onClick={()=>setRows(rows.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:12,padding:"0 4px"}}>✕</button>
-        </div>
-      ))}
-      <button onClick={()=>setRows([...rows,{name:"",lat:0,lng:0,note:""}])}
-        style={{marginTop:4,padding:"3px 10px",borderRadius:4,fontSize:9,border:`1px solid ${color}44`,background:"transparent",color,cursor:"pointer",fontFamily:"monospace"}}>
-        + Add row
-      </button>
-    </div>
   )
 
   return (
