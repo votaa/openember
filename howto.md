@@ -274,6 +274,7 @@ Click **Advanced settings** before deploying. In the **Secrets** section, paste:
 OLLAMA_API_KEY = "sk-your_key_here"
 OLLAMA_HOST    = "https://ollama.com"
 OLLAMA_MODEL   = "gpt-oss:120b-cloud"
+CARTO_API_KEY  = "your_carto_key_here"
 ```
 
 Click **Save**, then **Deploy**.
