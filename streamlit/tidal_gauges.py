@@ -19,6 +19,7 @@ NYC key stations:
 
 import requests
 import datetime as _dt
+import time as _time
 
 COOPS_DATA_API = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
 COOPS_META_API = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi"
@@ -199,18 +200,40 @@ def fetch_gauge_full(station_id: str) -> dict:
     }
 
 
-def fetch_all_ny_gauges(station_ids: list[str] | None = None) -> dict[str, dict]:
+def fetch_all_ny_gauges(
+    station_ids: list[str] | None = None,
+    previous: dict[str, dict] | None = None,
+    max_attempts: int = 2,
+) -> dict[str, dict]:
     """
     Fetch live data for a list of station IDs (or the default NYC set).
-    Returns dict keyed by station_id.
+    Retry stations missing a live level and preserve their last good reading.
+    Returns a dict keyed by station_id in the requested order.
     """
     if station_ids is None:
         station_ids = list(FLOOD_THRESHOLDS.keys())
 
-    results = {}
-    for sid in station_ids:
-        results[sid] = fetch_gauge_full(sid)
-    return results
+    station_ids = list(dict.fromkeys(station_ids))
+    previous = previous or {}
+    attempts = max(1, max_attempts)
+    results: dict[str, dict] = {}
+    pending = station_ids
+
+    for attempt in range(attempts):
+        for sid in pending:
+            results[sid] = fetch_gauge_full(sid)
+        pending = [sid for sid in pending if not results[sid].get("level")]
+        if not pending:
+            break
+        if attempt < attempts - 1:
+            _time.sleep(0.25)
+
+    for sid in pending:
+        cached = previous.get(sid)
+        if cached and cached.get("level"):
+            results[sid] = cached
+
+    return {sid: results[sid] for sid in station_ids}
 
 
 def build_gauge_popup(gauge_data: dict, station_meta: dict | None = None) -> str:
