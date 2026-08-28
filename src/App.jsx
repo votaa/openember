@@ -5,6 +5,8 @@ import { useState, useRef, useEffect, useCallback } from "react"
 // Static import of jurisdiction config — generated at build time by scripts/build-config.js
 import {
   JURISDICTION  as _J_raw,
+  REGIONS       as _REGIONS_raw,
+  SOURCE_REGISTRY as _SOURCE_REGISTRY_raw,
   NWS           as _NWS_raw,
   KNOWLEDGE_BASE as _KB_raw,
   MAP_LAYERS    as _ML_raw,
@@ -14,6 +16,8 @@ import {
 } from "./config/jurisdiction.js"
 
 const _J     = _J_raw     || {}
+const _REGIONS = _REGIONS_raw || {}
+const _SOURCE_REGISTRY = _SOURCE_REGISTRY_raw || []
 const _NWS   = _NWS_raw   || {}
 const _KB    = _KB_raw    || {}
 const _ML    = _ML_raw    || {}
@@ -41,6 +45,8 @@ const CFG = {
   center:     _J.center     || [40.7128, -74.006],
   zoom:       _J.zoom       || 10,
   bbox:       _J.bbox       || null,
+  regions:    _REGIONS,
+  sources:    _SOURCE_REGISTRY,
 }
 const NWS_ALERT_URL    = _NWS.alert_url    || `https://api.weather.gov/alerts/active?area=${CFG.state}`
 const NWS_FORECAST_URL = _NWS.forecast_url || `https://api.weather.gov/gridpoints/OKX/33,37/forecast`
@@ -171,13 +177,6 @@ const BRANDING = {
   jurisdictionLine: _BR.jurisdictionLine || `${CFG.shortName} EMERGENCY MANAGEMENT`,
   primaryColor: _BR.primaryColor || "#e8372c",
 }
-
-const LIVE_ENDPOINTS = [
-  {name:`NWS Alerts — ${CFG.state}`,url:NWS_ALERT_URL,type:"weather"},
-  {name:`NWS Forecast — ${CFG.shortName}`,url:NWS_FORECAST_URL,type:"forecast"},
-  {name:"USGS Stream Gauges",url:`https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=${CFG.state.toLowerCase()}&parameterCd=00065&siteStatus=active`,type:"flood"},
-  {name:"FEMA Disasters",url:`https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state=${CFG.state}&$top=10&$orderby=declarationDate%20desc`,type:"fema"},
-]
 
 const KB_MODULES = [
   {id:"floodZones",label:"FLOOD ZONES"},
@@ -327,6 +326,7 @@ const NOAA_ENDPOINTS = [
   {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_preds",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Tidal Predictions — Battery 48h",       url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER"},
   {id:"coops_kings",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Kings Point",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_montauk", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Montauk",                 url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_sandy",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Sandy Hook",              url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_wind",    cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Wind — The Battery",                    url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER"},
   // SPC / SWPC
@@ -528,7 +528,6 @@ export default function App() {
   const LIVE_ENDPOINTS_RT = [
     {name:`NWS Alerts — ${CFG_RT.state}`,      url:`https://api.weather.gov/alerts/active?area=${CFG_RT.state}`,                                                               type:"weather"},
     {name:`NWS Forecast — ${CFG_RT.shortName}`, url:`https://api.weather.gov/gridpoints/${CFG_RT.nwsOffice}/${CFG_RT.nwsGridX},${CFG_RT.nwsGridY}/forecast`,                  type:"forecast"},
-    {name:"USGS Stream Gauges",                  url:`https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=${CFG_RT.state.toLowerCase()}&parameterCd=00065&siteStatus=active`, type:"flood"},
     {name:"FEMA Disasters",                      url:`https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state=${CFG_RT.state}&$top=10&$orderby=declarationDate%20desc`, type:"fema"},
   ]
 

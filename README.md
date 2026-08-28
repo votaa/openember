@@ -62,6 +62,10 @@ streamlit run app.py
 # → http://localhost:8501
 ```
 
+The Ollama key is optional for a local map/data smoke test. If no
+`secrets.toml` or `OLLAMA_API_KEY` is configured, the app launches and marks
+chat as unavailable until a key is provided.
+
 ### Deploy to Streamlit Cloud
 1. Push repo to GitHub
 2. Go to **https://share.streamlit.io** → New app

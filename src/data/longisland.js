@@ -166,7 +166,7 @@ Post-Sandy improvements: Bay Park STP tunnel completed 2023; LIRR Long Beach Bra
 
 COASTAL / STORM SURGE FLOODING:
 South shore barrier beaches flood first and most severely. Fire Island barrier island is a primary surge buffer but also first casualty.
-Key surge gauge: NOAA Battery Park (8518750) is the primary NYC-area surge gauge; Kings Point (8516945) on Long Island Sound; Fire Island USCG Station (8515186) for south shore inlet; Bay Shore (8515102) for Great South Bay.
+Active live water-level stations: Kings Point (8516945) on Long Island Sound and Montauk (8510560) on eastern Long Island. Battery Park (8518750) and Sandy Hook (8531680) are regional references. Fire Island (8515186) and Bay Shore (8515102) are retired as live-water-level endpoints.
 Great South Bay: Shallow bay (avg 4 ft depth) — surge can raise bay levels rapidly; combined ocean surge + bay flooding traps south shore mainland communities.
 Moriches Bay and Shinnecock Bay: Similar dynamics on eastern south shore; Westhampton and Hampton Bays highly exposed.
 Peconic Estuary: Lower surge risk than south shore but storm wave fetch from Long Island Sound can cause significant North Fork flooding.
@@ -409,21 +409,19 @@ export const LIVE_ENDPOINTS = [
   // USGS Stream / Tidal Gauges — Long Island Specific
   // South Shore (NOAA tidal)
   { name: "NOAA — Kings Point (LI Sound)",      url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8516945&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
+  { name: "NOAA — Montauk",                     url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8510560&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
   { name: "NOAA — Battery Park (NYC surge ref)",url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8518750&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
-  { name: "NOAA — Fire Island USCG",            url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8515186&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
-  { name: "NOAA — Bay Shore (Great South Bay)", url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8515102&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
+  { name: "NOAA — Sandy Hook (outer-harbor ref)",url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?station=8531680&product=water_level&datum=MLLW&time_zone=LST/LDT&units=english&format=json&range=24", type: "flood" },
 
   // USGS Surface Water — LI streams (from NYC nyc.js — retain relevant ones)
-  { name: "USGS Gauges — NY State",   url: "https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=ny&parameterCd=00065&siteStatus=active",                      type: "flood"    },
+  { name: "USGS — Massapequa Creek",  url: "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items?monitoring_location_id=USGS-01309500&parameter_code=00065&limit=24", type: "flood" },
+  { name: "USGS — Peconic River",     url: "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items?monitoring_location_id=USGS-01304500&parameter_code=00065&limit=24", type: "flood" },
 
   // FEMA Disasters
   { name: "FEMA Disasters — NY",      url: "https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state=NY&$top=10&$orderby=declarationDate%20desc",         type: "fema"     },
 
   // NYC 311 (for Rockaway / Queens data)
-  { name: "NYC 311 Recent",           url: "https://data.cityofnewyork.us/resource/erm2-nwe9.json?$limit=5&$order=created_date%20DESC",                               type: "civic"    },
-
-  // MTA LIRR Service Status
-  { name: "MTA LIRR Status",          url: "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr",                                                 type: "transit"  },
+  { name: "NYC 311 — Rockaway / Queens CB14", url: "https://data.cityofnewyork.us/resource/erm2-nwe9.json?$limit=50&$order=created_date%20DESC&$where=borough%3D%27QUEENS%27%20AND%20community_board%3D%2714%20QUEENS%27%20AND%20latitude%20IS%20NOT%20NULL%20AND%20longitude%20IS%20NOT%20NULL", type: "civic" },
 ]
 
 // ─── Map Layer Data ────────────────────────────────────────────────────────────
@@ -519,15 +517,12 @@ export const MAP_LAYERS = {
       // Retained from NYC nyc.js (relevant to LI)
       { name: "Battery Park Tidal Gauge",          lat: 40.7003, lng: -74.0141, note: "NOAA 8518750 — primary NYC/regional surge reference gauge" },
       { name: "Kings Point Tidal Gauge",            lat: 40.8105, lng: -73.7659, note: "NOAA 8516945 — Long Island Sound; north shore surge indicator" },
-      { name: "Jamaica Bay (Inwood)",               lat: 40.6226, lng: -73.7576, note: "NOAA tidal gauge — Zone A monitoring; Jamaica Bay surge" },
-      // LI-Specific NOAA gauges
-      { name: "Fire Island USCG Station",           lat: 40.6278, lng: -73.1788, note: "NOAA 8515186 — primary south shore/Great South Bay inlet gauge" },
-      { name: "Bay Shore (Great South Bay)",        lat: 40.7074, lng: -73.2421, note: "NOAA 8515102 — Great South Bay surge monitoring" },
-      // USGS stream gauges (LI surface water — from USGS NWIS)
-      { name: "Bronx River at Bronxville (ref)",   lat: 40.9382, lng: -73.8312, note: "USGS 01302500 — upstream reference (from nyc.js)" },
-      { name: "Nissequogue River nr Smithtown",    lat: 40.8662, lng: -73.2059, note: "USGS 01304500 — north shore river flood monitoring" },
-      { name: "Connetquot River at Oakdale",       lat: 40.7315, lng: -73.1537, note: "USGS 01306500 — south shore interior flood indicator" },
-      { name: "Carmans River at Yaphank",          lat: 40.8165, lng: -72.9171, note: "USGS 01305000 — central Suffolk flood monitoring" },
+      // LI-specific NOAA gauges and regional references
+      { name: "Montauk Tidal Gauge",                lat: 41.0483, lng: -71.9594, note: "NOAA 8510560 — active eastern Long Island water-level station" },
+      { name: "Sandy Hook Tidal Gauge (ref)",       lat: 40.4669, lng: -74.0094, note: "NOAA 8531680 — active outer-harbor reference station" },
+      // Phase 1-selected USGS gauge-height stations
+      { name: "Massapequa Creek at Massapequa",   lat: 40.6890, lng: -73.4554, note: "USGS 01309500 — selected Nassau gauge-height station" },
+      { name: "Peconic River at Riverhead",        lat: 40.9137, lng: -72.6869, note: "USGS 01304500 — selected Suffolk gauge-height station" },
     ]
   },
 

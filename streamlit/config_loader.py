@@ -51,6 +51,8 @@ _DEFAULTS = {
         "obs_stations": [],
     },
     "coops_stations": [],
+    "regions": {},
+    "source_registry": [],
     "knowledge_base": {
         "flood_zones":             "No flood zone information configured.",
         "evac_zones":              "No evacuation zone information configured.",
@@ -93,6 +95,20 @@ class JurisdictionConfig:
         if missing:
             raise ValueError(f"jurisdiction.yaml is missing required fields: {missing}")
 
+        regions = self._raw.get("regions", {})
+        if not isinstance(regions, dict):
+            raise ValueError("jurisdiction.yaml regions must be a mapping")
+
+        sources = self._raw.get("source_registry", [])
+        if not isinstance(sources, list):
+            raise ValueError("jurisdiction.yaml source_registry must be a list")
+
+        source_ids = [source.get("id") for source in sources]
+        if any(not source_id for source_id in source_ids):
+            raise ValueError("every source_registry entry must have an id")
+        if len(source_ids) != len(set(source_ids)):
+            raise ValueError("source_registry ids must be unique")
+
     # ── jurisdiction ──────────────────────────────────────────────────────────
     @property
     def name(self) -> str:
@@ -132,6 +148,25 @@ class JurisdictionConfig:
     @property
     def timezone(self) -> str:
         return self._raw["jurisdiction"].get("timezone", "America/New_York")
+
+    # ── Regional geography and sources ───────────────────────────────────────
+    @property
+    def regions(self) -> dict[str, dict]:
+        return self._raw.get("regions", {})
+
+    @property
+    def source_registry(self) -> list[dict]:
+        return self._raw.get("source_registry", [])
+
+    def source(self, source_id: str) -> dict | None:
+        return next(
+            (source for source in self.source_registry if source.get("id") == source_id),
+            None,
+        )
+
+    @property
+    def enabled_sources(self) -> list[dict]:
+        return [source for source in self.source_registry if source.get("enabled") is True]
 
     # ── NWS ───────────────────────────────────────────────────────────────────
     @property

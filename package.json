@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "build-config": "node scripts/build-config.js",
+    "validate-config": "npm run build-config && node scripts/validate-regional-config.js",
     "prebuild": "npm run build-config",
     "predev": "npm run build-config"
   },

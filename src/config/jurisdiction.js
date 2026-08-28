@@ -12,7 +12,7 @@ export const JURISDICTION = {
     -73.135
   ],
   "bbox": {
-    "north": 41.2,
+    "north": 41.32,
     "south": 40.4,
     "east": -71.8,
     "west": -74.3
@@ -20,6 +20,429 @@ export const JURISDICTION = {
   "zoom": 10,
   "timezone": "America/New_York"
 };
+export const REGIONS = {
+  "nassau": {
+    "name": "Nassau County",
+    "geography": "nassau",
+    "county_fips": "36059",
+    "bbox": {
+      "north": 40.93,
+      "south": 40.53,
+      "east": -73.42,
+      "west": -73.77
+    },
+    "boundary_source_id": "nys_civil_boundaries",
+    "scope_method": "authoritative_polygon",
+    "boundary_filter": {
+      "field": "FIPS_CODE",
+      "value": "36059"
+    }
+  },
+  "suffolk": {
+    "name": "Suffolk County",
+    "geography": "suffolk",
+    "county_fips": "36103",
+    "bbox": {
+      "north": 41.31,
+      "south": 40.54,
+      "east": -71.85,
+      "west": -73.5
+    },
+    "boundary_source_id": "nys_civil_boundaries",
+    "scope_method": "authoritative_polygon",
+    "boundary_filter": {
+      "field": "FIPS_CODE",
+      "value": "36103"
+    }
+  },
+  "rockaway": {
+    "name": "Rockaway / Queens Community Board 14",
+    "geography": "rockaway",
+    "county_fips": "36081",
+    "bbox": {
+      "north": 40.67,
+      "south": 40.53,
+      "east": -73.73,
+      "west": -73.96
+    },
+    "boundary_source_id": null,
+    "scope_method": "community_board_filter",
+    "boundary_filter": {
+      "borough": "QUEENS",
+      "community_board": "14 QUEENS"
+    },
+    "includes_broad_channel": true,
+    "future_enhancement": "Replace the CB14 filter with an authoritative peninsula polygon to exclude Broad Channel."
+  }
+};
+export const SOURCE_REGISTRY = [
+  {
+    "id": "nyc_311_rockaway",
+    "name": "NYC 311 service requests — Rockaway",
+    "owner": "NYC 311",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "socrata",
+    "endpoint": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 300,
+    "stale_after_seconds": 900,
+    "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
+    "attribution": "NYC Open Data / NYC 311",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "nassau_town_boundaries",
+    "name": "Nassau town and city boundaries",
+    "owner": "Nassau County GIS",
+    "geographies": [
+      "nassau"
+    ],
+    "family": "arcgis_feature_server",
+    "endpoint": "https://gis.nassaucountyny.gov/server/rest/services/Hosted/My_Nassau/FeatureServer/5",
+    "format": "geojson",
+    "qualification": "prototype_only",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 604800,
+    "attribution": "Nassau County GIS",
+    "gate": "County reuse, attribution, ownership, and update-cadence confirmation",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "suffolk_evacuation_zones",
+    "name": "Suffolk evacuation zones",
+    "owner": "Suffolk County GIS",
+    "geographies": [
+      "suffolk"
+    ],
+    "family": "arcgis_feature_server",
+    "endpoint": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/FRES_Evacuation_Zones_Final/FeatureServer",
+    "layer_ids": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "format": "geojson",
+    "qualification": "prototype_only",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 604800,
+    "attribution": "Suffolk County GIS",
+    "gate": "County ownership, meaning, currency, reuse, and attribution confirmation",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "suffolk_flood_100yr",
+    "name": "Suffolk 100-year flood zones",
+    "owner": "Suffolk County GIS",
+    "geographies": [
+      "suffolk"
+    ],
+    "family": "arcgis_feature_server",
+    "endpoint": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/100YR_Flood/FeatureServer/0",
+    "format": "geojson",
+    "qualification": "prototype_only",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 604800,
+    "attribution": "Suffolk County GIS; preserve source_cit from each record",
+    "gate": "County reuse, attribution, and update-cadence confirmation",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "coops_kings_point",
+    "name": "NOAA CO-OPS Kings Point water level",
+    "owner": "NOAA CO-OPS",
+    "geographies": [
+      "regional"
+    ],
+    "family": "noaa_coops",
+    "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 360,
+    "stale_after_seconds": 900,
+    "station_id": "8516945",
+    "role": "primary",
+    "attribution": "NOAA CO-OPS",
+    "failure_state": "stale"
+  },
+  {
+    "id": "coops_montauk",
+    "name": "NOAA CO-OPS Montauk water level",
+    "owner": "NOAA CO-OPS",
+    "geographies": [
+      "suffolk",
+      "regional"
+    ],
+    "family": "noaa_coops",
+    "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 360,
+    "stale_after_seconds": 900,
+    "station_id": "8510560",
+    "role": "primary",
+    "attribution": "NOAA CO-OPS",
+    "failure_state": "stale"
+  },
+  {
+    "id": "coops_battery_reference",
+    "name": "NOAA CO-OPS The Battery water-level reference",
+    "owner": "NOAA CO-OPS",
+    "geographies": [
+      "reference"
+    ],
+    "family": "noaa_coops",
+    "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 360,
+    "stale_after_seconds": 900,
+    "station_id": "8518750",
+    "role": "reference",
+    "attribution": "NOAA CO-OPS",
+    "failure_state": "stale"
+  },
+  {
+    "id": "coops_sandy_hook_reference",
+    "name": "NOAA CO-OPS Sandy Hook water-level reference",
+    "owner": "NOAA CO-OPS",
+    "geographies": [
+      "reference"
+    ],
+    "family": "noaa_coops",
+    "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 360,
+    "stale_after_seconds": 900,
+    "station_id": "8531680",
+    "role": "reference",
+    "attribution": "NOAA CO-OPS",
+    "failure_state": "stale"
+  },
+  {
+    "id": "usgs_massapequa_creek",
+    "name": "USGS Massapequa Creek gauge height",
+    "owner": "USGS Water Data",
+    "geographies": [
+      "nassau"
+    ],
+    "family": "usgs_ogc",
+    "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 900,
+    "stale_after_seconds": 3600,
+    "monitoring_location_id": "USGS-01309500",
+    "parameter_code": "00065",
+    "attribution": "USGS Water Data for the Nation",
+    "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+    "failure_state": "stale"
+  },
+  {
+    "id": "usgs_peconic_river",
+    "name": "USGS Peconic River gauge height",
+    "owner": "USGS Water Data",
+    "geographies": [
+      "suffolk"
+    ],
+    "family": "usgs_ogc",
+    "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 900,
+    "stale_after_seconds": 3600,
+    "monitoring_location_id": "USGS-01304500",
+    "parameter_code": "00065",
+    "attribution": "USGS Water Data for the Nation",
+    "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+    "failure_state": "stale"
+  },
+  {
+    "id": "usgs_rosedale_reference",
+    "name": "USGS Conselyeas Pond Tributary reference",
+    "owner": "USGS Water Data",
+    "geographies": [
+      "reference"
+    ],
+    "family": "usgs_ogc",
+    "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 900,
+    "stale_after_seconds": 3600,
+    "monitoring_location_id": "USGS-01311810",
+    "parameter_code": "00065",
+    "attribution": "USGS Water Data for the Nation",
+    "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+    "failure_state": "stale"
+  },
+  {
+    "id": "nys_dec_active_sites",
+    "name": "NYS DEC active cleanup sites",
+    "owner": "NYS Department of Environmental Conservation",
+    "geographies": [
+      "nassau",
+      "suffolk"
+    ],
+    "family": "arcgis_map_server",
+    "endpoint": "https://gisservices.dec.ny.gov/arcgis/rest/services/dil/dil_clean_up/MapServer/2",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 604800,
+    "required_filter": "COUNTY IN ('Nassau','Suffolk')",
+    "attribution": "NYS Department of Environmental Conservation",
+    "disclaimer": "Provided as-is and subject to change without notice",
+    "gate": "Phase 3 ArcGIS adapter and county geometry validation",
+    "failure_state": "stale"
+  },
+  {
+    "id": "nys_civil_boundaries",
+    "name": "NYS county civil boundaries",
+    "owner": "NYS ITS Geospatial Data Services",
+    "geographies": [
+      "regional"
+    ],
+    "family": "arcgis_feature_server",
+    "endpoint": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 2592000,
+    "required_fips": [
+      "36059",
+      "36103",
+      "36081"
+    ],
+    "attribution": "NYS Office of Information Technology Services Geospatial Data Services",
+    "disclaimer": "Provided as-is without warranty",
+    "gate": "Phase 3 ArcGIS adapter and FIPS validation",
+    "failure_state": "stale"
+  },
+  {
+    "id": "511ny_events",
+    "name": "511NY traffic events",
+    "owner": "New York State Department of Transportation",
+    "geographies": [
+      "nassau",
+      "suffolk",
+      "rockaway"
+    ],
+    "family": "rest_json",
+    "endpoint": "https://www.511ny.org/api/getevents",
+    "format": "json",
+    "qualification": "access_required",
+    "enabled": false,
+    "refresh_seconds": 60,
+    "stale_after_seconds": 300,
+    "credential_requirement": "server_side_developer_key",
+    "gate": "Approved account, intended-use approval, access agreement, and server-side key storage",
+    "attribution": "511NY / NYSDOT",
+    "failure_state": "access_required"
+  },
+  {
+    "id": "mta_lirr_realtime",
+    "name": "MTA LIRR realtime",
+    "owner": "Metropolitan Transportation Authority",
+    "geographies": [
+      "nassau",
+      "suffolk",
+      "rockaway",
+      "regional"
+    ],
+    "family": "gtfs_realtime",
+    "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr",
+    "format": "protobuf",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 30,
+    "stale_after_seconds": 60,
+    "access_requirement": "server_side_proxy_cache",
+    "gate": "OpenEmber proxy/cache and lag disclosure",
+    "attribution": "Metropolitan Transportation Authority",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "mta_ace_realtime",
+    "name": "MTA A/C/E realtime",
+    "owner": "Metropolitan Transportation Authority",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "gtfs_realtime",
+    "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
+    "format": "protobuf",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 30,
+    "stale_after_seconds": 60,
+    "access_requirement": "server_side_proxy_cache",
+    "gate": "OpenEmber proxy/cache, route/stop filtering, and lag disclosure",
+    "attribution": "Metropolitan Transportation Authority",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "mta_lirr_alerts",
+    "name": "MTA LIRR alerts",
+    "owner": "Metropolitan Transportation Authority",
+    "geographies": [
+      "nassau",
+      "suffolk",
+      "rockaway",
+      "regional"
+    ],
+    "family": "rest_json",
+    "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Flirr-alerts.json",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 60,
+    "stale_after_seconds": 120,
+    "access_requirement": "server_side_proxy_cache",
+    "gate": "OpenEmber proxy/cache and lag disclosure",
+    "attribution": "Metropolitan Transportation Authority",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "nyhops_reference",
+    "name": "NYHOPS maritime forecast reference",
+    "owner": "Stevens Institute of Technology",
+    "geographies": [
+      "regional"
+    ],
+    "family": "link_only",
+    "endpoint": "https://hudson.dl.stevens-tech.edu/maritimeforecast/maincontrol.shtml",
+    "format": "html",
+    "qualification": "gated",
+    "enabled": false,
+    "attribution": "Stevens Institute of Technology NYHOPS",
+    "gate": "Stable machine-readable contract, cadence, attribution, and redistribution approval",
+    "failure_state": "access_required"
+  }
+];
 export const NWS = {
   "office": "OKX",
   "grid_x": 62,
@@ -95,10 +518,24 @@ export const COOPS_STATIONS = [
     }
   },
   {
+    "id": "8510560",
+    "name": "Montauk",
+    "lat": 41.0483,
+    "lng": -71.9594,
+    "role": "primary",
+    "flood_thresholds": {
+      "action": 3.5,
+      "minor": 4.5,
+      "moderate": 5.5,
+      "major": 7
+    }
+  },
+  {
     "id": "8518750",
     "name": "Battery Park (NYC surge ref)",
     "lat": 40.7003,
     "lng": -74.0141,
+    "role": "reference",
     "flood_thresholds": {
       "action": 4.5,
       "minor": 5.5,
@@ -107,22 +544,11 @@ export const COOPS_STATIONS = [
     }
   },
   {
-    "id": "8515186",
-    "name": "Fire Island USCG (Great South Bay inlet)",
-    "lat": 40.6278,
-    "lng": -73.1788,
-    "flood_thresholds": {
-      "action": 4.5,
-      "minor": 5.5,
-      "moderate": 6.5,
-      "major": 8.5
-    }
-  },
-  {
-    "id": "8515102",
-    "name": "Bay Shore (Great South Bay)",
-    "lat": 40.7074,
-    "lng": -73.2421,
+    "id": "8531680",
+    "name": "Sandy Hook (outer-harbor ref)",
+    "lat": 40.4669,
+    "lng": -74.0094,
+    "role": "reference",
     "flood_thresholds": {
       "action": 4.5,
       "minor": 5.5,
@@ -132,19 +558,12 @@ export const COOPS_STATIONS = [
   }
 ];
 export const FLOOD_THRESHOLDS = {
-  "8515102": {
-    "name": "Bay Shore (Great South Bay)",
-    "action": 4.5,
-    "minor": 5.5,
-    "moderate": 6.5,
-    "major": 8.5
-  },
-  "8515186": {
-    "name": "Fire Island USCG (Great South Bay inlet)",
-    "action": 4.5,
-    "minor": 5.5,
-    "moderate": 6.5,
-    "major": 8.5
+  "8510560": {
+    "name": "Montauk",
+    "action": 3.5,
+    "minor": 4.5,
+    "moderate": 5.5,
+    "major": 7
   },
   "8516945": {
     "name": "Kings Point (LI Sound)",
@@ -155,6 +574,13 @@ export const FLOOD_THRESHOLDS = {
   },
   "8518750": {
     "name": "Battery Park (NYC surge ref)",
+    "action": 4.5,
+    "minor": 5.5,
+    "moderate": 6.5,
+    "major": 8.5
+  },
+  "8531680": {
+    "name": "Sandy Hook (outer-harbor ref)",
     "action": 4.5,
     "minor": 5.5,
     "moderate": 6.5,
@@ -180,7 +606,7 @@ export const KNOWLEDGE_BASE = {
   "hazardProfiles": {
     "label": "Hazard Profiles",
     "source": "Local HMP",
-    "data": "HURRICANES: Sandy 2012 (Cat 1) — $5.5B LI damage, 13 LI deaths, ~1.1M without power. Primary risk: storm surge (6-10+ ft south shore), not wind. Barrier island overwash possible Cat 2+. 15 tropical systems impacted NYS since 2012; frequency doubled in 6 years (NYS DHSES 2024).\nCOASTAL FLOODING: Great South Bay avg 4ft depth — surge rises rapidly. Combined ocean surge + bay flooding traps south shore mainland. Key gauges: Kings Point (8516945), Fire Island (8515186), Bay Shore (8515102), Battery Park ref (8518750).\nEXTREME HEAT: Fewer cooling centers per capita than NYC. Nassau protocol at Heat Index >= 95F. Hempstead, Brentwood, Central Islip — reduced cooling access in affordable/senior housing.\nWINTER STORMS / NOREASTERS: Jonas 2016 — 25+ inches Suffolk. LIRR third-rail vulnerable. Route 27 and Route 25 single-road dependency for East End communities.\nHAZMAT: Brookhaven National Laboratory (DOE, Upton) — radiological. Bethpage Grumman groundwater plume (Nassau) — active CERCLA remediation 2025.\n"
+    "data": "HURRICANES: Sandy 2012 (Cat 1) — $5.5B LI damage, 13 LI deaths, ~1.1M without power. Primary risk: storm surge (6-10+ ft south shore), not wind. Barrier island overwash possible Cat 2+. 15 tropical systems impacted NYS since 2012; frequency doubled in 6 years (NYS DHSES 2024).\nCOASTAL FLOODING: Great South Bay avg 4ft depth — surge rises rapidly. Combined ocean surge + bay flooding traps south shore mainland. Active live gauges: Kings Point (8516945) and Montauk (8510560). Battery Park (8518750) and Sandy Hook (8531680) are regional references. Fire Island (8515186) and Bay Shore (8515102) are retired as live-water-level stations.\nEXTREME HEAT: Fewer cooling centers per capita than NYC. Nassau protocol at Heat Index >= 95F. Hempstead, Brentwood, Central Islip — reduced cooling access in affordable/senior housing.\nWINTER STORMS / NOREASTERS: Jonas 2016 — 25+ inches Suffolk. LIRR third-rail vulnerable. Route 27 and Route 25 single-road dependency for East End communities.\nHAZMAT: Brookhaven National Laboratory (DOE, Upton) — radiological. Bethpage Grumman groundwater plume (Nassau) — active CERCLA remediation 2025.\n"
   },
   "resources": {
     "label": "Contacts & Resources",
@@ -356,17 +782,10 @@ export const MAP_LAYERS = {
         "borough": ""
       },
       {
-        "name": "Fire Island USCG",
-        "lat": 40.6278,
-        "lng": -73.1788,
-        "note": "NOAA 8515186 — south shore / Great South Bay inlet",
-        "borough": ""
-      },
-      {
-        "name": "Bay Shore (Great South Bay)",
-        "lat": 40.7074,
-        "lng": -73.2421,
-        "note": "NOAA 8515102 — Great South Bay surge monitoring",
+        "name": "Montauk",
+        "lat": 41.0483,
+        "lng": -71.9594,
+        "note": "NOAA 8510560 — active eastern Long Island water-level station",
         "borough": ""
       },
       {
@@ -377,31 +796,24 @@ export const MAP_LAYERS = {
         "borough": ""
       },
       {
-        "name": "Jamaica Bay (Inwood)",
-        "lat": 40.6226,
-        "lng": -73.7576,
-        "note": "NOAA tidal — Zone A Jamaica Bay / Rockaway monitoring",
+        "name": "Sandy Hook (outer-harbor ref)",
+        "lat": 40.4669,
+        "lng": -74.0094,
+        "note": "NOAA 8531680 — active outer-harbor reference station",
         "borough": ""
       },
       {
-        "name": "Nissequogue River nr Smithtown",
-        "lat": 40.8662,
-        "lng": -73.2059,
-        "note": "USGS 01304500 — north shore river flood monitoring",
+        "name": "Massapequa Creek at Massapequa",
+        "lat": 40.689,
+        "lng": -73.4554,
+        "note": "USGS 01309500 — selected Nassau gauge-height station",
         "borough": ""
       },
       {
-        "name": "Connetquot River at Oakdale",
-        "lat": 40.7315,
-        "lng": -73.1537,
-        "note": "USGS 01306500 — south shore interior flood indicator",
-        "borough": ""
-      },
-      {
-        "name": "Carmans River at Yaphank",
-        "lat": 40.8165,
-        "lng": -72.9171,
-        "note": "USGS 01305000 — central Suffolk flood monitoring",
+        "name": "Peconic River at Riverhead",
+        "lat": 40.9137,
+        "lng": -72.6869,
+        "note": "USGS 01304500 — selected Suffolk gauge-height station",
         "borough": ""
       }
     ]
@@ -586,18 +998,7 @@ export const SOCRATA = {
   "domain": "data.cityofnewyork.us",
   "presets": [
     {
-      "id": "uqnk-2pcv",
-      "name": "Hurricane Evacuation Centers (NYC/Rockaway)",
-      "agency": "NYC OEM",
-      "lat_col": "latitude",
-      "lng_col": "longitude",
-      "label_col": "facility_name",
-      "color": "#facc15",
-      "icon": "🏫",
-      "desc": "NYC-designated hurricane evacuation shelters (relevant for Rockaway Zone 1)"
-    },
-    {
-      "id": "fhrw-4uyv",
+      "id": "erm2-nwe9",
       "name": "NYC 311 Service Requests (Rockaway)",
       "agency": "311",
       "lat_col": "latitude",
@@ -605,18 +1006,8 @@ export const SOCRATA = {
       "label_col": "complaint_type",
       "color": "#60a5fa",
       "icon": "📞",
-      "desc": "Real-time 311 complaints — filter by borough Queens for Rockaway data"
-    },
-    {
-      "id": "nuhi-jiwk",
-      "name": "FDNY Incidents (Rockaway area)",
-      "agency": "FDNY",
-      "lat_col": "latitude",
-      "lng_col": "longitude",
-      "label_col": "incident_type_desc",
-      "color": "#f87171",
-      "icon": "🚒",
-      "desc": "FDNY incident data — operationally relevant for Rockaway Peninsula"
+      "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
+      "desc": "Real-time 311 complaints — Queens Community Board 14, including Broad Channel in the initial implementation"
     }
   ]
 };

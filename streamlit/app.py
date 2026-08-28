@@ -12,6 +12,7 @@ Run:
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
@@ -27,9 +28,23 @@ from setup_wizard import render_wizard
 CFG = load_config()
 
 # ── Config ────────────────────────────────────────────────────────────────────
-OLLAMA_API_KEY = st.secrets.get("OLLAMA_API_KEY", os.environ.get("OLLAMA_API_KEY", ""))
-OLLAMA_HOST    = st.secrets.get("OLLAMA_HOST",    os.environ.get("OLLAMA_HOST",    "https://ollama.com"))
-OLLAMA_MODEL   = st.secrets.get("OLLAMA_MODEL",   os.environ.get("OLLAMA_MODEL",   "gpt-oss:120b-cloud"))
+def _setting(name: str, default: str = "") -> str:
+    """Read Streamlit secrets when available, then fall back to environment vars.
+
+    Streamlit raises StreamlitSecretNotFoundError when no secrets.toml exists;
+    that is a normal local-development state and should not prevent the app
+    from launching without optional Ollama credentials.
+    """
+    try:
+        value = st.secrets.get(name)
+    except (KeyError, StreamlitSecretNotFoundError):
+        value = None
+    return str(value) if value not in (None, "") else os.environ.get(name, default)
+
+
+OLLAMA_API_KEY = _setting("OLLAMA_API_KEY")
+OLLAMA_HOST    = _setting("OLLAMA_HOST", "https://ollama.com")
+OLLAMA_MODEL   = _setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
 OLLAMA_HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {OLLAMA_API_KEY}"}
 
@@ -97,9 +112,8 @@ NYC_KB = {
 LIVE_ENDPOINTS = [
     {"name": f"NWS Alerts — {CFG.state}",       "url": CFG.nws_alert_url,                                                                                         "type": "weather"},
     {"name": f"NWS Forecast — {CFG.short_name}", "url": CFG.nws_forecast_url,                                                                                      "type": "forecast"},
-    {"name": "USGS Stream Gauges",               "url": f"https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd={CFG.noaa_usgs_state.lower()}&parameterCd=00065&siteStatus=active", "type": "flood"},
     {"name": "FEMA Disasters",                   "url": f"https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state={CFG.noaa_fema_state}&$top=10&$orderby=declarationDate%20desc", "type": "fema"},
-    {"name": f"{CFG.short_name} Open Data 311",  "url": f"https://{CFG.socrata_domain}/resource/fhrw-4uyv.json?$limit=5&$order=created_date%20DESC",               "type": "civic"},
+    {"name": "NYC 311 — Rockaway / Queens CB14", "url": f"https://{CFG.socrata_domain}/resource/erm2-nwe9.json?$limit=50&$order=created_date%20DESC&$where=borough%3D%27QUEENS%27%20AND%20community_board%3D%2714%20QUEENS%27%20AND%20latitude%20IS%20NOT%20NULL%20AND%20longitude%20IS%20NOT%20NULL", "type": "civic"},
 ]
 
 MAP_POINTS = {
@@ -167,8 +181,8 @@ NOAA_ENDPOINTS = [
     ],
     {"id": "nws_products_okx",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Text Products — NWS {CFG.nws_office}", "url": f"https://api.weather.gov/products?office={CFG.nws_products_office}&limit=10", "desc": "Latest NWS text products: AFD, Coastal Hazards, etc.", "tags": ["AFD","forecast discussion","text products"]},
     {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",          "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
-    {"id": "coops_fire_island", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Fire Island USCG",     "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515186&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level near Fire Island inlet",             "tags": ["water level","fire island","great south bay"]},
-    {"id": "coops_bay_shore",   "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Bay Shore",           "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515102&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Great South Bay",                  "tags": ["water level","bay shore","great south bay"]},
+    {"id": "coops_montauk",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Montauk",              "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — eastern Long Island",              "tags": ["water level","montauk","east end"]},
+    {"id": "coops_sandy_hook",  "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Sandy Hook Reference", "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Outer-harbor water-level reference",                       "tags": ["water level","sandy hook","reference"]},
     {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery Reference","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "NY Harbor surge reference used for regional comparison",   "tags": ["water level","surge","battery","reference"]},
     {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Kings Point 48h","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8516945&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
     {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — Kings Point Station",        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at Kings Point",        "tags": ["wind","meteorological","long island sound"]},
@@ -757,81 +771,8 @@ def format_item_for_context(item, data=None):
 # NYC OPEN DATA (SOCRATA) HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Curated emergency-relevant NYC Open Data datasets with known geometry columns
-NYC_OPEN_DATA_PRESETS = [
-    {
-        "id":       "fhrw-4uyv",
-        "name":     "311 Service Requests (live)",
-        "agency":   "311",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"complaint_type",
-        "desc":     "Real-time 311 complaints — filterable by type, borough, date",
-        "color":    "#60a5fa",
-        "icon":     "📞",
-        "filter":   None,
-    },
-    {
-        "id":       "nuhi-jiwk",
-        "name":     "FDNY Incidents (fire/EMS)",
-        "agency":   "FDNY",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"incident_type_desc",
-        "desc":     "FDNY incident data — fire, EMS, hazmat",
-        "color":    "#f87171",
-        "icon":     "🚒",
-        "filter":   None,
-    },
-    {
-        "id":       "2bnn-yakx",
-        "name":     "NYC Cooling Centers",
-        "agency":   "DOHMH",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"site_name",
-        "desc":     "Active cooling center locations during heat emergencies",
-        "color":    "#34d399",
-        "icon":     "❄️",
-        "filter":   None,
-    },
-    {
-        "id":       "uqnk-2pcv",
-        "name":     "Hurricane Evacuation Centers",
-        "agency":   "OEM",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"facility_name",
-        "desc":     "Designated hurricane evacuation shelter locations",
-        "color":    "#facc15",
-        "icon":     "🏫",
-        "filter":   None,
-    },
-    {
-        "id":       "43nn-pn8y",
-        "name":     "NYPD Incidents",
-        "agency":   "NYPD",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"ofns_desc",
-        "desc":     "NYPD incident reports — filterable by type and date",
-        "color":    "#a78bfa",
-        "icon":     "🚔",
-        "filter":   None,
-    },
-    {
-        "id":       "5uac-w243",
-        "name":     "NYCHA Developments",
-        "agency":   "NYCHA",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"development",
-        "desc":     "NYCHA public housing developments — vulnerable population locations",
-        "color":    "#fb923c",
-        "icon":     "🏢",
-        "filter":   None,
-    },
-]
+# Only presets approved in the jurisdiction configuration are one-click sources.
+NYC_OPEN_DATA_PRESETS = CFG.socrata_presets
 
 def search_nyc_open_data(query: str, app_token: str = "", limit: int = 20) -> list[dict]:
     """Search the NYC Open Data catalog using the Socrata catalog API."""
@@ -1451,7 +1392,8 @@ with tab_nyc:
                         result = fetch_socrata_dataset(
                             preset["id"], nyc_token,
                             lat_col=preset["lat_col"], lng_col=preset["lng_col"],
-                            label_col=preset["label_col"], limit=500
+                            label_col=preset["label_col"],
+                            where_clause=preset.get("required_filter", ""), limit=500
                         )
                     if result["error"]:
                         st.error(f"Error: {result['error']}")
