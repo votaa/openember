@@ -36,6 +36,8 @@ The following controls are deliberate:
 
 Phase 2 does not implement normalized adapters, shared request caching, new map overlays, transportation feeds, or assistant grounding. Those remain Phase 3 and later work. Existing direct runtime catalogs were corrected where they contradicted Phase 1, but the new source registry becomes the complete runtime authority only when adapters consume it.
 
+The approved Phase 3 qualification and Phase 4 display scope, including the additional Rockaway operational datasets, is recorded in `docs/long-island/phase-3-4-approved-scope.md`.
+
 ## Validation
 
 Run:
