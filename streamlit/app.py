@@ -12,7 +12,6 @@ Run:
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
-import streamlit.components.v1 as components
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
 from tidal_gauges import (
@@ -2161,7 +2160,7 @@ with tab_mapbuilder:
 </body>
 </html>"""
 
-        components.html(map_html, height=620, scrolling=False)
+        st.iframe(map_html, height=620)
 
         # ── Share / export ─────────────────────────────────────────────────
         if st.session_state.mb_layers:
