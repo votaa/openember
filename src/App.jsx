@@ -937,7 +937,7 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
         <div key={item.id} style={{marginBottom:8,padding:"8px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6}}>
           <div style={{display:"flex",gap:4,marginBottom:4,flexWrap:"wrap"}}>
             <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#60a5fa12",color:"#60a5fa",border:"1px solid #60a5fa22"}}>{item.type}</span>
-            {"esri" in (item.owner||"").toLowerCase() && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#a78bfa12",color:"#a78bfa",border:"1px solid #a78bfa22"}}>Living Atlas</span>}
+            {String(item.owner || "").toLowerCase().includes("esri") && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#a78bfa12",color:"#a78bfa",border:"1px solid #a78bfa22"}}>Living Atlas</span>}
             {injectedIds.has(item.id) && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#4ade8012",color:"#4ade80",border:"1px solid #4ade8022"}}>✓ In KB</span>}
           </div>
           <div style={{fontSize:10.5,color:"#dde",fontWeight:700,marginBottom:2}}>{item.title}</div>
