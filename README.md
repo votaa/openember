@@ -75,6 +75,7 @@ chat as unavailable until a key is provided.
 OLLAMA_API_KEY = "your_key_here"
 OLLAMA_HOST    = "https://ollama.com"
 OLLAMA_MODEL   = "gpt-oss:120b-cloud"
+CARTO_API_KEY  = "your_carto_key_here"
 ```
 5. Deploy — no server management, free tier available.
 
@@ -158,7 +159,8 @@ See full list: https://ollama.com/search?c=cloud
 | `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` | Model name |
 
 ### Streamlit (secrets or env)
-Same keys without the `VITE_` prefix: `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`.
+Use `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`, and `CARTO_API_KEY`. The
+Streamlit map falls back to OpenStreetMap when `CARTO_API_KEY` is not set.
 
 ---
 
