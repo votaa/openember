@@ -1840,7 +1840,7 @@ with tab_chat:
             "Heat emergency protocol thresholds Nassau and Suffolk",
             "Evacuation routes from barrier island communities",
             "Critical infrastructure in FEMA Zone AE — south shore",
-            "What do the current water levels indicate at Kings Point and Bay Shore?",
+            "What do the current water levels indicate at Kings Point and Montauk?",
                 ]
 
         for i, q in enumerate(quick):
