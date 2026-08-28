@@ -37,6 +37,18 @@ except StreamlitSecretNotFoundError:
     CARTO_API_KEY = os.environ.get("CARTO_API_KEY", "")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
 OLLAMA_HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {OLLAMA_API_KEY}"}
+GAUGE_STATION_IDS = tuple(CFG.flood_thresholds_dict.keys()) or tuple(FLOOD_THRESHOLDS.keys())
+
+
+def fetch_configured_gauges(previous=None):
+    """Fetch the configured CO-OPS stations with retry and last-good preservation."""
+    return fetch_all_ny_gauges(
+        list(GAUGE_STATION_IDS), previous=previous, max_attempts=2,
+    )
+
+
+def configured_gauges_complete(gauge_data):
+    return all(gauge_data.get(sid, {}).get("level") for sid in GAUGE_STATION_IDS)
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -1100,16 +1112,15 @@ if _wind_age > 300:
     st.session_state.wind_obs            = fetch_wind_obs()
     st.session_state.wind_obs_fetched_at = _dt.datetime.now()
 
-# Refresh tidal gauges if stale (>6 min — CO-OPS updates every 6 min)
+# Refresh tidal gauges after 6 min, or retry a partial batch after 1 min.
 _gauge_fetched = st.session_state.get("gauge_fetched_at") or _dt.datetime.min
 _gauge_age = (_dt.datetime.now() - _gauge_fetched).total_seconds()
-if _gauge_age > 360 or not st.session_state.gauge_data:
+_gauge_refresh_seconds = 360 if configured_gauges_complete(st.session_state.gauge_data) else 60
+if _gauge_age > _gauge_refresh_seconds or not st.session_state.gauge_data:
     # Fetch station list once
     if not st.session_state.gauge_stations:
         st.session_state.gauge_stations = fetch_station_list("NY")
-    # Fetch live data for all key NYC stations (+ any others in session)
-    station_ids = list(CFG.flood_thresholds_dict.keys()) or list(FLOOD_THRESHOLDS.keys())
-    st.session_state.gauge_data       = fetch_all_ny_gauges(station_ids)
+    st.session_state.gauge_data       = fetch_configured_gauges(st.session_state.gauge_data)
     st.session_state.gauge_fetched_at = _dt.datetime.now()
 
 # Seed map-connected NOAA endpoints and refresh stale ones
@@ -1157,13 +1168,20 @@ with st.sidebar:
     st.caption(f"CO-OPS · auto-refresh 6min · {g_age_str}")
     if st.button("↺ Refresh Gauges Now", use_container_width=True):
         with st.spinner("Fetching live gauge data…"):
-            st.session_state.gauge_data       = fetch_all_ny_gauges(list(FLOOD_THRESHOLDS.keys()))
+            st.session_state.gauge_data       = fetch_configured_gauges(st.session_state.gauge_data)
             st.session_state.gauge_fetched_at = _dt.datetime.now()
         st.rerun()
     # Show current flood status for each gauge
-    for sid, gd in st.session_state.gauge_data.items():
+    for sid in GAUGE_STATION_IDS:
+        gd = st.session_state.gauge_data.get(sid, {})
         ld = gd.get("level")
-        if not ld: continue
+        if not ld:
+            name = CFG.flood_thresholds_dict.get(sid, {}).get("name", sid)
+            st.markdown(
+                f'<span class="pill p-yellow">○ {name[:18]}: unavailable · retrying</span>',
+                unsafe_allow_html=True,
+            )
+            continue
         color = ld.get("color","#4ade80")
         st.markdown(
             f'<span class="pill" style="background:{color}18;color:{color};border:1px solid {color}33">'
@@ -1221,11 +1239,23 @@ if gauge_data:
         f"<span style='font-size:11px;color:#446'>· {g_age_str} · auto-refreshes every 6min</span>",
         unsafe_allow_html=True
     )
-    gcols = st.columns(min(len(gauge_data), 6))
-    for i, (sid, gd) in enumerate(gauge_data.items()):
+    gcols = st.columns(min(len(GAUGE_STATION_IDS), 6))
+    for i, sid in enumerate(GAUGE_STATION_IDS):
+        gd = gauge_data.get(sid, {})
         ld = gd.get("level")
-        if not ld: continue
         with gcols[i % 6]:
+            if not ld:
+                name = CFG.flood_thresholds_dict.get(sid, {}).get("name", sid)
+                st.markdown(
+                    f'<div style="background:#0d1520;border:1px solid #facc1544;border-radius:6px;'
+                    f'padding:8px 10px;font-family:monospace">'
+                    f'<div style="font-size:9px;color:#556;margin-bottom:2px">{name}</div>'
+                    f'<div style="font-size:12px;font-weight:700;color:#facc15">Unavailable</div>'
+                    f'<div style="font-size:8px;color:#446;margin-top:3px">Retrying automatically</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                continue
             color  = ld.get("color", "#4ade80")
             status = ld.get("status", "NORMAL")
             lft    = ld.get("level_ft", 0)

@@ -72,19 +72,21 @@ coops_stations:
     minor: 5.5
     moderate: 6.5
     major: 8.5
-- id: '8515186'
-  name: Fire Island USCG (Great South Bay inlet)
-  lat: 40.6278
-  lng: -73.1788
+- id: '8510560'
+  name: Montauk
+  lat: 41.0483
+  lng: -71.9594
+  role: primary
   flood_thresholds:
-    action: 4.5
-    minor: 5.5
-    moderate: 6.5
-    major: 8.5
-- id: '8515102'
-  name: Bay Shore (Great South Bay)
-  lat: 40.7074
-  lng: -73.2421
+    action: 3.5
+    minor: 4.5
+    moderate: 5.5
+    major: 7.0
+- id: '8531680'
+  name: Sandy Hook (outer-harbor ref)
+  lat: 40.4669
+  lng: -74.0094
+  role: reference
   flood_thresholds:
     action: 4.5
     minor: 5.5
