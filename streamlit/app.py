@@ -982,9 +982,11 @@ def socrata_popup_html(feature: dict, label_col: str, dataset_name: str, color: 
 
 def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     """
-    Query an ArcGIS Feature Service REST endpoint and return GeoJSON-like features.
-    Works with any public ArcGIS Feature Service — no auth required.
-    Appends /query if not already present.
+    Query an ArcGIS REST layer endpoint and return GeoJSON-like features.
+    Works with public ArcGIS Feature/Map Services — no auth required.
+    Appends /query if not already present. Some older or specially configured
+    services reject ``f=geojson``, so fall back to ArcGIS JSON and normalize
+    its native geometry format.
     """
     # Normalize URL — ensure we hit the /query endpoint
     base = service_url.rstrip("/")
@@ -1020,24 +1022,46 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
         "where":        "1=1",
         "outFields":    "*",
         "returnGeometry": "true",
-        "f":            "geojson",
+        "outSR":        "4326",
         "resultRecordCount": max_features,
     }
     try:
-        r = requests.get(query_url, params=params, timeout=15,
-                         headers={"User-Agent": "EMBER/1.0"})
-        r.raise_for_status()
-        geojson = r.json()
+        headers = {"User-Agent": "EMBER/1.0"}
+        r = requests.get(query_url, params={**params, "f": "geojson"}, timeout=15, headers=headers)
 
-        if "error" in geojson:
-            return {"features": [], "error": geojson["error"].get("message", "ArcGIS error")}
+        # GeoJSON output is not enabled on every public ArcGIS layer. Retry
+        # with the universally supported ArcGIS JSON representation.
+        if r.status_code == 400:
+            r = requests.get(query_url, params={**params, "f": "json"}, timeout=15, headers=headers)
+        r.raise_for_status()
+        payload = r.json()
+
+        if "error" in payload:
+            return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
 
         features = []
-        for feat in geojson.get("features", []):
-            geom = feat.get("geometry", {})
-            props = feat.get("properties", {})
-            gtype = geom.get("type", "")
+        for feat in payload.get("features", []):
+            # ArcGIS JSON uses attributes/geometry; GeoJSON uses
+            # properties/geometry. Keep the existing map contract unchanged.
+            props = feat.get("properties") or feat.get("attributes") or {}
+            geom = feat.get("geometry") or {}
+            if "x" in geom and "y" in geom:
+                features.append({"type": "point", "lat": geom["y"], "lng": geom["x"], "props": props})
+                continue
 
+            if "paths" in geom:
+                paths = geom["paths"]
+                coordinates = paths[0] if len(paths) == 1 else paths
+                gtype = "LineString" if len(paths) == 1 else "MultiLineString"
+                features.append({"type": "line", "geometry": {"type": gtype, "coordinates": coordinates}, "props": props})
+                continue
+
+            if "rings" in geom:
+                features.append({"type": "polygon", "geometry": {"type": "Polygon", "coordinates": geom["rings"]}, "props": props})
+                continue
+
+            # Already-normalized GeoJSON geometry, if returned by the service.
+            gtype = geom.get("type", "")
             if gtype == "Point":
                 coords = geom.get("coordinates", [])
                 if len(coords) >= 2:
