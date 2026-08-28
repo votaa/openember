@@ -12,6 +12,7 @@ Run:
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
 from tidal_gauges import (
@@ -21,6 +22,7 @@ from tidal_gauges import (
 )
 from config_loader import load_config, config_exists
 from setup_wizard import render_wizard
+from carto_tiles import basemap_config
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -29,6 +31,10 @@ CFG = load_config()
 OLLAMA_API_KEY = st.secrets.get("OLLAMA_API_KEY", os.environ.get("OLLAMA_API_KEY", ""))
 OLLAMA_HOST    = st.secrets.get("OLLAMA_HOST",    os.environ.get("OLLAMA_HOST",    "https://ollama.com"))
 OLLAMA_MODEL   = st.secrets.get("OLLAMA_MODEL",   os.environ.get("OLLAMA_MODEL",   "gpt-oss:120b-cloud"))
+try:
+    CARTO_API_KEY = st.secrets.get("CARTO_API_KEY", os.environ.get("CARTO_API_KEY", ""))
+except StreamlitSecretNotFoundError:
+    CARTO_API_KEY = os.environ.get("CARTO_API_KEY", "")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
 OLLAMA_HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {OLLAMA_API_KEY}"}
 
@@ -482,8 +488,13 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
     map_points    = map_points or MAP_POINTS
+    basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY)
     m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
-                   tiles="CartoDB dark_matter", prefer_canvas=True)
+                   tiles=None, prefer_canvas=True)
+    folium.TileLayer(
+        tiles=basemap_url, name=basemap_name, attr=basemap_attr,
+        overlay=False, control=True,
+    ).add_to(m)
     # NEXRAD radar tiles with 5-min cache buster
     if show_radar:
         epoch_5min = int(_time.time() // 300)
