@@ -14,6 +14,7 @@ import {
   BRANDING      as _BR_raw,
   COOPS_STATIONS as _COOPS_raw,
 } from "./config/jurisdiction.js"
+import { appendCartoApiKey } from "./utils/carto.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -54,6 +55,10 @@ const SOCRATA_DOMAIN   = _SOC.domain       || "data.cityofnewyork.us"
 const OLLAMA_HOST        = import.meta.env?.VITE_OLLAMA_HOST  || "https://ollama.com"
 const OLLAMA_MODEL       = import.meta.env?.VITE_OLLAMA_MODEL || "gpt-oss:120b-cloud"
 const OLLAMA_KEY_ENV     = import.meta.env?.VITE_OLLAMA_API_KEY || ""
+const CARTO_TILE_URL     = appendCartoApiKey(
+  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  import.meta.env.VITE_CARTO_API_KEY,
+)
 
 // ── localStorage config — persists across sessions, overrides build-time defaults ──
 const LS_KEY = "ember_config_v1"
@@ -374,7 +379,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
     if (leafRef.current) return
     import("leaflet").then(({default: L}) => {
       const map = L.map(mapRef.current, { center: CFG.center, zoom: CFG.zoom, zoomControl:true })
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      L.tileLayer(CARTO_TILE_URL, {
         attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19, subdomains:"abcd"
       }).addTo(map)
       if (CFG.bbox) {
