@@ -1,0 +1,228 @@
+{
+  "fixture_version": 1,
+  "captured_on": "2026-08-28",
+  "notice": "Bounded public-source samples for contract tests. Values are historical snapshots and must never be presented as current operational conditions.",
+  "samples": [
+    {
+      "source_id": "nyc_311_rockaway",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+      "query_contract": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
+      "known_scope_exception": "This initial filter includes Broad Channel as well as the Rockaway Peninsula. Peninsula-only polygon filtering is a future enhancement.",
+      "captured_at": "2026-08-28T13:16:00Z",
+      "payload": [
+        {
+          "unique_key": "70202706",
+          "created_date": "2026-08-27T02:05:27.000",
+          "agency": "NYPD",
+          "complaint_type": "Noise - Residential",
+          "descriptor": "Loud Music/Party",
+          "status": "In Progress",
+          "borough": "QUEENS",
+          "community_board": "14 QUEENS",
+          "incident_zip": "11691",
+          "latitude": "40.60335801790573",
+          "longitude": "-73.75386629508971"
+        }
+      ]
+    },
+    {
+      "source_id": "nassau_arcgis",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://gis.nassaucountyny.gov/server/rest/services/Hosted/My_Nassau/FeatureServer/5/query",
+      "service_item_id": "e8d03b6297164b1bb543330e67a55230",
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "objectIdFieldName": "objectid",
+        "geometryType": "esriGeometryPolygon",
+        "features": [
+          {"attributes": {"objectid": 1, "ncid": 3, "town": "Oyster Bay"}}
+        ]
+      }
+    },
+    {
+      "source_id": "suffolk_arcgis_evacuation",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/FRES_Evacuation_Zones_Final/FeatureServer/0/query",
+      "service_item_id": "6441f281938541089ea76fda36e040c8",
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "objectIdFieldName": "objectid",
+        "geometryType": "esriGeometryPolygon",
+        "features": [
+          {"attributes": {"objectid": 1, "name": "Babylon", "fips": "04000", "zone": "A", "vxcount": 658}}
+        ]
+      }
+    },
+    {
+      "source_id": "suffolk_arcgis_flood",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/100YR_Flood/FeatureServer/0/query",
+      "service_item_id": "c768a42525be4a1fa0974848ccbcb3b3",
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "objectIdFieldName": "fid",
+        "geometryType": "esriGeometryPolygon",
+        "features": [
+          {
+            "attributes": {
+              "fid": 1,
+              "dfirm_id": "36103C",
+              "fld_zone": "AE",
+              "zone_subty": " ",
+              "sfha_tf": "T",
+              "static_bfe": 11,
+              "v_datum": "NAVD88",
+              "len_unit": "Feet",
+              "source_cit": "36103C_STUDY5"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "noaa_coops",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+      "request_contract": {
+        "station": "8516945",
+        "product": "water_level",
+        "datum": "MLLW",
+        "time_zone": "gmt",
+        "units": "english",
+        "format": "json"
+      },
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "metadata": {"id": "8516945", "name": "Kings Point", "lat": "40.8103", "lon": "-73.7649"},
+        "data": [{"t": "2026-08-28 13:06", "v": "4.049", "s": "0.089", "f": "0,0,0,0", "q": "p"}]
+      }
+    },
+    {
+      "source_id": "usgs_waterdata",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+      "request_contract": {"parameter_code": "00065", "datetime": "explicit RFC 3339 interval", "limit": 1},
+      "captured_at": "2026-08-28T13:16:00Z",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "id": "0ce109cd-47de-431c-b81d-ab15003ecb6a",
+            "geometry": {"type": "Point", "coordinates": [-73.4553888888889, 40.689]},
+            "properties": {
+              "monitoring_location_id": "USGS-01309500",
+              "parameter_code": "00065",
+              "time": "2026-08-27T00:00:00+00:00",
+              "value": "0.65",
+              "unit_of_measure": "ft",
+              "approval_status": "Provisional",
+              "qualifier": null,
+              "last_modified": "2026-08-27T00:14:07.972967+00:00"
+            }
+          },
+          {
+            "type": "Feature",
+            "id": "077c9983-e2f4-4289-ae7f-e5e1b54caf1d",
+            "geometry": {"type": "Point", "coordinates": [-72.6869444444444, 40.9136944444444]},
+            "properties": {
+              "monitoring_location_id": "USGS-01304500",
+              "parameter_code": "00065",
+              "time": "2026-08-27T00:00:00+00:00",
+              "value": "0.32",
+              "unit_of_measure": "ft",
+              "approval_status": "Provisional",
+              "qualifier": null,
+              "last_modified": "2026-08-27T00:18:09.996940+00:00"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "nys_dec_arcgis",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://gisservices.dec.ny.gov/arcgis/rest/services/dil/dil_clean_up/MapServer/2/query",
+      "query_contract": "COUNTY IN ('Nassau','Suffolk')",
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "displayFieldName": "SITENAME",
+        "features": [
+          {
+            "attributes": {
+              "OBJECTID": 9814743,
+              "SITECODE": "130004",
+              "SITENAME": "RUCO Polymer Corp. (Hooker Chem)",
+              "PROGRAM": "State Superfund Program",
+              "SITECLASS": "02",
+              "LOCALITY": "Hicksville",
+              "ZIPCODE": "11801",
+              "COUNTY": "Nassau",
+              "TOWN": "Oyster Bay",
+              "DETAIL_URL": "https://appfactory.dec.ny.gov/DERExternalSearch/ERDDetails?SiteCode=130004"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "nys_gis",
+      "sample_kind": "captured_minimal",
+      "catalog_item_id": "074d3456e5664f5e85d0fb251d05cc5b",
+      "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+      "captured_at": "2026-08-28T13:17:00Z",
+      "payload": {
+        "geometryType": "esriGeometryPolygon",
+        "spatialReference": {"wkid": 102100, "latestWkid": 3857},
+        "features": [
+          {"attributes": {"OBJECTID": 30, "NAME": "Nassau", "FIPS_CODE": "36059", "NYC": "N"}},
+          {"attributes": {"OBJECTID": 41, "NAME": "Queens", "FIPS_CODE": "36081", "NYC": "Y"}},
+          {"attributes": {"OBJECTID": 52, "NAME": "Suffolk", "FIPS_CODE": "36103", "NYC": "N"}}
+        ]
+      }
+    },
+    {
+      "source_id": "511ny",
+      "sample_kind": "documentation_sample",
+      "source_url": "https://www.511ny.org/api/getevents?key={key}&format=json",
+      "captured_at": "2026-08-28T13:17:00Z",
+      "payload": [
+        {
+          "ID": "sample string 1",
+          "RegionName": "sample string 2",
+          "CountyName": "sample string 3",
+          "Severity": "sample string 4",
+          "RoadwayName": "sample string 5",
+          "DirectionOfTravel": "sample string 6",
+          "Description": "sample string 7",
+          "Location": "sample string 8",
+          "EventType": "sample string 16",
+          "EventSubType": "sample string 17",
+          "LastUpdated": "sample string 1",
+          "Latitude": 2.1,
+          "Longitude": 3.1
+        }
+      ]
+    },
+    {
+      "source_id": "mta_gtfs_rt",
+      "sample_kind": "captured_minimal",
+      "source_url": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Flirr-alerts.json",
+      "captured_at": "2026-08-28T13:15:00Z",
+      "payload": {
+        "header": {"gtfs_realtime_version": "2.0", "incrementality": "FULL_DATASET", "timestamp": 1787922933},
+        "entity": [
+          {
+            "id": "lmm:alert:265107:24",
+            "alert": {
+              "active_period": [{"start": 1787922502, "end": 1787925000}],
+              "informed_entity": [{"agency_id": "LI", "route_id": "2"}],
+              "header_text": {"translation": [{"text": "The 8:45am train from Hempstead to Grand Central is operating 15-20 minutes late due to earlier equipment trouble at Nassau Blvd.", "language": "en"}]}
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

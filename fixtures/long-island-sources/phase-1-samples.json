@@ -1,0 +1,224 @@
+{
+  "fixture_version": 1,
+  "created_for": "Long Island data integration Phase 1",
+  "created_at": "2026-08-28",
+  "notice": "Synthetic contract fixtures only. No payload is a current operational observation.",
+  "candidates": [
+    {
+      "source_id": "nyc_311_rockaway",
+      "sample_kind": "synthetic_minimal",
+      "format": "socrata_json",
+      "geography": ["rockaway"],
+      "known_scope_exception": "Queens Community Board 14 also includes Broad Channel; accepted for the initial implementation and tracked for future polygon exclusion.",
+      "payload": [
+        {
+          "unique_key": "fixture-311-001",
+          "created_date": "2026-01-15T09:30:00.000",
+          "agency": "DEP",
+          "complaint_type": "Street Flooding",
+          "descriptor": "Fixture only",
+          "status": "Open",
+          "borough": "QUEENS",
+          "community_board": "14 QUEENS",
+          "incident_zip": "11691",
+          "latitude": "40.6038",
+          "longitude": "-73.7544"
+        }
+      ],
+      "acceptance_notes": [
+        "The initial adapter must require borough QUEENS plus community_board 14 QUEENS.",
+        "Broad Channel is intentionally included until a future authoritative Rockaway Peninsula polygon filter is implemented.",
+        "Rows without usable geography must not enter the regional record set."
+      ]
+    },
+    {
+      "source_id": "nassau_arcgis",
+      "sample_kind": "synthetic_minimal",
+      "format": "arcgis_feature_set_json",
+      "geography": ["nassau"],
+      "payload": {
+        "objectIdFieldName": "OBJECTID",
+        "geometryType": "esriGeometryPolygon",
+        "spatialReference": {"wkid": 4326},
+        "fields": [
+          {"name": "OBJECTID", "type": "esriFieldTypeOID"},
+          {"name": "NAME", "type": "esriFieldTypeString"}
+        ],
+        "features": [
+          {
+            "attributes": {"OBJECTID": 1, "NAME": "Fixture Nassau feature"},
+            "geometry": {"rings": [[[-73.75, 40.65], [-73.70, 40.65], [-73.70, 40.70], [-73.75, 40.65]]]}
+          }
+        ]
+      },
+      "acceptance_notes": ["Record service URL, layer ID, owner, update cadence, and attribution per selected layer."]
+    },
+    {
+      "source_id": "suffolk_arcgis",
+      "sample_kind": "synthetic_minimal",
+      "format": "arcgis_feature_set_json",
+      "geography": ["suffolk"],
+      "payload": {
+        "objectIdFieldName": "OBJECTID",
+        "geometryType": "esriGeometryPolygon",
+        "spatialReference": {"wkid": 4326},
+        "fields": [
+          {"name": "OBJECTID", "type": "esriFieldTypeOID"},
+          {"name": "ZONE", "type": "esriFieldTypeString"}
+        ],
+        "features": [
+          {
+            "attributes": {"OBJECTID": 1, "ZONE": "Fixture evacuation zone"},
+            "geometry": {"rings": [[[-73.20, 40.70], [-73.10, 40.70], [-73.10, 40.78], [-73.20, 40.70]]]}
+          }
+        ]
+      },
+      "acceptance_notes": ["Reject or flag geometry outside the approved Suffolk boundary."]
+    },
+    {
+      "source_id": "noaa_coops",
+      "sample_kind": "synthetic_minimal",
+      "format": "coops_data_api_json",
+      "geography": ["regional"],
+      "payload": {
+        "metadata": {
+          "id": "8516945",
+          "name": "Kings Point",
+          "lat": "40.8103",
+          "lon": "-73.7650"
+        },
+        "data": [
+          {"t": "2026-01-15 09:30", "v": "2.410", "s": "0.020", "f": "0,0,0,0", "q": "p"}
+        ]
+      },
+      "acceptance_notes": ["Preserve datum, units, time zone, product, observation time, and quality flags from the request and response."]
+    },
+    {
+      "source_id": "usgs_waterdata",
+      "sample_kind": "synthetic_minimal",
+      "format": "ogcapi_json",
+      "geography": ["regional"],
+      "payload": {
+        "type": "FeatureCollection",
+        "timeStamp": "2026-01-15T14:30:00Z",
+        "numberReturned": 1,
+        "features": [
+          {
+            "type": "Feature",
+            "id": "fixture-usgs-001",
+            "geometry": {"type": "Point", "coordinates": [-73.25, 40.72]},
+            "properties": {
+              "monitoring_location_id": "USGS-fixture",
+              "parameter_code": "00065",
+              "value": 2.1,
+              "unit_of_measure": "ft",
+              "time": "2026-01-15T14:15:00Z"
+            }
+          }
+        ]
+      },
+      "acceptance_notes": ["Confirm exact OGC field names during adapter work; filter by approved sites or bounds before normalization."]
+    },
+    {
+      "source_id": "nys_dec_arcgis",
+      "sample_kind": "synthetic_minimal",
+      "format": "arcgis_feature_set_geojson",
+      "geography": ["regional"],
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [-72.98, 40.85]},
+            "properties": {"OBJECTID": 1, "NAME": "Fixture DEC site", "STATUS": "Fixture"}
+          }
+        ]
+      },
+      "acceptance_notes": ["Carry the DEC source/layer name and as-is disclaimer into normalized attribution."]
+    },
+    {
+      "source_id": "nys_gis",
+      "sample_kind": "synthetic_minimal",
+      "format": "ogcapi_records_json",
+      "geography": ["regional"],
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "id": "fixture-nys-gis-record",
+            "geometry": null,
+            "properties": {
+              "title": "Fixture NYS GIS record",
+              "type": "dataset",
+              "updated": "2026-01-15T00:00:00Z"
+            },
+            "links": [
+              {"rel": "service", "type": "application/json", "href": "https://example.invalid/fixture-only"}
+            ]
+          }
+        ]
+      },
+      "acceptance_notes": ["Resolve the current service URL from catalog/config and detect legacy URL retirement."]
+    },
+    {
+      "source_id": "511ny",
+      "sample_kind": "gated_stub",
+      "format": "json_contract_placeholder",
+      "geography": ["regional"],
+      "payload": {
+        "access_state": "access_required",
+        "events": [
+          {
+            "ID": "fixture-511ny-001",
+            "RegionName": "Long Island",
+            "CountyName": "Suffolk",
+            "Severity": "Unknown",
+            "RoadwayName": "Fixture roadway",
+            "DirectionOfTravel": "Eastbound",
+            "Description": "Fixture only",
+            "Location": "Fixture location",
+            "EventType": "roadwork",
+            "EventSubType": "Fixture",
+            "LastUpdated": "15/01/2026 14:30:00",
+            "Latitude": 40.78,
+            "Longitude": -73.10
+          }
+        ]
+      },
+      "acceptance_notes": ["Do not implement against this placeholder until an approved account provides the actual response contract."]
+    },
+    {
+      "source_id": "mta_gtfs_rt",
+      "sample_kind": "synthetic_minimal",
+      "format": "decoded_gtfs_rt_json",
+      "geography": ["regional", "rockaway"],
+      "payload": {
+        "header": {"gtfs_realtime_version": "2.0", "timestamp": 1768487400},
+        "entity": [
+          {
+            "id": "fixture-mta-alert-001",
+            "alert": {
+              "active_period": [{"start": 1768486500, "end": 1768491000}],
+              "informed_entity": [{"agency_id": "LI", "route_id": "fixture-route"}],
+              "header_text": {"translation": [{"text": "Fixture service alert", "language": "en"}]}
+            }
+          }
+        ]
+      },
+      "acceptance_notes": ["The live payload is protobuf. Preserve feed timestamp and distinguish realtime alerts from static schedules."]
+    },
+    {
+      "source_id": "nyhops",
+      "sample_kind": "gated_stub",
+      "format": "availability_placeholder",
+      "geography": ["regional"],
+      "payload": {
+        "access_state": "machine_readable_contract_unconfirmed",
+        "forecast": null,
+        "reference_url": "https://hudson.dl.stevens-tech.edu/maritimeforecast/maincontrol.shtml"
+      },
+      "acceptance_notes": ["No data parser may be built until stable machine-readable access, update cadence, attribution, and redistribution terms are documented."]
+    }
+  ]
+}
