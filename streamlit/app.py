@@ -931,6 +931,26 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
         # If it's an item URL (arcgis.com/home/item.html?id=...), can't query directly
         if "arcgis.com/home/item" in base:
             return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
+
+        # Do not assume the first layer is always layer 0. Some ArcGIS
+        # services expose only a different layer ID (for example, LIRR
+        # branches exposes layer 4), while the portal result URL may point to
+        # the service root or an outdated layer path.
+        service_match = re.match(r"^(.*?/(?:FeatureServer|MapServer))(?:/(\d+))?$", base, re.I)
+        if service_match:
+            service_root, requested_id = service_match.groups()
+            try:
+                meta_res = requests.get(f"{service_root}?f=json", timeout=15,
+                                         headers={"User-Agent": "EMBER/1.0"})
+                if meta_res.ok:
+                    meta = meta_res.json()
+                    available = meta.get("layers") or []
+                    available_ids = {str(layer.get("id")) for layer in available}
+                    if available and (requested_id is None or requested_id not in available_ids):
+                        base = f"{service_root}/{available[0]['id']}"
+            except (ValueError, requests.RequestException):
+                # Let the query below return the service's normal error.
+                pass
         query_url = base + "/query"
     else:
         query_url = base
