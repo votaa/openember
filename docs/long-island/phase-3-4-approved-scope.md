@@ -6,18 +6,19 @@ Approval date: 2026-08-28
 
 ## Outcome
 
-Phase 3 will qualify and normalize the approved regional sources, including six Rockaway operational source families. Phase 4 will display the resulting records with equivalent source cards and map layers in both React/Vercel and Streamlit.
+Phase 3 will qualify and normalize the approved regional sources, including five active Rockaway operational source families. Phase 4 will display the resulting records with equivalent source cards and map layers in both React/Vercel and Streamlit.
 
-The six approved Rockaway source families are:
+The active Rockaway source families are:
 
 1. NYC 311 service requests.
-2. FDNY incidents.
-3. Active cooling centers.
-4. Hurricane evacuation centers.
-5. NYPD incidents.
-6. NYCHA housing developments.
+2. Active cooling centers.
+3. Hurricane evacuation centers.
+4. NYPD incidents.
+5. NYCHA housing developments.
 
-The latter five were approved for qualification rather than pre-declared qualified. Phase 3 revalidation found that the historical application IDs were stale, removed, or reassigned. The current qualification results and exact gates are recorded in `docs/long-island/phase-3-rockaway-qualification.md`; only verified current IDs may be used.
+FDNY historical incident data was removed from the active scope on 2026-08-29 because a latest-50-record card cannot support useful period totals and the source is not a real-time operational feed. A future aggregate-query option is retained in `docs/long-island/future-fdny-historical-analytics.md`.
+
+The latter four active families were approved for qualification rather than pre-declared qualified. Phase 3 revalidation found that historical application IDs were stale, removed, or reassigned. The current qualification results and exact gates are recorded in `docs/long-island/phase-3-rockaway-qualification.md`; only verified current IDs may be used.
 
 ## Phase 3: qualification and normalization
 
@@ -25,7 +26,7 @@ Phase 3 will:
 
 - Define and test the common normalized regional record described in `docs/long-island/phase-1-field-mappings.md`.
 - Implement shared source behavior for timestamps, geometry, attribution, freshness, stale/partial/unavailable states, timeouts, bounded requests, and malformed responses.
-- Qualify and normalize Rockaway-scoped NYC 311, FDNY incidents, cooling centers, hurricane evacuation centers, NYPD incidents, and NYCHA housing developments.
+- Qualify and normalize Rockaway-scoped NYC 311, cooling centers, hurricane evacuation centers, NYPD incidents, and NYCHA housing developments.
 - Implement the already-approved NOAA CO-OPS, USGS Water Data, NYS DEC, NYS Civil Boundaries, and scoped ArcGIS/Socrata adapter families.
 - Keep Nassau and Suffolk county layers prototype-only until their production attribution/reuse gates are resolved.
 - Keep 511NY, MTA, and NYHOPS disabled until their existing access, proxy/cache, or machine-readable-contract gates are resolved.
@@ -48,7 +49,7 @@ Use Queens Community Board 14 when the source publishes a reliable community-boa
 
 ### Phase 3 acceptance criteria
 
-- All six Rockaway source families have verified current contracts or are explicitly left disabled with a documented reason.
+- All five active Rockaway source families have verified current contracts or are explicitly left disabled with a documented reason.
 - Fixture tests prove that in-scope records normalize correctly and out-of-scope records are rejected.
 - React and Streamlit receive equivalent normalized records for the same fixture.
 - Source timestamps remain distinct from retrieval and expiration timestamps.
@@ -63,7 +64,6 @@ Phase 4 will add equivalent user-facing source cards and map toggles for both Re
 The Rockaway display set is:
 
 - NYC 311 service requests.
-- FDNY incidents.
 - Active cooling centers.
 - Hurricane evacuation centers.
 - NYPD incidents.
@@ -82,7 +82,7 @@ Each interface must:
 
 ### Phase 4 acceptance criteria
 
-- All six qualified Rockaway sources are visible through separate cards and toggles in React/Vercel and Streamlit.
+- All five active Rockaway sources are visible through separate cards and toggles in React/Vercel and Streamlit.
 - A user can identify the source, scope, timestamp, and freshness of every displayed layer.
 - No citywide NYC record is presented as a Rockaway condition.
 - Broad Channel inclusion is consistent with the approved Phase 3 geography policy.

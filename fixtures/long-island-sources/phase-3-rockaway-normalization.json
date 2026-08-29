@@ -1,7 +1,7 @@
 {
   "fixture_version": 1,
   "captured_on": "2026-08-28",
-  "notice": "Bounded historical contract samples. They must never be presented as current operational conditions.",
+  "notice": "Bounded contract samples. They must never be presented as current operational conditions.",
   "fetched_at": "2026-08-28T18:00:00.000Z",
   "evaluated_at": "2026-08-28T18:00:00.000Z",
   "cases": [
@@ -33,35 +33,6 @@
           "incident_zip": "11422",
           "latitude": "40.66",
           "longitude": "-73.74"
-        }
-      ]
-    },
-    {
-      "source_id": "fdny_incidents_rockaway",
-      "rows": [
-        {
-          "starfire_incident_id": "260630-Q1095-001-0855",
-          "incident_datetime": "2026-06-30T23:51:11.000",
-          "incident_borough": "QUEENS",
-          "zipcode": "11691",
-          "communitydistrict": "414",
-          "alarm_box_location": "MOTT AVE & MCBRIDE ST",
-          "incident_classification": "Medical - EMS Link 10-91",
-          "incident_classification_group": "Medical Emergencies",
-          "incident_close_datetime": "2026-06-30T23:53:18.000",
-          "highest_alarm_level": "First Alarm"
-        },
-        {
-          "starfire_incident_id": "reject-fdny-outside-scope",
-          "incident_datetime": "2026-06-30T23:51:11.000",
-          "incident_borough": "QUEENS",
-          "zipcode": "11368",
-          "communitydistrict": "404",
-          "alarm_box_location": "OUTSIDE ROCKAWAY",
-          "incident_classification": "Fixture rejection",
-          "incident_classification_group": "NonMedical Emergencies",
-          "incident_close_datetime": "2026-06-30T23:53:18.000",
-          "highest_alarm_level": "First Alarm"
         }
       ]
     }

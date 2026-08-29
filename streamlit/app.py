@@ -9,6 +9,7 @@ Run:
 """
 
 # ── Imports (all at module level) ─────────────────────────────────────────────
+import html as _html
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
@@ -23,9 +24,19 @@ from tidal_gauges import (
 from config_loader import load_config, config_exists
 from setup_wizard import render_wizard
 from carto_tiles import basemap_config
+from regional_normalization import (
+    ROCKAWAY_SOURCE_IDS,
+    fetch_rockaway_source,
+    rockaway_source_card,
+    unavailable_rockaway_result,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
+ROCKAWAY_SOURCES = [
+    source for source_id in ROCKAWAY_SOURCE_IDS
+    if (source := CFG.source(source_id)) is not None
+]
 
 # ── Config ────────────────────────────────────────────────────────────────────
 def _setting(name: str, default: str = "") -> str:
@@ -504,12 +515,15 @@ def fetch_wind_obs():
     return results
 
 def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
-              live_readings=None, gauge_data=None, map_layers=None, map_points=None):
+              live_readings=None, gauge_data=None, map_layers=None, map_points=None,
+              rockaway_results=None, active_rockaway_layers=None):
     live_readings = live_readings or {}
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
     map_points    = map_points or MAP_POINTS
+    rockaway_results = rockaway_results or {}
+    active_rockaway_layers = active_rockaway_layers or []
     basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY)
     m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
                    tiles=None, prefer_canvas=True)
@@ -597,6 +611,39 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 color=marker_color, fill=True, fill_color=marker_color, fill_opacity=0.6,
                 popup=folium.Popup(popup_html, max_width=240),
                 tooltip=f'{f["name"]}' + (f' — {reading.get("level","?")} {reading.get("unit","")}' if reading else "")
+            ).add_to(fg)
+        fg.add_to(m)
+    # Phase 4 normalized Rockaway layers. Only records carrying approved source
+    # geometry are mapped; card-only sources never receive synthetic points.
+    for source in ROCKAWAY_SOURCES:
+        source_id = source["id"]
+        if source_id not in active_rockaway_layers:
+            continue
+        result = rockaway_results.get(source_id, {})
+        records = [record for record in result.get("records", []) if record.get("geometry")]
+        if not records:
+            continue
+        display = source.get("display", {})
+        color = display.get("color", "#60a5fa")
+        icon = display.get("icon", "📍")
+        fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=True)
+        for record in records:
+            geometry = record.get("geometry", {})
+            if geometry.get("type") != "Point" or len(geometry.get("coordinates", [])) < 2:
+                continue
+            longitude, latitude = geometry["coordinates"][:2]
+            popup_h = (
+                f'<div style="font-family:monospace;font-size:11px">'
+                f'<b style="color:{color}">{_html.escape(icon)} {_html.escape(str(record.get("title", "")))}</b><br>'
+                f'<span style="color:#aac">{_html.escape(str(record.get("description") or record.get("category") or ""))}</span><br><br>'
+                f'<span style="color:#778">{_html.escape(str(record.get("source_name", "")))} · {_html.escape(str(record.get("observed_at", "")))}</span><br>'
+                f'<span style="color:#556">{_html.escape(str(record.get("attribution", "")))}</span></div>'
+            )
+            folium.CircleMarker(
+                location=[latitude, longitude], radius=7,
+                color=color, fill=True, fill_color=color, fill_opacity=0.7,
+                popup=folium.Popup(popup_h, max_width=280),
+                tooltip=str(record.get("title", source["name"]))[:80],
             ).add_to(fg)
         fg.add_to(m)
     # Wind arrows
@@ -1058,9 +1105,24 @@ for k, v in [
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
+    ("rockaway_results", {source["id"]: unavailable_rockaway_result(source) for source in ROCKAWAY_SOURCES}),
+    ("active_rockaway_layers", ["nyc_311_rockaway"]),
+    ("rockaway_initialized", False),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
+
+
+def refresh_rockaway_sources():
+    st.session_state.rockaway_results = {
+        source["id"]: fetch_rockaway_source(source, requests.get)
+        for source in ROCKAWAY_SOURCES
+    }
+    st.session_state.rockaway_initialized = True
+
+
+if not st.session_state.rockaway_initialized:
+    refresh_rockaway_sources()
 
 # Fetch wind obs on first load
 if "wind_obs" not in st.session_state:
@@ -1135,6 +1197,26 @@ with st.sidebar:
                   "gauges": "📡 Stream Gauges", "eoc": "🏛 EOC / Command", "floodRisk": "💧 Flood Risk Areas"}
     active_layers = [k for k, label in layer_opts.items() if st.checkbox(label, value=True, key=f"map_{k}")]
 
+    st.markdown("**ROCKAWAY SOURCES**")
+    selected_rockaway_layers = []
+    for source in ROCKAWAY_SOURCES:
+        card = rockaway_source_card(source, st.session_state.rockaway_results.get(source["id"]))
+        enabled_on_map = source["id"] in st.session_state.active_rockaway_layers and card["map_capable"]
+        checked = st.checkbox(
+            f'{card["icon"]} {source["name"].split(" — ")[0]}',
+            value=enabled_on_map,
+            key=f'rockaway_layer_{source["id"]}',
+            disabled=not card["map_capable"],
+            help=("Show normalized records on the operational map" if card["map_capable"] else card.get("note") or "No approved map geometry"),
+        )
+        if checked and card["map_capable"]:
+            selected_rockaway_layers.append(source["id"])
+    st.session_state.active_rockaway_layers = selected_rockaway_layers
+    if st.button("↺ Refresh Rockaway Sources", use_container_width=True):
+        with st.spinner("Fetching bounded Rockaway records…"):
+            refresh_rockaway_sources()
+        st.rerun()
+
     st.markdown("**WEATHER OVERLAYS**")
     show_radar = st.checkbox("📡 NEXRAD Radar (auto-refresh)", key="show_radar",
                              help="Iowa State MESONET — tiles refresh every 5min automatically")
@@ -1208,6 +1290,36 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 st.markdown(f"### 🗺️ {CFG.name} Operational Map")
+
+st.markdown("**🌊 Rockaway Sources**")
+st.caption("Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records")
+_state_colors = {
+    "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
+    "unavailable": "#f87171", "access_required": "#a78bfa",
+}
+_rockaway_cols = st.columns(3)
+for _index, _source in enumerate(ROCKAWAY_SOURCES):
+    _card = rockaway_source_card(_source, st.session_state.rockaway_results.get(_source["id"]))
+    _state_color = _state_colors.get(_card["data_state"], "#778")
+    _note = _html.escape(str(_card.get("note") or ""))
+    _observed = _html.escape(str(_card.get("observed_at") or "Not available"))
+    _fetched = _html.escape(str(_card.get("fetched_at") or "Not available"))
+    with _rockaway_cols[_index % 3]:
+        st.markdown(
+            f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {_card["color"]};'
+            f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:174px;font-family:monospace">'
+            f'<div style="display:flex;justify-content:space-between;gap:6px">'
+            f'<b style="font-size:10px;color:#dde">{_html.escape(_card["icon"])} {_html.escape(_card["name"])}</b>'
+            f'<span style="font-size:8px;color:{_state_color};white-space:nowrap">{_html.escape(_card["data_state"].replace("_", " ").upper())}</span></div>'
+            f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(_card["owner"])} · {_html.escape(_card["geography"])}</div>'
+            f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{_card["record_count"]}</span></div>'
+            f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{_observed}</span></div>'
+            f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{_fetched}</span></div>'
+            f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{_note}</div>'
+            f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(_card["kind"].replace("_", " "))} · {_html.escape(_card["attribution"])}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 # ── Tidal gauge live status strip ──────────────────────────────────────────────
 gauge_data = st.session_state.gauge_data
@@ -1313,7 +1425,9 @@ map_data = st_folium(
               wind_obs=wind_obs, live_readings=live_rdgs,
               gauge_data=st.session_state.gauge_data,
               map_layers=st.session_state.map_layers,
-              map_points=st.session_state.get("_runtime_map_points", MAP_POINTS)),
+              map_points=st.session_state.get("_runtime_map_points", MAP_POINTS),
+              rockaway_results=st.session_state.rockaway_results,
+              active_rockaway_layers=st.session_state.active_rockaway_layers),
     width="100%", height=380, returned_objects=["last_object_clicked_popup"]
 )
 

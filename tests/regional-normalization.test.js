@@ -7,6 +7,12 @@ import { fileURLToPath } from "node:url"
 
 import { SOURCE_REGISTRY } from "../src/config/jurisdiction.js"
 import { normalizeRockawayPayload } from "../src/data/regional/normalizeRockaway.js"
+import {
+  ROCKAWAY_SOURCE_IDS,
+  buildRockawayQueryUrl,
+  rockawaySourceCard,
+  unavailableRockawayResult,
+} from "../src/data/regional/rockawaySources.js"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const fixturePath = path.join(root, "fixtures", "long-island-sources", "phase-3-rockaway-normalization.json")
@@ -60,4 +66,30 @@ test("stale evaluation overrides otherwise valid records", () => {
   )
   assert.equal(result.data_state, "stale")
   assert.equal(result.records[0].data_state, "stale")
+})
+
+test("React and Streamlit derive equivalent Phase 4 source cards", () => {
+  const normalized = javascriptOutput()
+  const javascriptCards = Object.fromEntries(ROCKAWAY_SOURCE_IDS.map(sourceId => {
+    const source = sources[sourceId]
+    return [sourceId, rockawaySourceCard(source, normalized[sourceId] || unavailableRockawayResult(source))]
+  }))
+  const pythonCards = JSON.parse(execFileSync(
+    "python3",
+    [path.join(root, "streamlit", "regional_normalization.py"), "--fixture", fixturePath, "--cards"],
+    { encoding: "utf8" },
+  ))
+  assert.deepEqual(javascriptCards, pythonCards)
+  assert.equal(javascriptCards.nyc_311_rockaway.map_capable, true)
+  assert.equal(javascriptCards.nypd_incidents_rockaway.data_state, "unavailable")
+})
+
+test("bounded source queries carry their approved filter and limit", () => {
+  for (const sourceId of ["nyc_311_rockaway"]) {
+    const source = sources[sourceId]
+    const url = new URL(buildRockawayQueryUrl(source))
+    assert.equal(url.searchParams.get("$where"), source.required_filter)
+    assert.equal(url.searchParams.get("$limit"), "50")
+    assert.equal(url.searchParams.get("$order"), source.query_order)
+  }
 })

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
 // ── All config and data inline — no module-level imports that can throw ───────
 
@@ -15,6 +15,12 @@ import {
   COOPS_STATIONS as _COOPS_raw,
 } from "./config/jurisdiction.js"
 import { appendCartoApiKey } from "./utils/carto.js"
+import {
+  ROCKAWAY_SOURCE_IDS,
+  fetchRockawaySource,
+  rockawaySourceCard,
+  unavailableRockawayResult,
+} from "./data/regional/rockawaySources.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -365,11 +371,18 @@ function summarizeNOAA(result) {
 
 // ── Map component ─────────────────────────────────────────────────────────────
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers }) {
+function escapeMapHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[char])
+}
+
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[] }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
   const layerRefs = useRef({})
+  const regionalLayerRefs = useRef({})
   const radarRef  = useRef(null)
   const windRef   = useRef(null)
   const [ready, setReady] = useState(false)
@@ -441,6 +454,50 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       activeLayers.includes(key) ? map.hasLayer(group)||group.addTo(map) : map.hasLayer(group)&&map.removeLayer(group)
     }
   }, [activeLayers, ready])
+
+  // Phase 4 normalized Rockaway point layers. Records without approved geometry
+  // remain card-only and never receive an invented map location.
+  useEffect(() => {
+    if (!ready || !leafRef.current) return
+    const map = leafRef.current
+    import("leaflet").then(({default:L}) => {
+      for (const group of Object.values(regionalLayerRefs.current)) {
+        if (map.hasLayer(group)) map.removeLayer(group)
+      }
+      regionalLayerRefs.current = {}
+
+      for (const [sourceId, records] of Object.entries(regionalRecords)) {
+        const source = CFG.sources.find(item => item.id === sourceId)
+        const color = source?.display?.color || "#60a5fa"
+        const icon = source?.display?.icon || "📍"
+        const group = L.layerGroup()
+        for (const record of records || []) {
+          if (record.geometry?.type !== "Point" || !Array.isArray(record.geometry.coordinates)) continue
+          const [longitude, latitude] = record.geometry.coordinates.map(Number)
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue
+          const marker = L.marker([latitude, longitude], {icon:L.divIcon({
+            className:"", iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-16],
+            html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44">${escapeMapHtml(icon)}</div>`,
+          })})
+          marker.bindPopup(`<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${escapeMapHtml(icon)} ${escapeMapHtml(record.title)}</b><br><span style="color:#aac">${escapeMapHtml(record.description || record.category || "")}</span><br><br><span style="color:#778">${escapeMapHtml(record.source_name)} · ${escapeMapHtml(record.observed_at)}</span><br><span style="color:#556">${escapeMapHtml(record.attribution)}</span></div>`)
+          marker.on("click", () => onMarkerClick?.({name:record.title,note:record.description || record.category || "",sourceId}))
+          group.addLayer(marker)
+        }
+        regionalLayerRefs.current[sourceId] = group
+        if (activeRegionalLayers.includes(sourceId)) group.addTo(map)
+      }
+    })
+  }, [regionalRecords, ready])
+
+  useEffect(() => {
+    if (!ready || !leafRef.current) return
+    const map = leafRef.current
+    for (const [sourceId, group] of Object.entries(regionalLayerRefs.current)) {
+      activeRegionalLayers.includes(sourceId)
+        ? map.hasLayer(group) || group.addTo(map)
+        : map.hasLayer(group) && map.removeLayer(group)
+    }
+  }, [activeRegionalLayers, ready])
 
   // Radar
   useEffect(() => {
@@ -524,6 +581,69 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
+const ROCKAWAY_STATE_COLORS = {
+  current: "#4ade80",
+  stale: "#facc15",
+  partial: "#fb923c",
+  unavailable: "#f87171",
+  access_required: "#a78bfa",
+}
+
+function compactTimestamp(value) {
+  if (!value) return "Not available"
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString()
+}
+
+function RockawayPanel({ sources, results, loading, onRefresh, activeLayers, onToggleLayer }) {
+  return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
+      <div style={{flexShrink:0,padding:"12px 18px 9px",borderBottom:"1px solid #111820"}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}>
+          <div>
+            <div style={{color:"#60a5fa",fontWeight:700,marginBottom:3}}>🌊 Rockaway Sources</div>
+            <div style={{fontSize:9.5,color:"#556"}}>Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records</div>
+          </div>
+          <button onClick={onRefresh} disabled={loading} style={{padding:"4px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit",opacity:loading?0.5:1}}>
+            {loading?"↺ Fetching…":"↺ Refresh"}
+          </button>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"10px 14px"}}>
+        {sources.map(source => {
+          const result = results[source.id] || unavailableRockawayResult(source)
+          const card = rockawaySourceCard(source, result)
+          const stateColor = ROCKAWAY_STATE_COLORS[card.data_state] || "#778"
+          const isActive = activeLayers.includes(source.id)
+          return (
+            <div key={source.id} style={{marginBottom:9,padding:"9px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderLeft:`3px solid ${card.color}`,borderRadius:6}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:10.5,color:"#dde",fontWeight:700}}>{card.icon} {card.name}</div>
+                  <div style={{fontSize:8.5,color:"#556",marginTop:2}}>{card.owner} · {card.geography}</div>
+                </div>
+                <span style={{fontSize:8,fontWeight:700,color:stateColor,border:`1px solid ${stateColor}55`,background:stateColor+"12",borderRadius:8,padding:"1px 6px",whiteSpace:"nowrap"}}>{card.data_state.replace("_"," ").toUpperCase()}</span>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:5,marginTop:7,fontSize:8.5}}>
+                <div><span style={{color:"#334"}}>RECORDS</span><br/><span style={{color:"#aac"}}>{card.record_count}</span></div>
+                <div><span style={{color:"#334"}}>OBSERVED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.observed_at)}</span></div>
+                <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
+              </div>
+              {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
+                <span style={{fontSize:8,color:"#445"}}>{card.kind.replace("_"," ")} · {card.attribution}</span>
+                <button onClick={()=>onToggleLayer(source.id)} disabled={!card.map_capable} style={{padding:"2px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${card.map_capable?card.color+"55":"#1a1e28"}`,background:isActive?card.color+"18":"transparent",color:card.map_capable?card.color:"#334",cursor:card.map_capable?"pointer":"not-allowed",fontFamily:"inherit"}}>
+                  {card.map_capable ? (isActive?"◉ Map on":"○ Show map") : "No approved map geometry"}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   // ── Runtime config (localStorage overrides build-time defaults) ───────────
   const [localConfig, setLocalConfig] = useState(loadLocalConfig)
@@ -566,6 +686,19 @@ export default function App() {
   const clampMapWidth = width => Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX, width))
   const [mapWidth, setMapWidth]         = useState(() => loadMapWidth(MAP_WIDTH_DEFAULT))
   const [liveReadings, setLiveReadings] = useState({})
+  const rockawaySources = useMemo(
+    () => ROCKAWAY_SOURCE_IDS.map(id => CFG.sources.find(source => source.id === id)).filter(Boolean),
+    [],
+  )
+  const [rockawayResults, setRockawayResults] = useState(() => Object.fromEntries(
+    rockawaySources.map(source => [source.id, unavailableRockawayResult(source)]),
+  ))
+  const [rockawayLoading, setRockawayLoading] = useState(false)
+  const [activeRockawayLayers, setActiveRockawayLayers] = useState(["nyc_311_rockaway"])
+  const rockawayRecords = useMemo(
+    () => Object.fromEntries(rockawaySources.map(source => [source.id, rockawayResults[source.id]?.records || []])),
+    [rockawayResults, rockawaySources],
+  )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
   const abortRef   = useRef(null)
@@ -581,6 +714,18 @@ export default function App() {
     window.addEventListener("storage", onStorage)
     return () => window.removeEventListener("storage", onStorage)
   }, [])
+
+  const refreshRockawaySources = useCallback(async () => {
+    setRockawayLoading(true)
+    const entries = await Promise.all(rockawaySources.map(async source => [
+      source.id,
+      await fetchRockawaySource(source),
+    ]))
+    setRockawayResults(Object.fromEntries(entries))
+    setRockawayLoading(false)
+  }, [rockawaySources])
+
+  useEffect(() => { refreshRockawaySources() }, [refreshRockawaySources])
 
   const fetchAPIs = async () => {
     setFetching(true)
@@ -704,7 +849,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={rockawayRecords} activeRegionalLayers={activeRockawayLayers} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -737,9 +882,9 @@ export default function App() {
         <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,minHeight:0}}>
 
           {/* Tab bar */}
-          <div style={{flexShrink:0,display:"flex",borderBottom:"1px solid #111820",background:"#090c12"}}>
-            {[{id:"chat",label:"💬 CHAT"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
-              <button key={t.id} onClick={()=>setRightTab(t.id)} style={{padding:"8px 18px",background:rightTab===t.id?"#0d1117":"transparent",color:rightTab===t.id?"#e0e0e8":"#334",border:"none",borderBottom:rightTab===t.id?"2px solid #4ade80":"2px solid transparent",fontFamily:"inherit",fontSize:10,fontWeight:700,cursor:"pointer",letterSpacing:"0.06em"}}>
+          <div style={{flexShrink:0,display:"flex",borderBottom:"1px solid #111820",background:"#090c12",overflowX:"auto"}}>
+            {[{id:"chat",label:"💬 CHAT"},{id:"rockaway",label:"🌊 ROCKAWAY"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
+              <button key={t.id} onClick={()=>setRightTab(t.id)} style={{padding:"8px 12px",flexShrink:0,background:rightTab===t.id?"#0d1117":"transparent",color:rightTab===t.id?"#e0e0e8":"#334",border:"none",borderBottom:rightTab===t.id?"2px solid #4ade80":"2px solid transparent",fontFamily:"inherit",fontSize:9.5,fontWeight:700,cursor:"pointer",letterSpacing:"0.04em"}}>
                 {t.label}
               </button>
             ))}
@@ -786,6 +931,17 @@ export default function App() {
                 </button>
               </div>
             </div>
+          )}
+
+          {rightTab==="rockaway" && (
+            <RockawayPanel
+              sources={rockawaySources}
+              results={rockawayResults}
+              loading={rockawayLoading}
+              onRefresh={refreshRockawaySources}
+              activeLayers={activeRockawayLayers}
+              onToggleLayer={sourceId=>setActiveRockawayLayers(previous=>previous.includes(sourceId)?previous.filter(id=>id!==sourceId):[...previous,sourceId])}
+            />
           )}
 
           {/* NOAA tab — full endpoint list */}

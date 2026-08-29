@@ -64,7 +64,7 @@ The geographic contract for later phases is:
 
 - Nassau data on the Equator third-party portal remains useful for discovering downloadable GIS formats, but the newly verified Nassau County ArcGIS server is the preferred prototype source. Equator is not an operational fallback.
 - A generic ArcGIS Online search result is not automatically authoritative. County, state, federal, or clearly documented owner provenance is required.
-- NYC crime and other citywide civic feeds are retired from the Long Island bundle unless a separate Rockaway-specific operational requirement is approved. That approval was subsequently granted for Rockaway-scoped FDNY incidents, cooling centers, hurricane evacuation centers, NYPD incidents, and NYCHA housing developments. They remain unqualified candidates until Phase 3 verifies their current datasets, fields, geographic filters, freshness, and attribution as documented in `docs/long-island/phase-3-4-approved-scope.md`.
+- NYC crime and other citywide civic feeds are retired from the Long Island bundle unless a separate Rockaway-specific operational requirement is approved. That approval was subsequently granted for Rockaway-scoped cooling centers, hurricane evacuation centers, NYPD incidents, and NYCHA housing developments. They remain unqualified candidates until Phase 3 verifies their current datasets, fields, geographic filters, freshness, and attribution as documented in `docs/long-island/phase-3-4-approved-scope.md`. FDNY historical incidents were later removed from active scope; a coverage-aware aggregate option is retained only as a future enhancement.
 
 ## Access, terms, and freshness notes
 
