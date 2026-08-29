@@ -30,6 +30,12 @@ from regional_normalization import (
     rockaway_source_card,
     unavailable_rockaway_result,
 )
+from chat_state import (
+    background_refresh_allowed,
+    begin_chat_response,
+    finish_chat_response,
+    update_chat_response,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -1108,6 +1114,7 @@ for k, v in [
     ("rockaway_results", {source["id"]: unavailable_rockaway_result(source) for source in ROCKAWAY_SOURCES}),
     ("active_rockaway_layers", ["nyc_311_rockaway"]),
     ("rockaway_initialized", False),
+    ("chat_response_pending", False),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
@@ -1146,7 +1153,8 @@ if not st.session_state.mb_layers:
 # GLOBAL AUTO-REFRESH (60s tick)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-st_autorefresh(interval=60_000, key="global_autorefresh")
+if background_refresh_allowed(st.session_state.chat_response_pending):
+    st_autorefresh(interval=60_000, key="global_autorefresh")
 
 # Refresh wind obs if stale (>5 min)
 _wind_fetched = st.session_state.get("wind_obs_fetched_at") or _dt.datetime.min
@@ -1962,7 +1970,7 @@ with tab_chat:
                 st.session_state.pending_query = q
 
     def run_query(prompt):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         ctx  = build_context(
@@ -1971,21 +1979,43 @@ with tab_chat:
             st.session_state.get("noaa_items", []),
             st.session_state.get("gauge_data", {}),
         )
-        msgs = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages[-10:]]
+        msgs = [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
+        ]
         with st.chat_message("assistant"):
             placeholder = st.empty()
             full = ""
-            for token in stream_ollama(msgs, ctx):
-                full += token
-                placeholder.markdown(full + "▋")
+            try:
+                for token in stream_ollama(msgs, ctx):
+                    full += token
+                    update_chat_response(st.session_state.messages, assistant_index, full)
+                    placeholder.markdown(full + "▋")
+            except Exception as exc:
+                full += f"\n\n⚠ Chat response interrupted: {exc}"
+            finally:
+                finish_chat_response(st.session_state.messages, assistant_index, full)
+                st.session_state.chat_response_pending = False
             placeholder.markdown(full)
-        st.session_state.messages.append({"role": "assistant", "content": full})
+        st.rerun()
 
     if "pending_query" in st.session_state:
+        if not st.session_state.chat_response_pending:
+            st.session_state.chat_response_pending = True
+            st.rerun()
         run_query(st.session_state.pop("pending_query"))
 
-    if prompt := st.chat_input("Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'"):
-        run_query(prompt)
+    def queue_chat_prompt():
+        prompt = st.session_state.get("chat_prompt", "").strip()
+        if prompt:
+            st.session_state.pending_query = prompt
+            st.session_state.chat_response_pending = True
+
+    st.chat_input(
+        "Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'",
+        key="chat_prompt",
+        on_submit=queue_chat_prompt,
+    )
 
 # ── Map Builder Tab ────────────────────────────────────────────────────────────
 with tab_mapbuilder:

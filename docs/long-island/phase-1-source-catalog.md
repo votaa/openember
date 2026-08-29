@@ -106,6 +106,7 @@ Detailed source-to-normalized-field mappings are documented in `docs/long-island
 ## Tracked future enhancements
 
 - Add an authoritative Rockaway Peninsula boundary polygon and exclude Broad Channel from NYC 311 results through a point-in-polygon check. The initial implementation intentionally accepts all valid Queens Community Board 14 records so peninsula-wide coverage can ship without a premature custom boundary.
+- Evaluate an electricity-hazard view of Rockaway 311 using the candidate complaint types `Power Outage`, `Electric`, and descriptor-qualified `Blocked Road`; see `docs/long-island/future-nyc-311-electric-hazards.md`.
 
 ## Evidence links
 
