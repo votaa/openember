@@ -1099,42 +1099,5 @@
     "primary_color": "#1d4ed8",
     "logo_emoji": "🚨"
   },
-  "map_builder_layers": [
-    {
-      "name": "USA Fire Stations",
-      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Fire_Stations/FeatureServer/0",
-      "type": "Feature Layer",
-      "opacity": 1
-    },
-    {
-      "name": "USA Hurricane Tracks",
-      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Historical_Hurricane_Tracks/FeatureServer/1",
-      "type": "Feature Layer",
-      "opacity": 1
-    },
-    {
-      "name": "USA Flood Hazard Areas (FEMA)",
-      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
-      "type": "Feature Layer",
-      "opacity": 1
-    },
-    {
-      "name": "USA Hospitals",
-      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Hospitals/FeatureServer/0",
-      "type": "Feature Layer",
-      "opacity": 1
-    },
-    {
-      "name": "World Imagery (basemap tile)",
-      "url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
-      "type": "Feature Layer",
-      "opacity": 1
-    },
-    {
-      "name": "FEMA Disaster Declarations",
-      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/FEMA_Disaster_Declaration_Areas/FeatureServer/0",
-      "type": "Feature Layer",
-      "opacity": 1
-    }
-  ]
+  "map_builder_layers": []
 }

@@ -42,6 +42,7 @@ from esri_presentation import (
     feature_label as esri_feature_label,
     feature_popup_html,
 )
+from map_builder_state import initialize_map_builder_layers
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -1188,6 +1189,7 @@ for k, v in [
     ("_runtime_map_points", MAP_POINTS), # setup wizard edits before/reload after save
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
+    ("mb_layers_initialized", False), # distinguish intentional empty state from first load
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
     ("rockaway_results", {source["id"]: unavailable_rockaway_result(source) for source in ROCKAWAY_SOURCES}),
     ("active_rockaway_layers", ["nyc_311_rockaway"]),
@@ -1214,18 +1216,15 @@ if "wind_obs" not in st.session_state:
     st.session_state.wind_obs            = fetch_wind_obs()
     st.session_state.wind_obs_fetched_at = _dt.datetime.now()
 
-# Load saved Map Builder layers from jurisdiction.yaml if mb_layers is empty
-if not st.session_state.mb_layers:
+# Load configured Map Builder layers once per session. An intentionally empty
+# list must remain empty after the user removes the final layer.
+if not st.session_state.mb_layers_initialized:
     _saved_mb = CFG.raw().get("map_builder_layers", [])
-    if _saved_mb:
-        st.session_state.mb_layers = [
-            {"id": l.get("url",""), "name": l.get("name","Layer"),
-             "url": l.get("url",""), "item_id": "",
-             "type": l.get("type","Feature Layer"),
-             "opacity": float(l.get("opacity",1.0)),
-             "visible": True, "color": "#a78bfa"}
-            for l in _saved_mb
-        ]
+    st.session_state.mb_layers, st.session_state.mb_layers_initialized = (
+        initialize_map_builder_layers(
+            st.session_state.mb_layers, _saved_mb, st.session_state.mb_layers_initialized
+        )
+    )
 
 # Hydrate older/saved Feature Layer entries once so they receive the same
 # aliases, domains, popup fields, and label behavior as newly added layers.
@@ -2328,7 +2327,17 @@ with tab_mapbuilder:
 
         # Layer list with controls
         if st.session_state.mb_layers:
-            st.markdown(f"**Active Layers ({len(st.session_state.mb_layers)})**")
+            layer_heading, clear_layers = st.columns([3, 2])
+            with layer_heading:
+                st.markdown(f"**Active Layers ({len(st.session_state.mb_layers)})**")
+            with clear_layers:
+                if st.button("Clear all", key="mb_clear_all", use_container_width=True):
+                    st.session_state.mb_layers = []
+                    st.session_state.esri_pending_adds = {
+                        key: value for key, value in st.session_state.esri_pending_adds.items()
+                        if not key.startswith("builder:")
+                    }
+                    st.rerun()
             for li, layer in enumerate(st.session_state.mb_layers):
                 with st.container():
                     lc1, lc2 = st.columns([4, 1])
