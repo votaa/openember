@@ -43,6 +43,7 @@ from esri_presentation import (
     feature_popup_html,
 )
 from map_builder_state import initialize_map_builder_layers
+from map_builder_presets import LIVING_ATLAS_PRESETS
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -2293,14 +2294,6 @@ with tab_mapbuilder:
 
         # Living Atlas quick-adds — curated emergency-relevant public layers
         st.markdown("**Living Atlas Quick-Add**")
-        LIVING_ATLAS_PRESETS = [
-            {"name": "USA Flood Hazard Areas (FEMA)",    "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0", "color": "#60a5fa"},
-            {"name": "USA Hurricane Tracks",              "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Historical_Hurricane_Tracks/FeatureServer/1",        "color": "#f87171"},
-            {"name": "USA Hospitals",                     "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Hospitals/FeatureServer/0",                      "color": "#34d399"},
-            {"name": "USA Fire Stations",                 "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Fire_Stations/FeatureServer/0",                  "color": "#fb923c"},
-            {"name": "FEMA Disaster Declarations",        "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/FEMA_Disaster_Declaration_Areas/FeatureServer/0",    "color": "#facc15"},
-            {"name": "World Imagery (basemap tile)",      "url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",                                          "color": "#a78bfa"},
-        ]
         for preset in LIVING_ATLAS_PRESETS:
             already = any(l["url"] == preset["url"] for l in st.session_state.mb_layers)
             if not already:
@@ -2316,7 +2309,7 @@ with tab_mapbuilder:
                     else:
                         st.session_state.mb_layers.append({
                             "id": preset["url"], "name": preset["name"], "url": preset["url"],
-                            "item_id": "", "type": "Map Service", "opacity": 1.0,
+                            "item_id": "", "type": preset["type"], "opacity": 1.0,
                             "visible": True, "color": preset["color"],
                         })
                     st.rerun()
