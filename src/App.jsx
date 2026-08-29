@@ -633,7 +633,7 @@ function RockawayPanel({ sources, results, loading, onRefresh, activeLayers, onT
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
                 <span style={{fontSize:8,color:"#445"}}>{card.kind.replace("_"," ")} · {card.attribution}</span>
                 <button onClick={()=>onToggleLayer(source.id)} disabled={!card.map_capable} style={{padding:"2px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${card.map_capable?card.color+"55":"#1a1e28"}`,background:isActive?card.color+"18":"transparent",color:card.map_capable?card.color:"#334",cursor:card.map_capable?"pointer":"not-allowed",fontFamily:"inherit"}}>
-                  {card.map_capable ? (isActive?"◉ Map on":"○ Show map") : "No approved map geometry"}
+                  {card.map_capable ? (isActive?"Hide from map":"Show on map") : "No approved map geometry"}
                 </button>
               </div>
             </div>
@@ -695,6 +695,11 @@ export default function App() {
   ))
   const [rockawayLoading, setRockawayLoading] = useState(false)
   const [activeRockawayLayers, setActiveRockawayLayers] = useState(["nyc_311_rockaway"])
+  const toggleRockawayLayer = useCallback(sourceId => {
+    setActiveRockawayLayers(previous => previous.includes(sourceId)
+      ? previous.filter(id => id !== sourceId)
+      : [...previous, sourceId])
+  }, [])
   const rockawayRecords = useMemo(
     () => Object.fromEntries(rockawaySources.map(source => [source.id, rockawayResults[source.id]?.records || []])),
     [rockawayResults, rockawaySources],
@@ -783,7 +788,7 @@ export default function App() {
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const pill = (label, active, onClick, color="#4ade80") => (
-    <button key={label} onClick={onClick} style={{padding:"2px 9px",borderRadius:10,fontSize:9,fontWeight:700,border:`1px solid ${active?color+"66":"#1a1e28"}`,background:active?color+"15":"transparent",color:active?color:"#334",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",transition:"all 0.1s"}}>
+    <button key={label} onClick={onClick} aria-pressed={active} style={{padding:"2px 9px",borderRadius:10,fontSize:9,fontWeight:700,border:`1px solid ${active?color+"66":"#1a1e28"}`,background:active?color+"15":"transparent",color:active?color:"#334",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",transition:"all 0.1s"}}>
       {label}
     </button>
   )
@@ -831,6 +836,7 @@ export default function App() {
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>MAP</span>
         {MAP_LAYER_TOGGLES.map(m => pill(m.label, activeMapLayers.includes(m.id), ()=>setActiveLayers(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id]), m.color))}
+        {pill("311 ROCKAWAY", activeRockawayLayers.includes("nyc_311_rockaway"), ()=>toggleRockawayLayer("nyc_311_rockaway"), "#f59e0b")}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>WX</span>
         {pill("NEXRAD RADAR", showRadar, ()=>setShowRadar(p=>!p), "#3b82f6")}
@@ -940,7 +946,7 @@ export default function App() {
               loading={rockawayLoading}
               onRefresh={refreshRockawaySources}
               activeLayers={activeRockawayLayers}
-              onToggleLayer={sourceId=>setActiveRockawayLayers(previous=>previous.includes(sourceId)?previous.filter(id=>id!==sourceId):[...previous,sourceId])}
+              onToggleLayer={toggleRockawayLayer}
             />
           )}
 

@@ -52,7 +52,7 @@ class RegionalNormalizationTests(unittest.TestCase):
         self.assertEqual(card["geography"], "Rockaway / Queens CB14")
         query_url = build_rockaway_query_url(source)
         self.assertIn("%24where=", query_url)
-        self.assertIn("%24limit=50", query_url)
+        self.assertIn("%24limit=500", query_url)
 
         gated = SOURCES["nypd_incidents_rockaway"]
         gated_card = rockaway_source_card(gated, unavailable_rockaway_result(gated))

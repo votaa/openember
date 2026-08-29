@@ -1197,26 +1197,6 @@ with st.sidebar:
                   "gauges": "📡 Stream Gauges", "eoc": "🏛 EOC / Command", "floodRisk": "💧 Flood Risk Areas"}
     active_layers = [k for k, label in layer_opts.items() if st.checkbox(label, value=True, key=f"map_{k}")]
 
-    st.markdown("**ROCKAWAY SOURCES**")
-    selected_rockaway_layers = []
-    for source in ROCKAWAY_SOURCES:
-        card = rockaway_source_card(source, st.session_state.rockaway_results.get(source["id"]))
-        enabled_on_map = source["id"] in st.session_state.active_rockaway_layers and card["map_capable"]
-        checked = st.checkbox(
-            f'{card["icon"]} {source["name"].split(" — ")[0]}',
-            value=enabled_on_map,
-            key=f'rockaway_layer_{source["id"]}',
-            disabled=not card["map_capable"],
-            help=("Show normalized records on the operational map" if card["map_capable"] else card.get("note") or "No approved map geometry"),
-        )
-        if checked and card["map_capable"]:
-            selected_rockaway_layers.append(source["id"])
-    st.session_state.active_rockaway_layers = selected_rockaway_layers
-    if st.button("↺ Refresh Rockaway Sources", use_container_width=True):
-        with st.spinner("Fetching bounded Rockaway records…"):
-            refresh_rockaway_sources()
-        st.rerun()
-
     st.markdown("**WEATHER OVERLAYS**")
     show_radar = st.checkbox("📡 NEXRAD Radar (auto-refresh)", key="show_radar",
                              help="Iowa State MESONET — tiles refresh every 5min automatically")
@@ -1290,36 +1270,6 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 st.markdown(f"### 🗺️ {CFG.name} Operational Map")
-
-st.markdown("**🌊 Rockaway Sources**")
-st.caption("Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records")
-_state_colors = {
-    "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
-    "unavailable": "#f87171", "access_required": "#a78bfa",
-}
-_rockaway_cols = st.columns(3)
-for _index, _source in enumerate(ROCKAWAY_SOURCES):
-    _card = rockaway_source_card(_source, st.session_state.rockaway_results.get(_source["id"]))
-    _state_color = _state_colors.get(_card["data_state"], "#778")
-    _note = _html.escape(str(_card.get("note") or ""))
-    _observed = _html.escape(str(_card.get("observed_at") or "Not available"))
-    _fetched = _html.escape(str(_card.get("fetched_at") or "Not available"))
-    with _rockaway_cols[_index % 3]:
-        st.markdown(
-            f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {_card["color"]};'
-            f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:174px;font-family:monospace">'
-            f'<div style="display:flex;justify-content:space-between;gap:6px">'
-            f'<b style="font-size:10px;color:#dde">{_html.escape(_card["icon"])} {_html.escape(_card["name"])}</b>'
-            f'<span style="font-size:8px;color:{_state_color};white-space:nowrap">{_html.escape(_card["data_state"].replace("_", " ").upper())}</span></div>'
-            f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(_card["owner"])} · {_html.escape(_card["geography"])}</div>'
-            f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{_card["record_count"]}</span></div>'
-            f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{_observed}</span></div>'
-            f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{_fetched}</span></div>'
-            f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{_note}</div>'
-            f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(_card["kind"].replace("_", " "))} · {_html.escape(_card["attribution"])}</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
 
 # ── Tidal gauge live status strip ──────────────────────────────────────────────
 gauge_data = st.session_state.gauge_data
@@ -1557,6 +1507,74 @@ with tab_nyc:
             st.success("Token saved for this session.")
 
     nyc_token = st.session_state.nyc_token
+
+    st.divider()
+
+    # ── Qualified Rockaway sources ────────────────────────────────────────────
+    _rockaway_title_col, _rockaway_refresh_col = st.columns([4, 1])
+    with _rockaway_title_col:
+        st.markdown("**🌊 Rockaway Sources**")
+        st.caption("Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records")
+    with _rockaway_refresh_col:
+        if st.button("↺ Refresh", key="refresh_rockaway_sources", use_container_width=True):
+            with st.spinner("Fetching bounded Rockaway records…"):
+                refresh_rockaway_sources()
+            st.rerun()
+
+    _state_colors = {
+        "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
+        "unavailable": "#f87171", "access_required": "#a78bfa",
+    }
+    _rockaway_cols = st.columns(3)
+    for _index, _source in enumerate(ROCKAWAY_SOURCES):
+        _card = rockaway_source_card(_source, st.session_state.rockaway_results.get(_source["id"]))
+        _state_color = _state_colors.get(_card["data_state"], "#778")
+        _note = _html.escape(str(_card.get("note") or ""))
+        _observed = _html.escape(str(_card.get("observed_at") or "Not available"))
+        _fetched = _html.escape(str(_card.get("fetched_at") or "Not available"))
+        _is_active = _source["id"] in st.session_state.active_rockaway_layers
+        with _rockaway_cols[_index % 3]:
+            st.markdown(
+                f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {_card["color"]};'
+                f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:174px;font-family:monospace">'
+                f'<div style="display:flex;justify-content:space-between;gap:6px">'
+                f'<b style="font-size:10px;color:#dde">{_html.escape(_card["icon"])} {_html.escape(_card["name"])}</b>'
+                f'<span style="font-size:8px;color:{_state_color};white-space:nowrap">{_html.escape(_card["data_state"].replace("_", " ").upper())}</span></div>'
+                f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(_card["owner"])} · {_html.escape(_card["geography"])}</div>'
+                f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{_card["record_count"]}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{_observed}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{_fetched}</span></div>'
+                f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{_note}</div>'
+                f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(_card["kind"].replace("_", " "))} · {_html.escape(_card["attribution"])}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            if _card["map_capable"]:
+                _map_action = "Remove from Map" if _is_active else "Add to Map"
+                if st.button(
+                    _map_action,
+                    key=f'rockaway_map_{_source["id"]}',
+                    use_container_width=True,
+                ):
+                    if _is_active:
+                        st.session_state.active_rockaway_layers = [
+                            _source_id for _source_id in st.session_state.active_rockaway_layers
+                            if _source_id != _source["id"]
+                        ]
+                    else:
+                        st.session_state.active_rockaway_layers = [
+                            *st.session_state.active_rockaway_layers,
+                            _source["id"],
+                        ]
+                    st.rerun()
+            else:
+                st.button(
+                    "Not map-ready",
+                    key=f'rockaway_map_{_source["id"]}',
+                    use_container_width=True,
+                    disabled=True,
+                    help=_card.get("note") or "No approved map geometry",
+                )
 
     st.divider()
 

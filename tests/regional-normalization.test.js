@@ -89,7 +89,7 @@ test("bounded source queries carry their approved filter and limit", () => {
     const source = sources[sourceId]
     const url = new URL(buildRockawayQueryUrl(source))
     assert.equal(url.searchParams.get("$where"), source.required_filter)
-    assert.equal(url.searchParams.get("$limit"), "50")
+    assert.equal(url.searchParams.get("$limit"), "500")
     assert.equal(url.searchParams.get("$order"), source.query_order)
   }
 })

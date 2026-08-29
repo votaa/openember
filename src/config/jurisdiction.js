@@ -93,7 +93,7 @@ export const SOURCE_REGISTRY = [
     "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
     "query_select": "unique_key,created_date,agency,complaint_type,descriptor,status,borough,community_board,incident_zip,latitude,longitude",
     "query_order": "created_date DESC",
-    "query_limit": 50,
+    "query_limit": 500,
     "attribution": "NYC Open Data / NYC 311",
     "display": {
       "icon": "🛠",
