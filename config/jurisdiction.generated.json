@@ -1,0 +1,1180 @@
+{
+  "jurisdiction": {
+    "name": "Long Island",
+    "short_name": "LI",
+    "state": "NY",
+    "state_full": "New York",
+    "county": "Nassau / Suffolk",
+    "center_lat": 40.7891,
+    "center_lng": -73.135,
+    "bbox_north": 41.32,
+    "bbox_south": 40.4,
+    "bbox_east": -71.8,
+    "bbox_west": -74.3,
+    "timezone": "America/New_York",
+    "zoom_default": 10
+  },
+  "regions": {
+    "nassau": {
+      "name": "Nassau County",
+      "geography": "nassau",
+      "county_fips": "36059",
+      "bbox": {
+        "north": 40.93,
+        "south": 40.53,
+        "east": -73.42,
+        "west": -73.77
+      },
+      "boundary_source_id": "nys_civil_boundaries",
+      "scope_method": "authoritative_polygon",
+      "boundary_filter": {
+        "field": "FIPS_CODE",
+        "value": "36059"
+      }
+    },
+    "suffolk": {
+      "name": "Suffolk County",
+      "geography": "suffolk",
+      "county_fips": "36103",
+      "bbox": {
+        "north": 41.31,
+        "south": 40.54,
+        "east": -71.85,
+        "west": -73.5
+      },
+      "boundary_source_id": "nys_civil_boundaries",
+      "scope_method": "authoritative_polygon",
+      "boundary_filter": {
+        "field": "FIPS_CODE",
+        "value": "36103"
+      }
+    },
+    "rockaway": {
+      "name": "Rockaway / Queens Community Board 14",
+      "geography": "rockaway",
+      "county_fips": "36081",
+      "bbox": {
+        "north": 40.67,
+        "south": 40.53,
+        "east": -73.73,
+        "west": -73.96
+      },
+      "boundary_source_id": null,
+      "scope_method": "community_board_filter",
+      "boundary_filter": {
+        "borough": "QUEENS",
+        "community_board": "14 QUEENS"
+      },
+      "includes_broad_channel": true,
+      "future_enhancement": "Replace the CB14 filter with an authoritative peninsula polygon to exclude Broad Channel."
+    }
+  },
+  "source_registry": [
+    {
+      "id": "nyc_311_rockaway",
+      "name": "NYC 311 service requests — Rockaway",
+      "owner": "NYC 311",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "refresh_seconds": 300,
+      "stale_after_seconds": 900,
+      "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
+      "attribution": "NYC Open Data / NYC 311",
+      "source_timestamp_timezone": "America/New_York",
+      "normalization": {
+        "id_field": "unique_key",
+        "observed_at_field": "created_date",
+        "category_field": "complaint_type",
+        "title_field": "complaint_type",
+        "description_fields": [
+          "descriptor"
+        ],
+        "status_field": "status",
+        "severity_field": null,
+        "geometry": {
+          "kind": "point_fields",
+          "latitude_field": "latitude",
+          "longitude_field": "longitude"
+        },
+        "scope": {
+          "kind": "all_fields",
+          "fields": [
+            {
+              "field": "borough",
+              "values": [
+                "QUEENS"
+              ]
+            },
+            {
+              "field": "community_board",
+              "values": [
+                "14 QUEENS"
+              ]
+            }
+          ]
+        },
+        "audit_properties": [
+          "unique_key",
+          "agency",
+          "borough",
+          "community_board",
+          "incident_zip"
+        ]
+      },
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "fdny_incidents_rockaway",
+      "name": "FDNY incident dispatch records — Rockaway",
+      "owner": "Fire Department of New York City (FDNY)",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/8m42-w767.json",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 1209600,
+      "required_filter": "incident_borough = 'QUEENS' AND communitydistrict = 414 AND zipcode IN ('11691','11692','11693','11694','11695','11697')",
+      "attribution": "NYC Open Data / Fire Department of New York City (FDNY)",
+      "source_timestamp_timezone": "America/New_York",
+      "operational_note": "Historical dispatch records; updated annually and published without point geometry.",
+      "normalization": {
+        "id_field": "starfire_incident_id",
+        "observed_at_field": "incident_datetime",
+        "category_field": "incident_classification_group",
+        "title_field": "incident_classification",
+        "description_fields": [
+          "alarm_box_location"
+        ],
+        "status_presence_field": "incident_close_datetime",
+        "status_present_value": "closed",
+        "status_missing_value": "unknown",
+        "severity_field": "highest_alarm_level",
+        "geometry": {
+          "kind": "none"
+        },
+        "scope": {
+          "kind": "all_fields",
+          "fields": [
+            {
+              "field": "incident_borough",
+              "values": [
+                "QUEENS"
+              ]
+            },
+            {
+              "field": "communitydistrict",
+              "values": [
+                "414"
+              ]
+            },
+            {
+              "field": "zipcode",
+              "values": [
+                "11691",
+                "11692",
+                "11693",
+                "11694",
+                "11695",
+                "11697"
+              ]
+            }
+          ]
+        },
+        "audit_properties": [
+          "starfire_incident_id",
+          "incident_borough",
+          "communitydistrict",
+          "zipcode",
+          "alarm_box_location",
+          "incident_close_datetime"
+        ]
+      },
+      "gate": "Phase 4 historical-data disclosure and non-mappable card treatment",
+      "failure_state": "stale"
+    },
+    {
+      "id": "nyc_cooling_centers_rockaway",
+      "name": "NYC active cooling centers — Rockaway",
+      "owner": "NYC Emergency Management (NYCEM)",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "html_finder",
+      "endpoint": "https://finder.nyc.gov/coolingcenters/",
+      "format": "html",
+      "qualification": "gated",
+      "enabled": false,
+      "attribution": "City of New York / NYC Emergency Management",
+      "gate": "Stable public machine-readable endpoint, activation-status contract, and Rockaway geography fields",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "nyc_hurricane_evacuation_centers_rockaway",
+      "name": "NYC hurricane evacuation centers — Rockaway",
+      "owner": "NYC Emergency Management (NYCEM)",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/p5md-weyf.json",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 1209600,
+      "required_filter": "zip_code IN ('11691.0','11692.0','11693.0','11694.0','11695.0','11697.0')",
+      "attribution": "NYC Open Data / NYC Emergency Management (NYCEM)",
+      "operational_note": "No Rockaway-ZIP centers were published at qualification time; activation must be confirmed with NYC or 311.",
+      "gate": "Phase 3 empty-result semantics and Phase 4 activation-status disclosure",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "nypd_incidents_rockaway",
+      "name": "NYPD complaint incidents — Rockaway",
+      "owner": "Police Department (NYPD)",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/5uac-w243.json",
+      "format": "json",
+      "qualification": "gated",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 1209600,
+      "attribution": "NYC Open Data / Police Department (NYPD)",
+      "gate": "Authoritative CB14 point-in-polygon filter; precinct-only filtering is not accepted as Rockaway scope",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "nycha_developments_rockaway",
+      "name": "NYCHA public housing developments — Rockaway",
+      "owner": "New York City Housing Authority (NYCHA)",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/phvi-damg.geojson",
+      "format": "geojson",
+      "qualification": "gated",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 2592000,
+      "attribution": "NYC Open Data / New York City Housing Authority (NYCHA)",
+      "gate": "Authoritative CB14 polygon intersection or a spatially verified stable TDS allowlist",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "nassau_town_boundaries",
+      "name": "Nassau town and city boundaries",
+      "owner": "Nassau County GIS",
+      "geographies": [
+        "nassau"
+      ],
+      "family": "arcgis_feature_server",
+      "endpoint": "https://gis.nassaucountyny.gov/server/rest/services/Hosted/My_Nassau/FeatureServer/5",
+      "format": "geojson",
+      "qualification": "prototype_only",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 604800,
+      "attribution": "Nassau County GIS",
+      "gate": "County reuse, attribution, ownership, and update-cadence confirmation",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "suffolk_evacuation_zones",
+      "name": "Suffolk evacuation zones",
+      "owner": "Suffolk County GIS",
+      "geographies": [
+        "suffolk"
+      ],
+      "family": "arcgis_feature_server",
+      "endpoint": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/FRES_Evacuation_Zones_Final/FeatureServer",
+      "layer_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "format": "geojson",
+      "qualification": "prototype_only",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 604800,
+      "attribution": "Suffolk County GIS",
+      "gate": "County ownership, meaning, currency, reuse, and attribution confirmation",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "suffolk_flood_100yr",
+      "name": "Suffolk 100-year flood zones",
+      "owner": "Suffolk County GIS",
+      "geographies": [
+        "suffolk"
+      ],
+      "family": "arcgis_feature_server",
+      "endpoint": "https://gis.suffolkcountyny.gov/hosted/rest/services/Hosted/100YR_Flood/FeatureServer/0",
+      "format": "geojson",
+      "qualification": "prototype_only",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 604800,
+      "attribution": "Suffolk County GIS; preserve source_cit from each record",
+      "gate": "County reuse, attribution, and update-cadence confirmation",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "coops_kings_point",
+      "name": "NOAA CO-OPS Kings Point water level",
+      "owner": "NOAA CO-OPS",
+      "geographies": [
+        "regional"
+      ],
+      "family": "noaa_coops",
+      "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "refresh_seconds": 360,
+      "stale_after_seconds": 900,
+      "station_id": "8516945",
+      "role": "primary",
+      "attribution": "NOAA CO-OPS",
+      "failure_state": "stale"
+    },
+    {
+      "id": "coops_montauk",
+      "name": "NOAA CO-OPS Montauk water level",
+      "owner": "NOAA CO-OPS",
+      "geographies": [
+        "suffolk",
+        "regional"
+      ],
+      "family": "noaa_coops",
+      "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "refresh_seconds": 360,
+      "stale_after_seconds": 900,
+      "station_id": "8510560",
+      "role": "primary",
+      "attribution": "NOAA CO-OPS",
+      "failure_state": "stale"
+    },
+    {
+      "id": "coops_battery_reference",
+      "name": "NOAA CO-OPS The Battery water-level reference",
+      "owner": "NOAA CO-OPS",
+      "geographies": [
+        "reference"
+      ],
+      "family": "noaa_coops",
+      "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "refresh_seconds": 360,
+      "stale_after_seconds": 900,
+      "station_id": "8518750",
+      "role": "reference",
+      "attribution": "NOAA CO-OPS",
+      "failure_state": "stale"
+    },
+    {
+      "id": "coops_sandy_hook_reference",
+      "name": "NOAA CO-OPS Sandy Hook water-level reference",
+      "owner": "NOAA CO-OPS",
+      "geographies": [
+        "reference"
+      ],
+      "family": "noaa_coops",
+      "endpoint": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "refresh_seconds": 360,
+      "stale_after_seconds": 900,
+      "station_id": "8531680",
+      "role": "reference",
+      "attribution": "NOAA CO-OPS",
+      "failure_state": "stale"
+    },
+    {
+      "id": "usgs_massapequa_creek",
+      "name": "USGS Massapequa Creek gauge height",
+      "owner": "USGS Water Data",
+      "geographies": [
+        "nassau"
+      ],
+      "family": "usgs_ogc",
+      "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+      "format": "geojson",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 900,
+      "stale_after_seconds": 3600,
+      "monitoring_location_id": "USGS-01309500",
+      "parameter_code": "00065",
+      "attribution": "USGS Water Data for the Nation",
+      "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+      "failure_state": "stale"
+    },
+    {
+      "id": "usgs_peconic_river",
+      "name": "USGS Peconic River gauge height",
+      "owner": "USGS Water Data",
+      "geographies": [
+        "suffolk"
+      ],
+      "family": "usgs_ogc",
+      "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+      "format": "geojson",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 900,
+      "stale_after_seconds": 3600,
+      "monitoring_location_id": "USGS-01304500",
+      "parameter_code": "00065",
+      "attribution": "USGS Water Data for the Nation",
+      "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+      "failure_state": "stale"
+    },
+    {
+      "id": "usgs_rosedale_reference",
+      "name": "USGS Conselyeas Pond Tributary reference",
+      "owner": "USGS Water Data",
+      "geographies": [
+        "reference"
+      ],
+      "family": "usgs_ogc",
+      "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
+      "format": "geojson",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 900,
+      "stale_after_seconds": 3600,
+      "monitoring_location_id": "USGS-01311810",
+      "parameter_code": "00065",
+      "attribution": "USGS Water Data for the Nation",
+      "gate": "Phase 3 normalized adapter with an explicit bounded datetime window",
+      "failure_state": "stale"
+    },
+    {
+      "id": "nys_dec_active_sites",
+      "name": "NYS DEC active cleanup sites",
+      "owner": "NYS Department of Environmental Conservation",
+      "geographies": [
+        "nassau",
+        "suffolk"
+      ],
+      "family": "arcgis_map_server",
+      "endpoint": "https://gisservices.dec.ny.gov/arcgis/rest/services/dil/dil_clean_up/MapServer/2",
+      "format": "geojson",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 604800,
+      "required_filter": "COUNTY IN ('Nassau','Suffolk')",
+      "attribution": "NYS Department of Environmental Conservation",
+      "disclaimer": "Provided as-is and subject to change without notice",
+      "gate": "Phase 3 ArcGIS adapter and county geometry validation",
+      "failure_state": "stale"
+    },
+    {
+      "id": "nys_civil_boundaries",
+      "name": "NYS county civil boundaries",
+      "owner": "NYS ITS Geospatial Data Services",
+      "geographies": [
+        "regional"
+      ],
+      "family": "arcgis_feature_server",
+      "endpoint": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2",
+      "format": "geojson",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 86400,
+      "stale_after_seconds": 2592000,
+      "required_fips": [
+        "36059",
+        "36103",
+        "36081"
+      ],
+      "attribution": "NYS Office of Information Technology Services Geospatial Data Services",
+      "disclaimer": "Provided as-is without warranty",
+      "gate": "Phase 3 ArcGIS adapter and FIPS validation",
+      "failure_state": "stale"
+    },
+    {
+      "id": "511ny_events",
+      "name": "511NY traffic events",
+      "owner": "New York State Department of Transportation",
+      "geographies": [
+        "nassau",
+        "suffolk",
+        "rockaway"
+      ],
+      "family": "rest_json",
+      "endpoint": "https://www.511ny.org/api/getevents",
+      "format": "json",
+      "qualification": "access_required",
+      "enabled": false,
+      "refresh_seconds": 60,
+      "stale_after_seconds": 300,
+      "credential_requirement": "server_side_developer_key",
+      "gate": "Approved account, intended-use approval, access agreement, and server-side key storage",
+      "attribution": "511NY / NYSDOT",
+      "failure_state": "access_required"
+    },
+    {
+      "id": "mta_lirr_realtime",
+      "name": "MTA LIRR realtime",
+      "owner": "Metropolitan Transportation Authority",
+      "geographies": [
+        "nassau",
+        "suffolk",
+        "rockaway",
+        "regional"
+      ],
+      "family": "gtfs_realtime",
+      "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/lirr%2Fgtfs-lirr",
+      "format": "protobuf",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 30,
+      "stale_after_seconds": 60,
+      "access_requirement": "server_side_proxy_cache",
+      "gate": "OpenEmber proxy/cache and lag disclosure",
+      "attribution": "Metropolitan Transportation Authority",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "mta_ace_realtime",
+      "name": "MTA A/C/E realtime",
+      "owner": "Metropolitan Transportation Authority",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "gtfs_realtime",
+      "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-ace",
+      "format": "protobuf",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 30,
+      "stale_after_seconds": 60,
+      "access_requirement": "server_side_proxy_cache",
+      "gate": "OpenEmber proxy/cache, route/stop filtering, and lag disclosure",
+      "attribution": "Metropolitan Transportation Authority",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "mta_lirr_alerts",
+      "name": "MTA LIRR alerts",
+      "owner": "Metropolitan Transportation Authority",
+      "geographies": [
+        "nassau",
+        "suffolk",
+        "rockaway",
+        "regional"
+      ],
+      "family": "rest_json",
+      "endpoint": "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/camsys%2Flirr-alerts.json",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": false,
+      "refresh_seconds": 60,
+      "stale_after_seconds": 120,
+      "access_requirement": "server_side_proxy_cache",
+      "gate": "OpenEmber proxy/cache and lag disclosure",
+      "attribution": "Metropolitan Transportation Authority",
+      "failure_state": "unavailable"
+    },
+    {
+      "id": "nyhops_reference",
+      "name": "NYHOPS maritime forecast reference",
+      "owner": "Stevens Institute of Technology",
+      "geographies": [
+        "regional"
+      ],
+      "family": "link_only",
+      "endpoint": "https://hudson.dl.stevens-tech.edu/maritimeforecast/maincontrol.shtml",
+      "format": "html",
+      "qualification": "gated",
+      "enabled": false,
+      "attribution": "Stevens Institute of Technology NYHOPS",
+      "gate": "Stable machine-readable contract, cadence, attribution, and redistribution approval",
+      "failure_state": "access_required"
+    }
+  ],
+  "nws": {
+    "office": "OKX",
+    "grid_x": 62,
+    "grid_y": 50,
+    "alert_zone": "NYZ178",
+    "obs_stations": [
+      {
+        "id": "KFRG",
+        "name": "Republic Airport (Farmingdale)",
+        "lat": 40.7288,
+        "lng": -73.4138
+      },
+      {
+        "id": "KISP",
+        "name": "Long Island MacArthur Airport",
+        "lat": 40.7952,
+        "lng": -73.1002
+      },
+      {
+        "id": "KHWV",
+        "name": "Brookhaven Airport",
+        "lat": 40.8219,
+        "lng": -72.8694
+      },
+      {
+        "id": "KFOK",
+        "name": "Gabreski Airport",
+        "lat": 40.8437,
+        "lng": -72.6318
+      },
+      {
+        "id": "KMTP",
+        "name": "Montauk Airport",
+        "lat": 41.0765,
+        "lng": -71.9208
+      },
+      {
+        "id": "KJFK",
+        "name": "JFK Airport",
+        "lat": 40.6413,
+        "lng": -73.7781
+      },
+      {
+        "id": "KLGA",
+        "name": "LaGuardia Airport",
+        "lat": 40.7772,
+        "lng": -73.8726
+      },
+      {
+        "id": "KBDR",
+        "name": "Bridgeport Airport",
+        "lat": 41.1635,
+        "lng": -73.1262
+      }
+    ]
+  },
+  "coops_stations": [
+    {
+      "id": "8516945",
+      "name": "Kings Point (LI Sound)",
+      "lat": 40.8105,
+      "lng": -73.7659,
+      "is_primary": true,
+      "flood_thresholds": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      }
+    },
+    {
+      "id": "8510560",
+      "name": "Montauk",
+      "lat": 41.0483,
+      "lng": -71.9594,
+      "role": "primary",
+      "flood_thresholds": {
+        "action": 3.5,
+        "minor": 4.5,
+        "moderate": 5.5,
+        "major": 7
+      }
+    },
+    {
+      "id": "8518750",
+      "name": "Battery Park (NYC surge ref)",
+      "lat": 40.7003,
+      "lng": -74.0141,
+      "role": "reference",
+      "flood_thresholds": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      }
+    },
+    {
+      "id": "8531680",
+      "name": "Sandy Hook (outer-harbor ref)",
+      "lat": 40.4669,
+      "lng": -74.0094,
+      "role": "reference",
+      "flood_thresholds": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      }
+    }
+  ],
+  "knowledge_base": {
+    "flood_zones": "Zone AE (Special Flood Hazard): Long Beach (entire city), Atlantic Beach, Lido Beach, Island Park, Oceanside, Freeport waterfront, Merrick, Massapequa bay-front (Nassau); Lindenhurst, Copiague, Amityville Harbor, Bay Shore waterfront, Mastic Beach, Shirley, Patchogue, Westhampton Beach, Hampton Bays, Shinnecock Bay (Suffolk).\nZone VE (Coastal High-Hazard / wave action): Fire Island (entire barrier island), Jones Beach Island, Long Beach ocean side, Montauk Point, Breezy Point (Queens/NYC).\nZone X (moderate risk): Inland Nassau and Suffolk north of Southern State Pkwy.\nStorm Surge Zones A-D: ~220,000 LI residents (15%) in Zone A/B.\nPost-Sandy (2012): ~$5.5B LI damage; Nassau ~$3B, Suffolk ~$2.5B. FEMA maps substantially revised.\n",
+    "evac_zones": "Zone A (highest): Barrier islands — mandatory evacuation ANY hurricane or tropical storm. Long Beach, Atlantic Beach, Lido Beach, Point Lookout, Island Park (Nassau); Fire Island, Mastic Beach, Shirley, Westhampton Beach oceanside, Hampton Bays oceanside, Montauk tip (Suffolk); Rockaways (NYC Zone 1).\nZone B: Low-lying bay-adjacent areas — evacuate Cat 1+.\nZone C: Moderate risk inland — evacuate Cat 2+.\nZone D: Lower risk — evacuate Cat 3+.\nNassau shelters: Nassau Community College (Garden City), Kellenberg Memorial HS (Uniondale), Carey HS (Franklin Square). Alert: text OneNassau to 888777.\nSuffolk: Fire Island — FERRY ONLY evacuation via Bay Shore, Sayville, Patchogue terminals. South shore mainland: Southern State Pkwy / Sunrise Hwy. Alert: text SuffolkAlerts to 67283.\nRockaway (NYC Zone 1): Cross Bay Veterans Memorial Bridge + Marine Pkwy Bridge egress. Nassau shelters available to NYC Zone 1 evacuees by agreement.\n",
+    "critical_infrastructure": "Hospitals — Nassau Level 1 Trauma (3): North Shore University Hospital (Manhasset, ACS + NYS DOH Regional L1); Nassau University Medical Center (East Meadow, NYS DOH L1); NYU Langone LI (Mineola, ACS L1).\nNassau Level 2: Mount Sinai South Nassau (Oceanside, formerly South Nassau Communities).\nSuffolk Level 1 Trauma (3): Stony Brook University Hospital (ACS + NYS DOH Regional L1, adult + peds); South Shore University Hospital (Bay Shore, ACS L1 Aug 2024, NYS DOH state designation pending); Good Samaritan University Hospital (West Islip, ACS L1 adult / L2 peds).\nSuffolk Level 2: NYU Langone Suffolk (East Patchogue, ACS-verified Jul 2025); Northwell Huntington Hospital.\nSuffolk Level 3 / East End: Southampton Hospital; Peconic Bay Medical Center (Riverhead).\nNOTE: No trauma center on Fire Island, Long Beach barrier island, or Rockaway Peninsula itself. South Shore University Hospital NYS state L1 designation still pending as of 2025.\nHelipads: North Shore UH (FAA 7NY3/6NK3), NUMC (FAA 0NK4), Stony Brook (FAA 6NY6), South Shore UH — critical for medevac routing decisions.\n",
+    "hazard_profiles": "HURRICANES: Sandy 2012 (Cat 1) — $5.5B LI damage, 13 LI deaths, ~1.1M without power. Primary risk: storm surge (6-10+ ft south shore), not wind. Barrier island overwash possible Cat 2+. 15 tropical systems impacted NYS since 2012; frequency doubled in 6 years (NYS DHSES 2024).\nCOASTAL FLOODING: Great South Bay avg 4ft depth — surge rises rapidly. Combined ocean surge + bay flooding traps south shore mainland. Active live gauges: Kings Point (8516945) and Montauk (8510560). Battery Park (8518750) and Sandy Hook (8531680) are regional references. Fire Island (8515186) and Bay Shore (8515102) are retired as live-water-level stations.\nEXTREME HEAT: Fewer cooling centers per capita than NYC. Nassau protocol at Heat Index >= 95F. Hempstead, Brentwood, Central Islip — reduced cooling access in affordable/senior housing.\nWINTER STORMS / NOREASTERS: Jonas 2016 — 25+ inches Suffolk. LIRR third-rail vulnerable. Route 27 and Route 25 single-road dependency for East End communities.\nHAZMAT: Brookhaven National Laboratory (DOE, Upton) — radiological. Bethpage Grumman groundwater plume (Nassau) — active CERCLA remediation 2025.\n",
+    "resources": "Nassau OEM: 516-573-9600 | 510 Grumman Rd W, Bethpage | nassaucountyny.gov/oem\nSuffolk OEM: 631-852-4900 | 30 Yaphank Ave, Yaphank | scoem.suffolkcountyny.gov\nNYC OEM (Rockaway coordination): 718-422-8700 | nyc.gov/oem\nNYS DHSES Region 1 (LI): 631-952-6599 | 30 Yaphank Ave, Yaphank\nFEMA Region 2: 212-680-3600 | 26 Federal Plaza, Manhattan\nNassau County PD: 516-573-8800 | Suffolk County PD: 631-852-6000\nNYU Langone LI (Level 1 Trauma): 516-663-0333\nStony Brook SUMC (Level 1 Trauma): 631-444-4000\nGood Samaritan (Level 1 Trauma): 631-376-3000\nPSEG Long Island (outages): 1-800-490-0075 | National Grid (gas): 1-800-930-5003\nNWS OKX (Upton): 631-924-0517 | USCG Emergency: VHF Ch 16\nNassau Nixle: text OneNassau to 888777\nSuffolkAlert: text SuffolkAlerts to 67283\nLIRR: 511 | mta.info/lirr\n"
+  },
+  "map_points": {
+    "hospitals": {
+      "color": "#f87171",
+      "icon": "🏥",
+      "label": "Trauma Centers",
+      "features": [
+        {
+          "name": "North Shore University Hospital",
+          "lat": 40.7765,
+          "lng": -73.6993,
+          "note": "Level 1 Adult & Pediatric Trauma | ACS-verified | NYS DOH Regional L1 | 300 Community Dr, Manhasset | 516-562-0100",
+          "county": "Nassau",
+          "trauma_level": "Level 1",
+          "helipad": true,
+          "faa_helipad_id": "7NY3 / 6NK3"
+        },
+        {
+          "name": "Nassau University Medical Center",
+          "lat": 40.7226,
+          "lng": -73.5512,
+          "note": "Level 1 Adult Trauma | NYS DOH designated | Special Medical Needs Shelter hub | 2201 Hempstead Tpke, East Meadow | 516-572-3000",
+          "county": "Nassau",
+          "trauma_level": "Level 1",
+          "helipad": true,
+          "faa_helipad_id": "0NK4"
+        },
+        {
+          "name": "NYU Langone Hospital — Long Island",
+          "lat": 40.743,
+          "lng": -73.641,
+          "note": "Level 1 Adult Trauma | ACS-verified | 259 1st St, Mineola | 516-663-0333",
+          "county": "Nassau",
+          "trauma_level": "Level 1",
+          "helipad": false
+        },
+        {
+          "name": "Mount Sinai South Nassau Hospital",
+          "lat": 40.6472,
+          "lng": -73.6358,
+          "note": "Level 2 Adult Trauma | ACS-verified | formerly South Nassau Communities Hospital | 1 Health Rd, Oceanside | 516-632-3000",
+          "county": "Nassau",
+          "trauma_level": "Level 2",
+          "helipad": false
+        },
+        {
+          "name": "Stony Brook University Hospital",
+          "lat": 40.9103,
+          "lng": -73.1163,
+          "note": "Level 1 Adult & Pediatric Trauma | ACS-verified | NYS DOH Regional L1 | 101 Nicolls Rd, Stony Brook | 631-444-4000",
+          "county": "Suffolk",
+          "trauma_level": "Level 1",
+          "helipad": true,
+          "faa_helipad_id": "6NY6"
+        },
+        {
+          "name": "South Shore University Hospital",
+          "lat": 40.7258,
+          "lng": -73.2393,
+          "note": "Level 1 Adult Trauma | ACS-verified Aug 2024 | NYS DOH state designation pending | formerly Southside Hospital | 301 E Main St, Bay Shore | 631-968-3000",
+          "county": "Suffolk",
+          "trauma_level": "Level 1",
+          "helipad": true
+        },
+        {
+          "name": "Good Samaritan University Hospital",
+          "lat": 40.6932,
+          "lng": -73.304,
+          "note": "Level 1 Adult / Level 2 Pediatric Trauma | ACS-verified | 1000 Montauk Hwy, West Islip | 631-376-3000",
+          "county": "Suffolk",
+          "trauma_level": "Level 1",
+          "helipad": false
+        },
+        {
+          "name": "NYU Langone Hospital — Suffolk",
+          "lat": 40.7726,
+          "lng": -72.9772,
+          "note": "Level 2 Adult Trauma | NYS DOH Oct 2024 | ACS-verified Jul 2025 | 101 Hospital Rd, East Patchogue | 631-654-7100",
+          "county": "Suffolk",
+          "trauma_level": "Level 2",
+          "helipad": false
+        },
+        {
+          "name": "Northwell Huntington Hospital",
+          "lat": 40.8762,
+          "lng": -73.4274,
+          "note": "Level 2 Trauma | North Shore receiving | 270 Park Ave, Huntington | 631-351-2000",
+          "county": "Suffolk",
+          "trauma_level": "Level 2",
+          "helipad": false
+        },
+        {
+          "name": "Southampton Hospital",
+          "lat": 40.8837,
+          "lng": -72.3849,
+          "note": "Level 3 Trauma | Primary East End receiving | nearest L1 is Stony Brook 45+ mi | 240 Meeting House Lane | 631-726-8200",
+          "county": "Suffolk",
+          "trauma_level": "Level 3",
+          "helipad": false
+        },
+        {
+          "name": "Peconic Bay Medical Center",
+          "lat": 40.9137,
+          "lng": -72.6551,
+          "note": "Level 3 Trauma | North Fork / East End hub | 1300 Roanoke Ave, Riverhead | 631-548-6000",
+          "county": "Suffolk",
+          "trauma_level": "Level 3",
+          "helipad": false
+        },
+        {
+          "name": "NYC H+H Queens Hospital Center",
+          "lat": 40.7007,
+          "lng": -73.7949,
+          "note": "Level 1 Trauma (NYC) | Primary receiving for Rockaway Peninsula residents | 82-68 164th St, Jamaica | 718-883-3000",
+          "county": "Queens",
+          "trauma_level": "Level 1",
+          "helipad": false
+        }
+      ]
+    },
+    "shelters": {
+      "color": "#60a5fa",
+      "icon": "🏫",
+      "label": "Evac Shelters",
+      "features": [
+        {
+          "name": "Nassau Community College",
+          "lat": 40.7285,
+          "lng": -73.5942,
+          "note": "Primary Nassau Red Cross hub | Zone A/B | Garden City"
+        },
+        {
+          "name": "Kellenberg Memorial HS",
+          "lat": 40.7093,
+          "lng": -73.5977,
+          "note": "Hurricane Evacuation Center | Zone A | Uniondale"
+        },
+        {
+          "name": "Carey HS (Franklin Square)",
+          "lat": 40.704,
+          "lng": -73.6752,
+          "note": "Hurricane Evacuation Center | Nassau"
+        },
+        {
+          "name": "Sachem HS North (Ronkonkoma)",
+          "lat": 40.8359,
+          "lng": -73.1221,
+          "note": "Major center | central Suffolk hub"
+        },
+        {
+          "name": "Brentwood HS",
+          "lat": 40.7776,
+          "lng": -73.246,
+          "note": "Evacuation Center | central Suffolk"
+        },
+        {
+          "name": "William Floyd HS (Mastic Beach)",
+          "lat": 40.7795,
+          "lng": -72.8476,
+          "note": "Evacuation Center | Mastic/Shirley south shore"
+        },
+        {
+          "name": "Hampton Bays HS",
+          "lat": 40.8699,
+          "lng": -72.5148,
+          "note": "East End evacuation center"
+        },
+        {
+          "name": "NUMC Special Medical Needs Shelter",
+          "lat": 40.7295,
+          "lng": -73.5576,
+          "note": "Special Medical Needs | Nassau University Medical Center"
+        }
+      ]
+    },
+    "gauges": {
+      "color": "#4ade80",
+      "icon": "📡",
+      "label": "Tidal Gauges",
+      "features": [
+        {
+          "name": "Kings Point (LI Sound)",
+          "lat": 40.8105,
+          "lng": -73.7659,
+          "note": "NOAA 8516945 — LI Sound north shore surge indicator"
+        },
+        {
+          "name": "Montauk",
+          "lat": 41.0483,
+          "lng": -71.9594,
+          "note": "NOAA 8510560 — active eastern Long Island water-level station"
+        },
+        {
+          "name": "Battery Park (NYC surge ref)",
+          "lat": 40.7003,
+          "lng": -74.0141,
+          "note": "NOAA 8518750 — regional surge reference gauge"
+        },
+        {
+          "name": "Sandy Hook (outer-harbor ref)",
+          "lat": 40.4669,
+          "lng": -74.0094,
+          "note": "NOAA 8531680 — active outer-harbor reference station"
+        },
+        {
+          "name": "Massapequa Creek at Massapequa",
+          "lat": 40.689,
+          "lng": -73.4554,
+          "note": "USGS 01309500 — selected Nassau gauge-height station"
+        },
+        {
+          "name": "Peconic River at Riverhead",
+          "lat": 40.9137,
+          "lng": -72.6869,
+          "note": "USGS 01304500 — selected Suffolk gauge-height station"
+        }
+      ]
+    },
+    "eoc": {
+      "color": "#facc15",
+      "icon": "🏛",
+      "label": "EOC / Command",
+      "features": [
+        {
+          "name": "Nassau County EOC",
+          "lat": 40.7559,
+          "lng": -73.4832,
+          "note": "Primary Nassau EOC | 510 Grumman Rd W, Bethpage | 516-573-9600"
+        },
+        {
+          "name": "Suffolk OEM / NYS DHSES Region 1",
+          "lat": 40.8315,
+          "lng": -72.9174,
+          "note": "Suffolk OEM + NYS DHSES co-located | 30 Yaphank Ave | 631-852-4900"
+        },
+        {
+          "name": "NYC OEM (Queens/Rockaway coord)",
+          "lat": 40.6967,
+          "lng": -73.9896,
+          "note": "NYC EOC | 165 Cadman Plaza East, Brooklyn | 718-422-8700"
+        },
+        {
+          "name": "USCG Station Fire Island",
+          "lat": 40.652,
+          "lng": -73.3227,
+          "note": "Active SAR | 1 Rescue Rd, Babylon | 631-661-9101"
+        },
+        {
+          "name": "USCG Station Eatons Neck",
+          "lat": 40.9526,
+          "lng": -73.3957,
+          "note": "North Shore / LI Sound SAR | Northport | 631-261-6959"
+        },
+        {
+          "name": "USCG Station Shinnecock",
+          "lat": 40.8777,
+          "lng": -72.5094,
+          "note": "East End SAR | Hampton Bays | 631-728-0078"
+        },
+        {
+          "name": "USCG Station Montauk",
+          "lat": 41.0632,
+          "lng": -71.9574,
+          "note": "Easternmost LI SAR | 631-668-2773"
+        },
+        {
+          "name": "MacArthur Airport (KISP)",
+          "lat": 40.7952,
+          "lng": -73.1002,
+          "note": "Emergency air ops + medevac staging | Islip"
+        },
+        {
+          "name": "Republic Airport (KFRG)",
+          "lat": 40.7288,
+          "lng": -73.4138,
+          "note": "Medevac, law enforcement, fire aviation | Farmingdale"
+        },
+        {
+          "name": "FEMA Region 2",
+          "lat": 40.7143,
+          "lng": -74.0071,
+          "note": "26 Federal Plaza, Manhattan | 212-680-3600"
+        }
+      ]
+    },
+    "floodRisk": {
+      "color": "#fb923c",
+      "icon": "💧",
+      "label": "Flood Risk Areas",
+      "features": [
+        {
+          "name": "Long Beach (City)",
+          "lat": 40.5884,
+          "lng": -73.6579,
+          "note": "Zone AE/VE — entire city on barrier island; no on-island trauma center"
+        },
+        {
+          "name": "Atlantic Beach / Lido Beach",
+          "lat": 40.5906,
+          "lng": -73.7286,
+          "note": "Zone AE/VE — barrier beach; Atlantic Beach Bridge only Nassau-Queens link"
+        },
+        {
+          "name": "Island Park",
+          "lat": 40.6025,
+          "lng": -73.6568,
+          "note": "Zone AE — peninsula; Hempstead Bay + Reynolds Channel exposure"
+        },
+        {
+          "name": "Freeport waterfront",
+          "lat": 40.6551,
+          "lng": -73.5891,
+          "note": "Zone AE — Nautical Mile commercial district flood-exposed"
+        },
+        {
+          "name": "Lindenhurst waterfront",
+          "lat": 40.6826,
+          "lng": -73.3711,
+          "note": "Zone AE — Great South Bay; Sandy flooded entire south waterfront district"
+        },
+        {
+          "name": "Amityville Harbor",
+          "lat": 40.6579,
+          "lng": -73.4172,
+          "note": "Zone AE — highest storm surge susceptibility on LI per FEMA analysis"
+        },
+        {
+          "name": "Fire Island (barrier island)",
+          "lat": 40.6325,
+          "lng": -73.2093,
+          "note": "Zone VE — ferry-only; no road evacuation; complete overwash Cat 2+"
+        },
+        {
+          "name": "Mastic Beach / Shirley",
+          "lat": 40.7665,
+          "lng": -72.85,
+          "note": "Zone AE — Forge River/Moriches Bay; ~20,000 affected by Sandy"
+        },
+        {
+          "name": "Westhampton Beach",
+          "lat": 40.803,
+          "lng": -72.6415,
+          "note": "Zone VE/AE — barrier spit; 1992 northeaster created beach breach"
+        },
+        {
+          "name": "Hampton Bays (Shinnecock Bay)",
+          "lat": 40.8676,
+          "lng": -72.5193,
+          "note": "Zone AE — surge trapping risk; limited evacuation options"
+        },
+        {
+          "name": "Montauk (peninsula tip)",
+          "lat": 41.0534,
+          "lng": -71.9543,
+          "note": "Zone VE — 3-sided water exposure; single road in/out (Route 27)"
+        },
+        {
+          "name": "Breezy Point (Queens/NYC)",
+          "lat": 40.5587,
+          "lng": -73.929,
+          "note": "Zone VE (NYC) — 126 homes burned during Sandy surge; NYC Evac Zone 1"
+        },
+        {
+          "name": "Rockaway Beach (Queens/NYC)",
+          "lat": 40.5807,
+          "lng": -73.8188,
+          "note": "Zone AE/VE (NYC) — mandatory evacuation Cat 1+; NYC Evac Zone 1"
+        }
+      ]
+    }
+  },
+  "socrata": {
+    "domain": "data.cityofnewyork.us",
+    "preset_datasets": [
+      {
+        "id": "erm2-nwe9",
+        "name": "NYC 311 Service Requests (Rockaway)",
+        "agency": "311",
+        "lat_col": "latitude",
+        "lng_col": "longitude",
+        "label_col": "complaint_type",
+        "color": "#60a5fa",
+        "icon": "📞",
+        "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
+        "desc": "Real-time 311 complaints — Queens Community Board 14, including Broad Channel in the initial implementation"
+      }
+    ]
+  },
+  "noaa": {
+    "alert_state": "NY",
+    "usgs_state": "NY",
+    "fema_state": "NY"
+  },
+  "branding": {
+    "app_title": "EMBER",
+    "app_subtitle": "Emergency Management Body of Evidence & Resources",
+    "jurisdiction_line": "LONG ISLAND — Nassau · Suffolk · Rockaway Peninsula",
+    "primary_color": "#1d4ed8",
+    "logo_emoji": "🚨"
+  },
+  "map_builder_layers": [
+    {
+      "name": "USA Fire Stations",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Fire_Stations/FeatureServer/0",
+      "type": "Feature Layer",
+      "opacity": 1
+    },
+    {
+      "name": "USA Hurricane Tracks",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Historical_Hurricane_Tracks/FeatureServer/1",
+      "type": "Feature Layer",
+      "opacity": 1
+    },
+    {
+      "name": "USA Flood Hazard Areas (FEMA)",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
+      "type": "Feature Layer",
+      "opacity": 1
+    },
+    {
+      "name": "USA Hospitals",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Hospitals/FeatureServer/0",
+      "type": "Feature Layer",
+      "opacity": 1
+    },
+    {
+      "name": "World Imagery (basemap tile)",
+      "url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",
+      "type": "Feature Layer",
+      "opacity": 1
+    },
+    {
+      "name": "FEMA Disaster Declarations",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/FEMA_Disaster_Declaration_Areas/FeatureServer/0",
+      "type": "Feature Layer",
+      "opacity": 1
+    }
+  ]
+}

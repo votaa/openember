@@ -11,7 +11,9 @@ const { load } = require("js-yaml")
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const configPath = path.join(root, "config", "jurisdiction.yaml")
 const generatedPath = path.join(root, "src", "config", "jurisdiction.js")
+const generatedJsonPath = path.join(root, "config", "jurisdiction.generated.json")
 const config = load(fs.readFileSync(configPath, "utf8"))
+const generatedJson = JSON.parse(fs.readFileSync(generatedJsonPath, "utf8"))
 const generated = await import(`${pathToFileURL(generatedPath).href}?validation=${Date.now()}`)
 
 const expectedRegionIds = ["nassau", "suffolk", "rockaway"]
@@ -67,6 +69,13 @@ assert.equal(sourceById["mta_lirr_realtime"].enabled, false)
 assert.equal(sourceById["mta_ace_realtime"].enabled, false)
 assert.equal(sourceById["mta_lirr_alerts"].enabled, false)
 assert.match(sourceById["nyc_311_rockaway"].required_filter, /community_board = '14 QUEENS'/)
+assert.equal(sourceById["fdny_incidents_rockaway"].endpoint.endsWith("/8m42-w767.json"), true)
+assert.equal(sourceById["nyc_hurricane_evacuation_centers_rockaway"].endpoint.endsWith("/p5md-weyf.json"), true)
+assert.equal(sourceById["nypd_incidents_rockaway"].endpoint.endsWith("/5uac-w243.json"), true)
+assert.equal(sourceById["nycha_developments_rockaway"].endpoint.endsWith("/phvi-damg.geojson"), true)
+assert.equal(sourceById["nyc_cooling_centers_rockaway"].qualification, "gated")
+assert.equal(sourceById["nypd_incidents_rockaway"].qualification, "gated")
+assert.equal(sourceById["nycha_developments_rockaway"].qualification, "gated")
 
 const configuredCoopsIds = new Set(config.coops_stations.map((station) => station.id))
 for (const stationId of retiredCoopsStations) {
@@ -78,5 +87,6 @@ for (const stationId of ["8516945", "8510560", "8518750", "8531680"]) {
 
 assert.deepEqual(generated.REGIONS, config.regions, "generated React regions differ from YAML")
 assert.deepEqual(generated.SOURCE_REGISTRY, sources, "generated React sources differ from YAML")
+assert.deepEqual(generatedJson.source_registry, sources, "generated Streamlit sources differ from YAML")
 
 console.log(`✓ regional config valid: ${expectedRegionIds.length} regions, ${sources.length} sources`)

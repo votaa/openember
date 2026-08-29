@@ -17,7 +17,7 @@ The six approved Rockaway source families are:
 5. NYPD incidents.
 6. NYCHA housing developments.
 
-The latter five are approved for qualification, not yet declared qualified. Historical application candidates were NYC Open Data datasets `nuhi-jiwk` (FDNY incidents), `2bnn-yakx` (cooling centers), `uqnk-2pcv` (hurricane evacuation centers), `43nn-pn8y` (NYPD incidents), and `5uac-w243` (NYCHA housing developments). Phase 3 must reverify the current dataset IDs, availability, schema, ownership, update behavior, and terms before adding them to the active source registry.
+The latter five were approved for qualification rather than pre-declared qualified. Phase 3 revalidation found that the historical application IDs were stale, removed, or reassigned. The current qualification results and exact gates are recorded in `docs/long-island/phase-3-rockaway-qualification.md`; only verified current IDs may be used.
 
 ## Phase 3: qualification and normalization
 

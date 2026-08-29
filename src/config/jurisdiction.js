@@ -92,6 +92,192 @@ export const SOURCE_REGISTRY = [
     "stale_after_seconds": 900,
     "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL",
     "attribution": "NYC Open Data / NYC 311",
+    "source_timestamp_timezone": "America/New_York",
+    "normalization": {
+      "id_field": "unique_key",
+      "observed_at_field": "created_date",
+      "category_field": "complaint_type",
+      "title_field": "complaint_type",
+      "description_fields": [
+        "descriptor"
+      ],
+      "status_field": "status",
+      "severity_field": null,
+      "geometry": {
+        "kind": "point_fields",
+        "latitude_field": "latitude",
+        "longitude_field": "longitude"
+      },
+      "scope": {
+        "kind": "all_fields",
+        "fields": [
+          {
+            "field": "borough",
+            "values": [
+              "QUEENS"
+            ]
+          },
+          {
+            "field": "community_board",
+            "values": [
+              "14 QUEENS"
+            ]
+          }
+        ]
+      },
+      "audit_properties": [
+        "unique_key",
+        "agency",
+        "borough",
+        "community_board",
+        "incident_zip"
+      ]
+    },
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "fdny_incidents_rockaway",
+    "name": "FDNY incident dispatch records — Rockaway",
+    "owner": "Fire Department of New York City (FDNY)",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "socrata",
+    "endpoint": "https://data.cityofnewyork.us/resource/8m42-w767.json",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 1209600,
+    "required_filter": "incident_borough = 'QUEENS' AND communitydistrict = 414 AND zipcode IN ('11691','11692','11693','11694','11695','11697')",
+    "attribution": "NYC Open Data / Fire Department of New York City (FDNY)",
+    "source_timestamp_timezone": "America/New_York",
+    "operational_note": "Historical dispatch records; updated annually and published without point geometry.",
+    "normalization": {
+      "id_field": "starfire_incident_id",
+      "observed_at_field": "incident_datetime",
+      "category_field": "incident_classification_group",
+      "title_field": "incident_classification",
+      "description_fields": [
+        "alarm_box_location"
+      ],
+      "status_presence_field": "incident_close_datetime",
+      "status_present_value": "closed",
+      "status_missing_value": "unknown",
+      "severity_field": "highest_alarm_level",
+      "geometry": {
+        "kind": "none"
+      },
+      "scope": {
+        "kind": "all_fields",
+        "fields": [
+          {
+            "field": "incident_borough",
+            "values": [
+              "QUEENS"
+            ]
+          },
+          {
+            "field": "communitydistrict",
+            "values": [
+              "414"
+            ]
+          },
+          {
+            "field": "zipcode",
+            "values": [
+              "11691",
+              "11692",
+              "11693",
+              "11694",
+              "11695",
+              "11697"
+            ]
+          }
+        ]
+      },
+      "audit_properties": [
+        "starfire_incident_id",
+        "incident_borough",
+        "communitydistrict",
+        "zipcode",
+        "alarm_box_location",
+        "incident_close_datetime"
+      ]
+    },
+    "gate": "Phase 4 historical-data disclosure and non-mappable card treatment",
+    "failure_state": "stale"
+  },
+  {
+    "id": "nyc_cooling_centers_rockaway",
+    "name": "NYC active cooling centers — Rockaway",
+    "owner": "NYC Emergency Management (NYCEM)",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "html_finder",
+    "endpoint": "https://finder.nyc.gov/coolingcenters/",
+    "format": "html",
+    "qualification": "gated",
+    "enabled": false,
+    "attribution": "City of New York / NYC Emergency Management",
+    "gate": "Stable public machine-readable endpoint, activation-status contract, and Rockaway geography fields",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "nyc_hurricane_evacuation_centers_rockaway",
+    "name": "NYC hurricane evacuation centers — Rockaway",
+    "owner": "NYC Emergency Management (NYCEM)",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "socrata",
+    "endpoint": "https://data.cityofnewyork.us/resource/p5md-weyf.json",
+    "format": "json",
+    "qualification": "qualified",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 1209600,
+    "required_filter": "zip_code IN ('11691.0','11692.0','11693.0','11694.0','11695.0','11697.0')",
+    "attribution": "NYC Open Data / NYC Emergency Management (NYCEM)",
+    "operational_note": "No Rockaway-ZIP centers were published at qualification time; activation must be confirmed with NYC or 311.",
+    "gate": "Phase 3 empty-result semantics and Phase 4 activation-status disclosure",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "nypd_incidents_rockaway",
+    "name": "NYPD complaint incidents — Rockaway",
+    "owner": "Police Department (NYPD)",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "socrata",
+    "endpoint": "https://data.cityofnewyork.us/resource/5uac-w243.json",
+    "format": "json",
+    "qualification": "gated",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 1209600,
+    "attribution": "NYC Open Data / Police Department (NYPD)",
+    "gate": "Authoritative CB14 point-in-polygon filter; precinct-only filtering is not accepted as Rockaway scope",
+    "failure_state": "unavailable"
+  },
+  {
+    "id": "nycha_developments_rockaway",
+    "name": "NYCHA public housing developments — Rockaway",
+    "owner": "New York City Housing Authority (NYCHA)",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "socrata",
+    "endpoint": "https://data.cityofnewyork.us/resource/phvi-damg.geojson",
+    "format": "geojson",
+    "qualification": "gated",
+    "enabled": false,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 2592000,
+    "attribution": "NYC Open Data / New York City Housing Authority (NYCHA)",
+    "gate": "Authoritative CB14 polygon intersection or a spatially verified stable TDS allowlist",
     "failure_state": "unavailable"
   },
   {

@@ -163,6 +163,7 @@ function defaultJS() {
 
 const yamlPath = process.argv[2] || path.join(ROOT, "config", "jurisdiction.yaml")
 const outPath  = path.join(ROOT, "src", "config", "jurisdiction.js")
+const jsonOutPath = path.join(ROOT, "config", "jurisdiction.generated.json")
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true })
 
@@ -181,6 +182,8 @@ try {
   fs.writeFileSync(outPath, defaultJS())
   process.exit(0)
 }
+
+fs.writeFileSync(jsonOutPath, JSON.stringify(cfg, null, 2) + "\n")
 
 fs.writeFileSync(outPath, generateJS(cfg))
 console.log("✓ src/config/jurisdiction.js written from", path.relative(ROOT, yamlPath))
