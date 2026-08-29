@@ -10,6 +10,7 @@
     "build-config": "node scripts/build-config.js",
     "validate-config": "npm run build-config && node scripts/validate-regional-config.js",
     "test:regional": "npm run build-config && node --test tests/regional-normalization.test.js && python3 -m unittest tests/test_regional_normalization.py",
+    "test:streamlit": "python3 -m unittest tests/test_chat_state.py tests/test_esri_presentation.py tests/test_regional_normalization.py",
     "prebuild": "npm run build-config",
     "predev": "npm run build-config"
   },

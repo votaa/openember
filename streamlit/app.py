@@ -36,6 +36,12 @@ from chat_state import (
     finish_chat_response,
     update_chat_response,
 )
+from esri_presentation import (
+    build_presentation,
+    discover_feature_layers,
+    feature_label as esri_feature_label,
+    feature_popup_html,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -687,17 +693,27 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
 
         for feat in layer.get("features", []):
             ftype = feat.get("type", "point")
-
-            if ftype == "point":
-                popup_h = layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
+            presentation = layer.get("presentation")
+            label = (
+                esri_feature_label(feat, presentation, layer["name"])
+                if layer.get("type") == "esri"
+                else feat.get("label", layer["name"])
+            )
+            popup_h = (
+                esri_feature_popup_html(feat, layer["name"], lcolor, presentation)
+                if layer.get("type") == "esri"
+                else layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
                     f'<div style="font-family:monospace;font-size:11px">'
                     f'<b style="color:{lcolor}">{feat.get("label","") or layer["name"]}</b></div>'
                 )
+            )
+
+            if ftype == "point":
                 folium.CircleMarker(
                     location=[feat["lat"], feat["lng"]], radius=6,
                     color=lcolor, fill=True, fill_color=lcolor, fill_opacity=0.7, weight=1.5,
-                    popup=folium.Popup(popup_h, max_width=260),
-                    tooltip=feat.get("label", layer["name"])[:60],
+                    popup=folium.Popup(popup_h, max_width=360),
+                    tooltip=label[:80],
                 ).add_to(fg)
 
             elif ftype == "polygon":
@@ -708,7 +724,8 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                             "fillColor": c, "color": c, "weight": 2,
                             "fillOpacity": 0.25, "opacity": 0.8
                         },
-                        tooltip=str(list(feat["props"].values())[0])[:60] if feat["props"] else layer["name"],
+                        tooltip=label[:80],
+                        popup=folium.Popup(popup_h, max_width=360),
                     ).add_to(fg)
                 except:
                     pass
@@ -718,7 +735,8 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                     folium.GeoJson(
                         {"type": "Feature", "geometry": feat["geometry"], "properties": feat["props"]},
                         style_function=lambda f, c=lcolor: {"color": c, "weight": 3, "opacity": 0.8},
-                        tooltip=str(list(feat["props"].values())[0])[:60] if feat["props"] else layer["name"],
+                        tooltip=label[:80],
+                        popup=folium.Popup(popup_h, max_width=360),
                     ).add_to(fg)
                 except:
                     pass
@@ -970,6 +988,25 @@ def socrata_popup_html(feature: dict, label_col: str, dataset_name: str, color: 
 # ESRI FEATURE SERVICE → MAP HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def discover_esri_feature_layers(service_url: str) -> dict:
+    """Cache ArcGIS service discovery so reruns do not repeatedly fetch metadata."""
+    return discover_feature_layers(service_url, requests.get)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_esri_layer_metadata(layer_url: str) -> dict:
+    discovery = discover_esri_feature_layers(layer_url)
+    if discovery.get("error"):
+        return {"metadata": None, "error": discovery["error"]}
+    layers = discovery.get("layers", [])
+    if len(layers) != 1:
+        return {"metadata": None, "error": "Select one Feature Layer sublayer"}
+    if layers[0].get("metadata") is not None:
+        return {"metadata": layers[0]["metadata"], "error": None}
+    return {"metadata": None, "error": "Feature Layer metadata was unavailable"}
+
+
 def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     """
     Query an ArcGIS REST layer endpoint and return GeoJSON-like features.
@@ -978,35 +1015,26 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     services reject ``f=geojson``, so fall back to ArcGIS JSON and normalize
     its native geometry format.
     """
-    # Normalize URL — ensure we hit the /query endpoint
     base = service_url.rstrip("/")
-    if not base.endswith("/query"):
-        # If it's an item URL (arcgis.com/home/item.html?id=...), can't query directly
-        if "arcgis.com/home/item" in base:
-            return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
+    if "arcgis.com/home/item" in base:
+        return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
 
-        # Do not assume the first layer is always layer 0. Some ArcGIS
-        # services expose only a different layer ID (for example, LIRR
-        # branches exposes layer 4), while the portal result URL may point to
-        # the service root or an outdated layer path.
-        service_match = re.match(r"^(.*?/(?:FeatureServer|MapServer))(?:/(\d+))?$", base, re.I)
-        if service_match:
-            service_root, requested_id = service_match.groups()
-            try:
-                meta_res = requests.get(f"{service_root}?f=json", timeout=15,
-                                         headers={"User-Agent": "EMBER/1.0"})
-                if meta_res.ok:
-                    meta = meta_res.json()
-                    available = meta.get("layers") or []
-                    available_ids = {str(layer.get("id")) for layer in available}
-                    if available and (requested_id is None or requested_id not in available_ids):
-                        base = f"{service_root}/{available[0]['id']}"
-            except (ValueError, requests.RequestException):
-                # Let the query below return the service's normal error.
-                pass
-        query_url = base + "/query"
-    else:
-        query_url = base
+    discovery = discover_esri_feature_layers(base)
+    if discovery.get("error"):
+        return {"features": [], "total": 0, "error": discovery["error"]}
+    layers = discovery.get("layers", [])
+    if len(layers) != 1:
+        return {
+            "features": [], "total": 0,
+            "error": "This service contains multiple Feature Layers. Select one or more sublayers first.",
+        }
+    base = layers[0]["url"]
+    metadata = layers[0].get("metadata")
+    if metadata is None:
+        layer_discovery = discover_esri_feature_layers(base)
+        if layer_discovery.get("layers"):
+            metadata = layer_discovery["layers"][0].get("metadata")
+    query_url = base + "/query"
 
     params = {
         "where":        "1=1",
@@ -1061,26 +1089,75 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
             elif gtype in ("LineString", "MultiLineString"):
                 features.append({"type": "line", "geometry": geom, "props": props})
 
-        return {"features": features, "total": len(features), "error": None}
+        return {
+            "features": features,
+            "total": len(features),
+            "error": None,
+            "resolved_url": base,
+            "metadata": metadata,
+            "presentation": build_presentation(metadata, features),
+        }
     except Exception as e:
         return {"features": [], "total": 0, "error": str(e)}
 
-def esri_feature_popup_html(feature: dict, layer_name: str, color: str) -> str:
-    """Build a Folium popup for an ESRI feature."""
-    props = feature["props"]
-    skip  = {"OBJECTID", "ObjectID", "FID", "Shape_Area", "Shape_Length", "GlobalID"}
-    show  = {k: v for k, v in props.items() if k not in skip and v not in (None, "")}
-    rows  = "".join(
-        f'<div><span style="color:#556">{k}:</span> <span style="color:#aab">{str(v)[:80]}</span></div>'
-        for k, v in list(show.items())[:8]
-    )
-    name = next((str(v) for k, v in show.items() if any(x in k.upper() for x in ("NAME","TITLE","LABEL","DESC","SITE"))), layer_name)
-    return (f'<div style="font-family:monospace;font-size:10px;max-width:240px">'
-            f'<div style="font-weight:700;color:{color};margin-bottom:4px;font-size:11px">{name[:60]}</div>'
-            f'{rows}'
-            f'<div style="color:#446;font-size:9px;margin-top:4px;border-top:1px solid #1e2a40;padding-top:3px">'
-            f'ESRI Feature Layer · {layer_name}</div>'
-            f'</div>')
+def esri_feature_popup_html(feature: dict, layer_name: str, color: str,
+                            presentation: dict | None = None) -> str:
+    """Build a metadata-aware Folium popup for any ESRI geometry type."""
+    return feature_popup_html(feature, presentation, layer_name, color)
+
+
+def add_operational_esri_layer(item_id: str, item_title: str, layer_choice: dict,
+                               color: str = "#a78bfa") -> dict:
+    """Fetch one selected sublayer and add it to the operational Folium map."""
+    result = fetch_esri_feature_layer(layer_choice["url"], max_features=500)
+    if result.get("error") or not result.get("features"):
+        return result
+    layer_name = item_title
+    if layer_choice.get("name") and layer_choice["name"] != item_title:
+        layer_name = f"{item_title} — {layer_choice['name']}"
+    st.session_state.map_layers.append({
+        "id": f"esri_{item_id}_{layer_choice['id']}",
+        "owner_item_id": item_id,
+        "sublayer_id": layer_choice["id"],
+        "name": layer_name,
+        "type": "esri",
+        "color": color,
+        "icon": "⊕",
+        "features": result["features"],
+        "visible": True,
+        "count": result["total"],
+        "source": f"ESRI · {result.get('resolved_url', layer_choice['url'])}",
+        "url": result.get("resolved_url", layer_choice["url"]),
+        "metadata": result.get("metadata"),
+        "presentation": result.get("presentation"),
+    })
+    return result
+
+
+def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: dict,
+                                  color: str = "#a78bfa") -> dict:
+    """Add one selected ArcGIS Feature Layer with its presentation metadata."""
+    metadata_result = fetch_esri_layer_metadata(layer_choice["url"])
+    metadata = metadata_result.get("metadata")
+    layer_name = item_title
+    if layer_choice.get("name") and layer_choice["name"] != item_title:
+        layer_name = f"{item_title} — {layer_choice['name']}"
+    st.session_state.mb_layers.append({
+        "id": f"{item_id}_{layer_choice['id']}",
+        "owner_item_id": item_id,
+        "sublayer_id": layer_choice["id"],
+        "name": layer_name[:80],
+        "url": layer_choice["url"],
+        "item_id": "",
+        "type": "Feature Layer",
+        "opacity": 1.0,
+        "visible": True,
+        "color": color,
+        "metadata": metadata,
+        "presentation": build_presentation(metadata) if metadata else None,
+        "metadata_error": metadata_result.get("error"),
+    })
+    return metadata_result
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SESSION STATE INIT
@@ -1107,6 +1184,7 @@ for k, v in [
     ("gauge_stations", []),     # CO-OPS station list for NY (dynamic)
     ("gauge_fetched_at", _dt.datetime.min), # last fetch timestamp
     ("map_layers",  []),        # user-added map layers: [{id, name, type, color, icon, features, ...}]
+    ("esri_pending_adds", {}),  # FeatureServer roots awaiting sublayer selection
     ("_runtime_map_points", MAP_POINTS), # setup wizard edits before/reload after save
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
@@ -1148,6 +1226,28 @@ if not st.session_state.mb_layers:
              "visible": True, "color": "#a78bfa"}
             for l in _saved_mb
         ]
+
+# Hydrate older/saved Feature Layer entries once so they receive the same
+# aliases, domains, popup fields, and label behavior as newly added layers.
+for _mb_layer in st.session_state.mb_layers:
+    if "/FeatureServer" not in _mb_layer.get("url", "") or _mb_layer.get("_presentation_attempted"):
+        continue
+    _mb_layer["_presentation_attempted"] = True
+    _mb_discovery = discover_esri_feature_layers(_mb_layer["url"])
+    if len(_mb_discovery.get("layers", [])) == 1:
+        _mb_choice = _mb_discovery["layers"][0]
+        _mb_metadata_result = fetch_esri_layer_metadata(_mb_choice["url"])
+        _mb_layer["url"] = _mb_choice["url"]
+        _mb_layer["metadata"] = _mb_metadata_result.get("metadata")
+        _mb_layer["presentation"] = (
+            build_presentation(_mb_layer.get("metadata")) if _mb_layer.get("metadata") else None
+        )
+        _mb_layer["metadata_error"] = _mb_metadata_result.get("error")
+    else:
+        _mb_layer["metadata_error"] = (
+            _mb_discovery.get("error")
+            or "Saved Feature Service roots must be removed and re-added so sublayers can be selected."
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL AUTO-REFRESH (60s tick)
@@ -1883,43 +1983,69 @@ with tab_esri:
 
                 # Add to Map button — only for Feature Layers / Map Services with a URL
                 if item.get("url") and item.get("type") in ("Feature Layer", "Feature Service", "Map Service"):
-                    esri_on_map = any(l["id"] == f"esri_{item['id']}" for l in st.session_state.map_layers)
+                    esri_on_map = any(
+                        l.get("owner_item_id") == item["id"]
+                        for l in st.session_state.map_layers if l.get("type") == "esri"
+                    )
                     if esri_on_map:
                         if st.button(f"✕ Remove from Map", key=f"esri_rm_map_{item['id']}", use_container_width=True):
-                            st.session_state.map_layers = [l for l in st.session_state.map_layers if l["id"] != f"esri_{item['id']}"]
+                            st.session_state.map_layers = [
+                                l for l in st.session_state.map_layers
+                                if l.get("owner_item_id") != item["id"]
+                            ]
                             st.rerun()
                     else:
                         if st.button(f"🗺 Add to Map", key=f"esri_map_{item['id']}", use_container_width=True):
-                            service_url = item["url"]
-                            # Append /0 if it's a service root, not a layer
-                            if "/FeatureServer" in service_url and not service_url.split("/FeatureServer")[-1].strip("/").isdigit():
-                                service_url = service_url.rstrip("/") + "/0"
-                            with st.spinner(f"Fetching {item.get('title','')} layer…"):
-                                result = fetch_esri_feature_layer(service_url, max_features=500)
-                            if result["error"]:
-                                st.error(f"Error fetching layer: {result['error']}")
-                            elif not result["features"]:
-                                st.warning("No features returned — layer may be empty or require authentication")
-                            else:
-                                color  = "#a78bfa"
-                                iname  = item.get("title", item["id"])
-                                def make_esri_popup(nm, clr):
-                                    def fn(feat): return esri_feature_popup_html(feat, nm, clr)
-                                    return fn
-                                st.session_state.map_layers.append({
-                                    "id":        f"esri_{item['id']}",
-                                    "name":      iname,
-                                    "type":      "esri",
-                                    "color":     color,
-                                    "icon":      "⊕",
-                                    "features":  result["features"],
-                                    "visible":   True,
-                                    "popup_fn":  make_esri_popup(iname, color),
-                                    "count":     result["total"],
-                                    "source":    f"ESRI · {service_url}",
-                                })
-                                st.success(f"✓ Added {result['total']} features to map")
+                            with st.spinner("Inspecting Feature Service layers…"):
+                                discovery = discover_esri_feature_layers(item["url"])
+                            if discovery.get("error"):
+                                st.error(f"Error inspecting service: {discovery['error']}")
+                            elif len(discovery.get("layers", [])) == 1:
+                                result = add_operational_esri_layer(
+                                    item["id"], item.get("title", item["id"]), discovery["layers"][0]
+                                )
+                                if result.get("error"):
+                                    st.error(f"Error fetching layer: {result['error']}")
+                                elif not result.get("features"):
+                                    st.warning("No features returned — layer may be empty or require authentication")
+                                else:
+                                    st.success(f"✓ Added {result['total']} features to map")
+                                    st.rerun()
+                            elif discovery.get("layers"):
+                                st.session_state.esri_pending_adds[f"operational:{item['id']}"] = {
+                                    "item": item, "layers": discovery.get("layers", [])
+                                }
                                 st.rerun()
+                            else:
+                                st.warning("No Feature Layer sublayers were found in this service")
+
+                        pending_key = f"operational:{item['id']}"
+                        pending = st.session_state.esri_pending_adds.get(pending_key)
+                        if pending:
+                            choices = pending["layers"]
+                            selected_urls = st.multiselect(
+                                "Choose Feature Layer sublayers",
+                                [choice["url"] for choice in choices],
+                                format_func=lambda url, cs=choices: next(
+                                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                                ),
+                                key=f"esri_sub_{item['id']}",
+                            )
+                            if st.button("Add selected sublayers", key=f"esri_sub_add_{item['id']}",
+                                         disabled=not selected_urls, use_container_width=True):
+                                failures = []
+                                for choice in choices:
+                                    if choice["url"] in selected_urls:
+                                        result = add_operational_esri_layer(
+                                            item["id"], item.get("title", item["id"]), choice
+                                        )
+                                        if result.get("error") or not result.get("features"):
+                                            failures.append(f"{choice['name']}: {result.get('error') or 'no features'}")
+                                st.session_state.esri_pending_adds.pop(pending_key, None)
+                                if failures:
+                                    st.error("; ".join(failures))
+                                else:
+                                    st.rerun()
 
     if st.session_state.esri_items:
         st.divider()
@@ -1945,6 +2071,25 @@ with tab_esri:
                 if st.button("✕", key=f"rm_esri_map_{i}"):
                     st.session_state.map_layers = [l for l in st.session_state.map_layers if l["id"] != layer["id"]]
                     st.rerun()
+            presentation = layer.get("presentation") or build_presentation(
+                layer.get("metadata"), layer.get("features", [])
+            )
+            options = ["__auto__"] + presentation.get("fields", [])
+            current = presentation.get("label_field_override") or "__auto__"
+            selected = st.selectbox(
+                "Hover label",
+                options,
+                index=options.index(current) if current in options else 0,
+                format_func=lambda field, p=presentation: (
+                    f"Automatic ({p.get('aliases', {}).get(p.get('label_field_auto'), p.get('label_field_auto') or 'layer name')})"
+                    if field == "__auto__" else p.get("aliases", {}).get(field, field)
+                ),
+                key=f"esri_label_{layer['id']}",
+            )
+            layer["presentation"] = build_presentation(
+                layer.get("metadata"), layer.get("features", []),
+                None if selected == "__auto__" else selected,
+            )
 
 # ── Chat Tab ──────────────────────────────────────────────────────────────────
 with tab_chat:
@@ -2036,24 +2181,55 @@ with tab_mapbuilder:
                     "Feature Layer", "Feature Service", "Map Service",
                     "Image Service", "Vector Tile Layer"
                 ):
-                    already = any(l["id"] == item["id"] for l in st.session_state.mb_layers)
+                    already = any(
+                        l.get("owner_item_id") == item["id"] or l["id"] == item["id"]
+                        for l in st.session_state.mb_layers
+                    )
                     btn_label = "✓ Added" if already else f"+ {item.get('title','')[:30]}"
                     if not already:
                         if st.button(btn_label, key=f"mb_add_{item['id']}", use_container_width=True):
                             surl = item["url"]
-                            if "/FeatureServer" in surl and not surl.split("/FeatureServer")[-1].strip("/").isdigit():
-                                surl = surl.rstrip("/") + "/0"
-                            st.session_state.mb_layers.append({
-                                "id":      item["id"],
-                                "name":    item.get("title", item["id"])[:40],
-                                "url":     surl,
-                                "item_id": item["id"],
-                                "type":    item.get("type","Feature Layer"),
-                                "opacity": 1.0,
-                                "visible": True,
-                                "color":   "#a78bfa",
-                            })
+                            if "/FeatureServer" in surl:
+                                discovery = discover_esri_feature_layers(surl)
+                                if discovery.get("error"):
+                                    st.error(discovery["error"])
+                                elif len(discovery.get("layers", [])) == 1:
+                                    add_map_builder_feature_layer(
+                                        item["id"], item.get("title", item["id"]), discovery["layers"][0]
+                                    )
+                                elif discovery.get("layers"):
+                                    st.session_state.esri_pending_adds[f"builder:{item['id']}"] = {
+                                        "item": item, "layers": discovery.get("layers", [])
+                                    }
+                                else:
+                                    st.warning("No Feature Layer sublayers were found")
+                            else:
+                                st.session_state.mb_layers.append({
+                                    "id": item["id"], "name": item.get("title", item["id"])[:40],
+                                    "url": surl, "item_id": item["id"],
+                                    "type": item.get("type", "Feature Layer"), "opacity": 1.0,
+                                    "visible": True, "color": "#a78bfa",
+                                })
                             st.rerun()
+
+                        pending = st.session_state.esri_pending_adds.get(f"builder:{item['id']}")
+                        if pending:
+                            choices = pending["layers"]
+                            selected_urls = st.multiselect(
+                                "Choose sublayers", [choice["url"] for choice in choices],
+                                format_func=lambda url, cs=choices: next(
+                                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                                ), key=f"mb_sub_{item['id']}",
+                            )
+                            if st.button("Add selected", key=f"mb_sub_add_{item['id']}",
+                                         disabled=not selected_urls, use_container_width=True):
+                                for choice in choices:
+                                    if choice["url"] in selected_urls:
+                                        add_map_builder_feature_layer(
+                                            item["id"], item.get("title", item["id"]), choice
+                                        )
+                                st.session_state.esri_pending_adds.pop(f"builder:{item['id']}", None)
+                                st.rerun()
                     else:
                         st.markdown(f'<span class="pill p-purple">✓ {item.get("title","")[:28]}</span>', unsafe_allow_html=True)
         else:
@@ -2073,19 +2249,46 @@ with tab_mapbuilder:
             # If it's a bare AGOL item ID (8–16 alphanumeric chars), load as portalItem
             is_item_id = re.match(r'^[a-f0-9]{16,32}$', entry_id, re.I)
             surl = entry_id
-            if "/FeatureServer" in surl and not surl.split("/FeatureServer")[-1].strip("/").isdigit():
-                surl = surl.rstrip("/") + "/0"
-            st.session_state.mb_layers.append({
-                "id":      entry_id,
-                "name":    mb_name_in or entry_id[:30],
-                "url":     surl,
-                "item_id": entry_id if is_item_id else "",
-                "type":    mb_type_sel,
-                "opacity": 1.0,
-                "visible": True,
-                "color":   "#60a5fa",
-            })
+            if "/FeatureServer" in surl:
+                discovery = discover_esri_feature_layers(surl)
+                if discovery.get("error"):
+                    st.error(discovery["error"])
+                elif len(discovery.get("layers", [])) == 1:
+                    add_map_builder_feature_layer(
+                        entry_id, mb_name_in or discovery["layers"][0]["name"], discovery["layers"][0], "#60a5fa"
+                    )
+                elif discovery.get("layers"):
+                    st.session_state.esri_pending_adds["builder:manual"] = {
+                        "item": {"id": entry_id, "title": mb_name_in or "Feature Service"},
+                        "layers": discovery.get("layers", []),
+                    }
+                else:
+                    st.warning("No Feature Layer sublayers were found")
+            else:
+                st.session_state.mb_layers.append({
+                    "id": entry_id, "name": mb_name_in or entry_id[:30], "url": surl,
+                    "item_id": entry_id if is_item_id else "", "type": mb_type_sel,
+                    "opacity": 1.0, "visible": True, "color": "#60a5fa",
+                })
             st.rerun()
+
+        manual_pending = st.session_state.esri_pending_adds.get("builder:manual")
+        if manual_pending:
+            choices = manual_pending["layers"]
+            selected_urls = st.multiselect(
+                "Choose URL sublayers", [choice["url"] for choice in choices],
+                format_func=lambda url, cs=choices: next(
+                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                ), key="mb_manual_sublayers",
+            )
+            if st.button("Add selected URL sublayers", disabled=not selected_urls,
+                         key="mb_manual_sublayers_add", use_container_width=True):
+                item = manual_pending["item"]
+                for choice in choices:
+                    if choice["url"] in selected_urls:
+                        add_map_builder_feature_layer(item["id"], item["title"], choice, "#60a5fa")
+                st.session_state.esri_pending_adds.pop("builder:manual", None)
+                st.rerun()
 
         st.divider()
 
@@ -2103,16 +2306,20 @@ with tab_mapbuilder:
             already = any(l["url"] == preset["url"] for l in st.session_state.mb_layers)
             if not already:
                 if st.button(f"+ {preset['name']}", key=f"mb_preset_{preset['name'][:20]}", use_container_width=True):
-                    st.session_state.mb_layers.append({
-                        "id":      preset["url"],
-                        "name":    preset["name"],
-                        "url":     preset["url"],
-                        "item_id": "",
-                        "type":    "Feature Layer",
-                        "opacity": 1.0,
-                        "visible": True,
-                        "color":   preset["color"],
-                    })
+                    if "/FeatureServer" in preset["url"]:
+                        discovery = discover_esri_feature_layers(preset["url"])
+                        if discovery.get("layers"):
+                            add_map_builder_feature_layer(
+                                preset["url"], preset["name"], discovery["layers"][0], preset["color"]
+                            )
+                        else:
+                            st.error(discovery.get("error") or "No Feature Layers found")
+                    else:
+                        st.session_state.mb_layers.append({
+                            "id": preset["url"], "name": preset["name"], "url": preset["url"],
+                            "item_id": "", "type": "Map Service", "opacity": 1.0,
+                            "visible": True, "color": preset["color"],
+                        })
                     st.rerun()
             else:
                 st.markdown(f'<span class="pill p-purple">✓ {preset["name"][:28]}</span>', unsafe_allow_html=True)
@@ -2138,6 +2345,9 @@ with tab_mapbuilder:
                             st.session_state.mb_layers.pop(li)
                             st.rerun()
 
+                    if layer.get("metadata_error"):
+                        st.caption(f"Metadata fallback: {layer['metadata_error']}")
+
                     new_opacity = st.slider("Opacity", 0.0, 1.0,
                                             value=float(layer.get("opacity", 1.0)),
                                             step=0.05, key=f"mb_op_{li}_{layer['id'][:8]}")
@@ -2145,6 +2355,21 @@ with tab_mapbuilder:
                                               key=f"mb_vis_{li}_{layer['id'][:8]}")
                     st.session_state.mb_layers[li]["opacity"] = new_opacity
                     st.session_state.mb_layers[li]["visible"] = new_visible
+                    presentation = layer.get("presentation")
+                    if presentation and presentation.get("fields"):
+                        options = ["__auto__"] + presentation["fields"]
+                        current = presentation.get("label_field_override") or "__auto__"
+                        selected = st.selectbox(
+                            "Hover / popup title",
+                            options, index=options.index(current) if current in options else 0,
+                            format_func=lambda field, p=presentation: (
+                                f"Automatic ({p.get('aliases', {}).get(p.get('label_field_auto'), p.get('label_field_auto') or 'layer name')})"
+                                if field == "__auto__" else p.get("aliases", {}).get(field, field)
+                            ), key=f"mb_label_{li}_{layer['id'][:8]}",
+                        )
+                        st.session_state.mb_layers[li]["presentation"] = build_presentation(
+                            layer.get("metadata"), label_override=None if selected == "__auto__" else selected
+                        )
                     st.markdown("---")
 
         # Basemap picker
@@ -2176,6 +2401,8 @@ with tab_mapbuilder:
                 "type":    l.get("type","Feature Layer"),
                 "opacity": l.get("opacity", 1.0),
                 "visible": l.get("visible", True),
+                "color": l.get("color", "#a78bfa"),
+                "presentation": l.get("presentation"),
             }
             for l in st.session_state.mb_layers
         ])
@@ -2198,11 +2425,15 @@ with tab_mapbuilder:
                z-index:999; pointer-events:none; }}
     #noLayers {{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
                  color:#334; font-family:monospace; font-size:13px; text-align:center; }}
+    #featureTooltip {{ position:absolute; display:none; z-index:1000; pointer-events:none;
+                       max-width:260px; background:#07090dee; color:#e5e7eb; border:1px solid #818cf877;
+                       border-radius:4px; padding:5px 8px; font:11px monospace; box-shadow:0 3px 12px #0008; }}
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
   <div id="status">EMBER Map Builder · ArcGIS Maps SDK 4.32</div>
+  <div id="featureTooltip"></div>
   {"<div id='noLayers'>← Add layers from the left panel<br><span style='font-size:10px;color:#223'>Search ESRI tab or use Living Atlas quick-adds</span></div>" if not st.session_state.mb_layers else ""}
   <script>
     const LAYERS   = {layers_json};
@@ -2230,6 +2461,53 @@ with tab_mapbuilder:
 
       const map = new Map({{ basemap: BASEMAP }});
 
+      function escapeHtml(value) {{
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function(ch) {{
+          return ({{"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}})[ch];
+        }});
+      }}
+
+      function displayValue(field, value, attributes, presentation) {{
+        if (value == null) return "";
+        const domains = (presentation.domains || {{}})[field] || {{}};
+        const typeField = presentation.type_id_field;
+        const subtype = typeField && attributes[typeField] != null ? String(attributes[typeField]) : null;
+        const subtypeDomains = subtype
+          ? (((presentation.subtype_domains || {{}})[subtype] || {{}})[field] || {{}})
+          : {{}};
+        return String(subtypeDomains[String(value)] ?? domains[String(value)] ?? value);
+      }}
+
+      function presentationLabel(attributes, presentation, fallback) {{
+        if (!presentation) return fallback;
+        const field = presentation.label_field;
+        const value = field ? displayValue(field, attributes[field], attributes, presentation) : "";
+        return value.trim() ? value.slice(0, 80) : fallback;
+      }}
+
+      function presentationPopup(graphic, cfg) {{
+        const attributes = graphic.attributes || {{}};
+        const p = cfg.presentation;
+        if (!p) return escapeHtml(cfg.name);
+        const rows = (p.field_order || []).filter(function(field) {{
+          const value = attributes[field];
+          return value !== null && value !== undefined && value !== "";
+        }}).map(function(field) {{
+          return '<div style="margin-bottom:3px"><span style="color:#667">' +
+            escapeHtml((p.aliases || {{}})[field] || field) + ':</span> <span>' +
+            escapeHtml(displayValue(field, attributes[field], attributes, p).slice(0, 500)) + '</span></div>';
+        }});
+        const primary = rows.slice(0, 8).join("");
+        const more = rows.length > 8
+          ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:#818cf8">' +
+            (rows.length - 8) + ' more attribute(s)</summary><div style="margin-top:5px">' +
+            rows.slice(8).join("") + '</div></details>'
+          : "";
+        return '<div style="font:11px monospace;max-width:340px;max-height:320px;overflow:auto">' +
+          primary + more + '<div style="color:#667;font-size:9px;margin-top:7px;border-top:1px solid #334">' +
+          'ESRI Feature Layer · ' + escapeHtml(cfg.name) + '</div></div>';
+      }}
+
       const view = new MapView({{
         container: "viewDiv",
         map: map,
@@ -2246,6 +2524,17 @@ with tab_mapbuilder:
           opacity: layerCfg.opacity,
           visible: layerCfg.visible,
         }};
+
+        if (layerCfg.presentation) {{
+          opts.outFields = ["*"];
+          opts.popupTemplate = {{
+            title: layerCfg.presentation.label_field
+              ? "{" + layerCfg.presentation.label_field + "}"
+              : layerCfg.name,
+            outFields: ["*"],
+            content: function(event) {{ return presentationPopup(event.graphic, layerCfg); }},
+          }};
+        }}
 
         if (layerCfg.item_id && layerCfg.item_id.length > 10 && !layerCfg.url.startsWith("http")) {{
           // Portal item ID
@@ -2265,6 +2554,8 @@ with tab_mapbuilder:
           }}
         }}
 
+        lyr.__emberConfig = layerCfg;
+
         lyr.when(function() {{
           document.getElementById("status").textContent =
             "✓ " + lyr.title + " loaded";
@@ -2280,6 +2571,27 @@ with tab_mapbuilder:
 
         map.add(lyr);
       }});
+
+      // Metadata-aware hover labels for points, lines, and polygons.
+      const tooltip = document.getElementById("featureTooltip");
+      let hoverRequest = 0;
+      view.on("pointer-move", function(event) {{
+        const requestId = ++hoverRequest;
+        view.hitTest(event).then(function(response) {{
+          if (requestId !== hoverRequest) return;
+          const hit = response.results.find(function(result) {{
+            return result.graphic && result.graphic.layer && result.graphic.layer.__emberConfig &&
+              result.graphic.layer.__emberConfig.presentation;
+          }});
+          if (!hit) {{ tooltip.style.display = "none"; return; }}
+          const cfg = hit.graphic.layer.__emberConfig;
+          tooltip.textContent = presentationLabel(hit.graphic.attributes || {{}}, cfg.presentation, cfg.name);
+          tooltip.style.left = (event.x + 14) + "px";
+          tooltip.style.top = (event.y + 14) + "px";
+          tooltip.style.display = "block";
+        }}).catch(function() {{ tooltip.style.display = "none"; }});
+      }});
+      view.on("pointer-leave", function() {{ tooltip.style.display = "none"; }});
 
       // ── Widgets ────────────────────────────────────────────────────────────
       view.when(function() {{
