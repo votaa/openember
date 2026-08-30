@@ -50,4 +50,19 @@ Streamlit:
 
 The CB14 boundary/spatial adapter is still required before NYPD and NYCHA can become mappable. Cooling centers require a stable machine-readable activation contract. Hurricane evacuation centers require approved empty-result and activation semantics. Once those Phase 3 gates are resolved, their existing Phase 4 cards and controls can consume the newly normalized records without a separate interface-specific contract.
 
+Regional boundary infrastructure also remains incomplete. Phase 3 must activate
+and validate the configured NYS Civil Boundaries adapter for Nassau, Suffolk,
+and Queens and qualify the NYS DPS electric-utility territory dataset before
+Phase 4 exposes county and utility-responsibility overlays. Map Builder will
+then provide **Limit to operational geography** and **Limit to PSEG Long Island
+territory** modes for supported Feature Layers. The shared filter applies after
+**Add to Map** to layers added through ESRI/Living Atlas search, Living Atlas
+quick-adds, or pasted Feature Service URLs; it does not narrow catalog search
+results or generically clip Map Services, imagery, or vector tiles. The broader
+operational mode must retain hospitals, fire/EMS stations, and other assets in
+Freeport, Rockville Centre, Greenport, and Fishers Island, while the PSEG mode
+may exclude them as non-PSEG territory. The authoritative source contract,
+work split, acceptance criteria, and Queens-versus-Rockaway caveat are maintained in
+`docs/long-island/phase-3-4-approved-scope.md`.
+
 Rockaway 311 historical totals and electricity-hazard classification remain future enhancements. Questions such as incident counts by complaint type, ZIP, month, or date range must use separate server-side aggregate Socrata queries across the complete requested period. The application must disclose source coverage and must never derive historical totals from the 500-record map-browsing window. The proposed electricity-focused classification and validation rules are tracked in `docs/long-island/future-nyc-311-electric-hazards.md`.
