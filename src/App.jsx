@@ -22,6 +22,7 @@ import {
   PHASE4_GEOGRAPHY_SOURCE_IDS,
   PHASE4_OBSERVATION_SOURCE_IDS,
   PHASE4_SOURCE_IDS,
+  clearPhase4SourceCache,
   fetchPhase4SourceBundle,
   phase4SourceCard,
   unavailablePhase4Result,
@@ -66,6 +67,7 @@ const SOCRATA_DOMAIN   = _SOC.domain       || "data.cityofnewyork.us"
 const OLLAMA_HOST        = import.meta.env?.VITE_OLLAMA_HOST  || "https://ollama.com"
 const OLLAMA_MODEL       = import.meta.env?.VITE_OLLAMA_MODEL || "gpt-oss:120b-cloud"
 const OLLAMA_KEY_ENV     = import.meta.env?.VITE_OLLAMA_API_KEY || ""
+const NYC_OPEN_DATA_TOKEN_ENV = import.meta.env?.VITE_NYC_OPEN_DATA_APP_TOKEN || ""
 const CARTO_TILE_URL     = appendCartoApiKey(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   import.meta.env.VITE_CARTO_API_KEY,
@@ -143,6 +145,16 @@ function getRuntimeKey() {
 }
 function setRuntimeKey(k) {
   try { sessionStorage.setItem("ember_ollama_key", k) } catch {}
+}
+
+function getNycOpenDataToken() {
+  try { return sessionStorage.getItem("ember_nyc_open_data_token") || NYC_OPEN_DATA_TOKEN_ENV } catch { return NYC_OPEN_DATA_TOKEN_ENV }
+}
+function setNycOpenDataToken(k) {
+  try {
+    if (k) sessionStorage.setItem("ember_nyc_open_data_token", k)
+    else sessionStorage.removeItem("ember_nyc_open_data_token")
+  } catch {}
 }
 
 // Default map layers (NYC hardcoded fallback if config not loaded)
@@ -702,6 +714,7 @@ export default function App() {
   const [input, setInput]               = useState("")
   const [keyInput, setKeyInput]         = useState("")
   const [runtimeKey, setRuntimeKeyState]= useState(getRuntimeKey)
+  const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
@@ -730,6 +743,7 @@ export default function App() {
   const [phase4Results, setPhase4Results] = useState(() => Object.fromEntries(
     phase4Sources.map(source => [source.id, unavailablePhase4Result(source)]),
   ))
+  const phase4ResultsRef = useRef(phase4Results)
   const [phase4Loading, setPhase4Loading] = useState(false)
   const [activePhase4Layers, setActivePhase4Layers] = useState(["nyc_311_rockaway"])
   const togglePhase4Layer = useCallback(sourceId => {
@@ -743,12 +757,19 @@ export default function App() {
   )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
+  const setNycOpenDataToken_ = (token) => {
+    const nextToken = token.trim()
+    clearPhase4SourceCache()
+    setNycOpenDataToken(nextToken)
+    setNycOpenDataTokenState(nextToken)
+  }
   const abortRef   = useRef(null)
   const fileInputRef = useRef(null)
   const endRef     = useRef(null)
 
   useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}) }, [messages])
   useEffect(() => { saveMapWidth(mapWidth) }, [mapWidth])
+  useEffect(() => { phase4ResultsRef.current = phase4Results }, [phase4Results])
   useEffect(() => {
     const onStorage = e => {
       if (e.key === LS_KEY) setLocalConfig(loadLocalConfig())
@@ -760,12 +781,15 @@ export default function App() {
   const refreshPhase4Sources = useCallback(async () => {
     setPhase4Loading(true)
     try {
-      const bundle = await fetchPhase4SourceBundle(CFG.sources)
+      const bundle = await fetchPhase4SourceBundle(CFG.sources, {
+        appToken: nycOpenDataToken,
+        previousResults: phase4ResultsRef.current,
+      })
       setPhase4Results(bundle.results)
     } finally {
       setPhase4Loading(false)
     }
-  }, [])
+  }, [nycOpenDataToken])
 
   useEffect(() => { refreshPhase4Sources() }, [refreshPhase4Sources])
 
@@ -1045,8 +1069,10 @@ export default function App() {
           {rightTab==="settings" && (
             <SettingsPanel
               localConfig={localConfig}
+              nycOpenDataToken={nycOpenDataToken}
               onSave={saveConfig}
-              onReset={()=>{ clearLocalConfig(); setLocalConfig({}); window.location.reload() }}
+              onSaveNycToken={setNycOpenDataToken_}
+              onReset={()=>{ clearLocalConfig(); setNycOpenDataToken_(""); setLocalConfig({}); window.location.reload() }}
             />
           )}
 
@@ -1198,7 +1224,7 @@ function FeatureTable({ rows, setRows, color }) {
   )
 }
 
-function SettingsPanel({ localConfig, onSave, onReset }) {
+function SettingsPanel({ localConfig, nycOpenDataToken, onSave, onSaveNycToken, onReset }) {
   const lc = localConfig || {}
   const lj = lc.jurisdiction || {}
   const lkb = lc.kb || {}
@@ -1218,6 +1244,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
   const [jGX,       setJGX]       = useState(lj.nwsGridX  ?? (_NWS.grid_x ?? 33))
   const [jGY,       setJGY]       = useState(lj.nwsGridY  ?? (_NWS.grid_y ?? 37))
   const [jSocrata,  setJSocrata]  = useState(lj.socrataDomain || _SOC.domain || "data.cityofnewyork.us")
+  const [jSocrataToken, setJSocrataToken] = useState(nycOpenDataToken || "")
   const [discovering, setDiscovering] = useState(false)
   const [discoverMsg, setDiscoverMsg] = useState("")
 
@@ -1250,6 +1277,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
         floodRisk: { label:"Flood Risk",      color:"#fb923c", icon:"💧", features:mpFlood     },
       }
     })
+    onSaveNycToken(jSocrataToken)
     setSaved(true)
     setTimeout(() => setSaved(false), 1200)
   }
@@ -1312,6 +1340,9 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
             {label("SOCRATA OPEN DATA DOMAIN")}
             {inp(jSocrata, setJSocrata, "text", "e.g. data.virginiabeach.gov")}
             <div style={{fontSize:9,color:"#446",marginTop:3}}>Find your city's domain at <a href="https://opendatanetwork.com" target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>opendatanetwork.com</a></div>
+            {label("NYC OPEN DATA APP TOKEN (OPTIONAL)")}
+            {inp(jSocrataToken, setJSocrataToken, "password", "Used for Phase 4 Socrata requests")}
+            <div style={{fontSize:9,color:"#446",marginTop:3}}>Stored only for this browser session and sent as the Socrata X-App-Token header.</div>
           </div>
         )}
 
@@ -1394,7 +1425,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
           style={{padding:"7px 14px",borderRadius:5,background:"transparent",border:"1px solid #1a1e28",color:"#556",fontFamily:"monospace",fontSize:10,cursor:"pointer"}}>
           Reset to defaults
         </button>
-        <span style={{fontSize:9,color:"#334",marginLeft:4}}>Saved to browser localStorage · No redeploy needed</span>
+        <span style={{fontSize:9,color:"#334",marginLeft:4}}>Configuration saved locally · App token stays in session storage</span>
       </div>
     </div>
   )

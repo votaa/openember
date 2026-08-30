@@ -48,6 +48,7 @@ Or: connect the GitHub repo at **vercel.com** → it auto-detects Vite.
 | `VITE_OLLAMA_API_KEY` | `your_key_here` |
 | `VITE_OLLAMA_HOST` | `https://ollama.com` |
 | `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` |
+| `VITE_NYC_OPEN_DATA_APP_TOKEN` | `your_socrata_app_token` |
 
 ---
 
@@ -157,10 +158,13 @@ See full list: https://ollama.com/search?c=cloud
 | `VITE_OLLAMA_API_KEY` | — | **Required.** Ollama Cloud API key |
 | `VITE_OLLAMA_HOST` | `https://ollama.com` | Ollama Cloud base URL |
 | `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` | Model name |
+| `VITE_NYC_OPEN_DATA_APP_TOKEN` | — | Optional browser-visible Socrata app token for Phase 4 NYC Open Data requests |
 
 ### Streamlit (secrets or env)
 Use `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`, and `CARTO_API_KEY`. The
 Streamlit map falls back to OpenStreetMap when `CARTO_API_KEY` is not set.
+The optional NYC Open Data app token is entered in the NYC Open Data tab and
+is kept only in the current Streamlit session.
 
 ---
 

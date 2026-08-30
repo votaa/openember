@@ -213,7 +213,7 @@ source_registry:
   endpoint: https://data.cityofnewyork.us/resource/5uac-w243.json
   format: json
   qualification: qualified
-  enabled: true
+  enabled: false
   refresh_seconds: 86400
   stale_after_seconds: 1209600
   query_select: cmplnt_num,addr_pct_cd,boro_nm,cmplnt_fr_dt,cmplnt_fr_tm,ofns_desc,pd_desc,law_cat_cd,crm_atpt_cptd_cd,prem_typ_desc,latitude,longitude
@@ -246,7 +246,8 @@ source_registry:
     color: '#a78bfa'
     kind: historical
     map_capable: true
-  gate: Phase 4 display active; authoritative CB14 point-in-polygon qualification is implemented
+  gate: Retired from the operational application because the published records are historical and not sufficiently current for situational awareness
+  operational_note: Historical NYPD complaint data is retained only as qualification and normalization evidence; it is not fetched or displayed operationally.
   failure_state: unavailable
 - id: nycha_developments_rockaway
   name: NYCHA public housing developments — Rockaway

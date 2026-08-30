@@ -172,7 +172,7 @@ test("React and Streamlit derive equivalent Phase 4 source cards", () => {
   assert.equal(javascriptCards.nyc_311_rockaway.map_capable, true)
   assert.equal(javascriptCards.nyc_hurricane_evacuation_centers_rockaway.activation_state, "confirmation_required")
   assert.equal(javascriptCards.nyc_hurricane_evacuation_centers_rockaway.confirmation_phone, "311")
-  assert.equal(javascriptCards.nypd_incidents_rockaway.data_state, "unavailable")
+  assert.equal("nypd_incidents_rockaway" in javascriptCards, false)
 })
 
 test("bounded source queries carry their approved filter and limit", () => {

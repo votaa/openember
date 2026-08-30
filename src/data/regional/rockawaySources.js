@@ -4,9 +4,54 @@ export const ROCKAWAY_SOURCE_IDS = [
   "nyc_311_rockaway",
   "nyc_cooling_centers_rockaway",
   "nyc_hurricane_evacuation_centers_rockaway",
-  "nypd_incidents_rockaway",
   "nycha_developments_rockaway",
 ]
+
+const DEFAULT_TIMEOUT_MS = 30000
+const DEFAULT_MAX_RETRIES = 2
+const DEFAULT_BACKOFF_MS = [250, 750]
+
+function sleep(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+function requestError(response) {
+  const error = new Error(`HTTP ${response.status}`)
+  error.status = response.status
+  return error
+}
+
+function readableRequestError(error, timeoutMs) {
+  if (error?.name === "TimeoutError" || error?.name === "AbortError") {
+    return `Request timed out after ${timeoutMs}ms`
+  }
+  return error?.message || "request_failed"
+}
+
+function isTransientRequestError(error) {
+  const status = Number(error?.status)
+  if (status === 429 || status >= 500) return true
+  return error?.name === "TimeoutError"
+    || error?.name === "AbortError"
+    || error?.name === "TypeError"
+    || error?.code === "ECONNRESET"
+    || error?.code === "ETIMEDOUT"
+}
+
+function staleLastGoodResult(source, previousResult, reason) {
+  const records = Array.isArray(previousResult?.records)
+    ? previousResult.records.map(record => ({ ...record, data_state: "stale" }))
+    : []
+  if (!records.length) return null
+  return {
+    ...previousResult,
+    records,
+    data_state: "stale",
+    reason,
+    fetched_at: previousResult?.fetched_at || records[0]?.fetched_at || null,
+    activation_state: previousResult?.activation_state || source.activation?.state || null,
+  }
+}
 
 export function buildRockawayQueryUrl(source) {
   if (!source?.query_select || !source?.required_filter) return source?.endpoint || ""
@@ -34,28 +79,45 @@ export async function fetchRockawaySource(source, {
   fetchImpl = fetch,
   fetchedAt = new Date().toISOString(),
   geographyRecords = [],
+  appToken = "",
+  previousResult = null,
+  timeoutMs = DEFAULT_TIMEOUT_MS,
+  maxRetries = DEFAULT_MAX_RETRIES,
+  backoffMs = DEFAULT_BACKOFF_MS,
+  sleepImpl = sleep,
 } = {}) {
   if (!source?.enabled) return unavailableRockawayResult(source)
   if (!source.normalization) return { ...unavailableRockawayResult(source), reason: "source_not_normalizable" }
 
-  try {
-    const response = await fetchImpl(buildRockawayQueryUrl(source), {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(10000),
-    })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const payload = await response.json()
-    return { ...normalizeRockawayPayload(source, payload, fetchedAt, fetchedAt, geographyRecords), fetched_at: fetchedAt }
-  } catch (error) {
-    return {
-      records: [],
-      data_state: "unavailable",
-      reason: error?.message || "request_failed",
-      rejected_count: 0,
-      fetched_at: fetchedAt,
-      activation_state: source.activation?.state || null,
-      scope_state: null,
+  const headers = { Accept: "application/json" }
+  if (appToken) headers["X-App-Token"] = appToken
+  let finalError = null
+
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      const response = await fetchImpl(buildRockawayQueryUrl(source), {
+        headers,
+        signal: AbortSignal.timeout(timeoutMs),
+      })
+      if (!response.ok) throw requestError(response)
+      const payload = await response.json()
+      return { ...normalizeRockawayPayload(source, payload, fetchedAt, fetchedAt, geographyRecords), fetched_at: fetchedAt }
+    } catch (error) {
+      finalError = error
+      if (!isTransientRequestError(error) || attempt === maxRetries) break
+      await sleepImpl(backoffMs[Math.min(attempt, backoffMs.length - 1)] || 0)
     }
+  }
+
+  const reason = readableRequestError(finalError, timeoutMs)
+  return staleLastGoodResult(source, previousResult, reason) || {
+    records: [],
+    data_state: "unavailable",
+    reason,
+    rejected_count: 0,
+    fetched_at: fetchedAt,
+    activation_state: source.activation?.state || null,
+    scope_state: null,
   }
 }
 

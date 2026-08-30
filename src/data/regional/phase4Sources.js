@@ -29,6 +29,26 @@ export const PHASE4_SOURCE_IDS = [
   ...PHASE4_GEOGRAPHY_SOURCE_IDS,
 ]
 
+const phase4SourceCache = new Map()
+
+export function clearPhase4SourceCache() {
+  phase4SourceCache.clear()
+}
+
+function cachedSocrataResult(source, cache, nowMs) {
+  const entry = cache.get(source.id)
+  if (!entry) return null
+  const maxAgeMs = Number(source.refresh_seconds || 0) * 1000
+  return maxAgeMs > 0 && nowMs - entry.cached_at < maxAgeMs ? entry.result : null
+}
+
+function lastGoodResult(source, cache, previousResults) {
+  const cached = cache.get(source.id)?.result
+  if (Array.isArray(cached?.records) && cached.records.length) return cached
+  const previous = previousResults?.[source.id]
+  return Array.isArray(previous?.records) && previous.records.length ? previous : null
+}
+
 const GEOGRAPHY_LABELS = {
   rockaway: "Rockaway / Queens CB14",
   nassau: "Nassau County",
@@ -104,6 +124,11 @@ export async function fetchPhase4SourceBundle(sourceRegistry, {
   fetchImpl = fetch,
   fetchedAt = new Date().toISOString(),
   evaluatedAt = fetchedAt,
+  appToken = "",
+  previousResults = {},
+  cache = phase4SourceCache,
+  nowMs = Date.now(),
+  sleepImpl,
 } = {}) {
   const sources = new Map(sourceRegistry.map(source => [source.id, source]))
   const geographyEntries = await Promise.all(PHASE4_GEOGRAPHY_SOURCE_IDS.map(async sourceId => {
@@ -118,9 +143,23 @@ export async function fetchPhase4SourceBundle(sourceRegistry, {
   const dataEntries = await Promise.all([
     ...ROCKAWAY_SOURCE_IDS.map(async sourceId => {
       const source = sources.get(sourceId)
-      return [sourceId, source
-        ? await fetchRockawaySource(source, { fetchImpl, fetchedAt, geographyRecords })
-        : { records: [], data_state: "unavailable", reason: "source_missing", rejected_count: 0, fetched_at: null }]
+      if (!source) return [sourceId, { records: [], data_state: "unavailable", reason: "source_missing", rejected_count: 0, fetched_at: null }]
+      if (source.family === "socrata") {
+        const cached = cachedSocrataResult(source, cache, nowMs)
+        if (cached) return [sourceId, cached]
+      }
+      const result = await fetchRockawaySource(source, {
+        fetchImpl,
+        fetchedAt,
+        geographyRecords,
+        appToken: source.family === "socrata" ? appToken : "",
+        previousResult: lastGoodResult(source, cache, previousResults),
+        sleepImpl,
+      })
+      if (source.family === "socrata" && result.data_state !== "stale" && Array.isArray(result.records) && result.records.length) {
+        cache.set(source.id, { cached_at: nowMs, result })
+      }
+      return [sourceId, result]
     }),
     ...PHASE4_OBSERVATION_SOURCE_IDS.map(async sourceId => {
       const source = sources.get(sourceId)

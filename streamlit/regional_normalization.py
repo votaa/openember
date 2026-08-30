@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -18,9 +19,12 @@ ROCKAWAY_SOURCE_IDS = [
     "nyc_311_rockaway",
     "nyc_cooling_centers_rockaway",
     "nyc_hurricane_evacuation_centers_rockaway",
-    "nypd_incidents_rockaway",
     "nycha_developments_rockaway",
 ]
+
+DEFAULT_SOCRATA_TIMEOUT_SECONDS = 30
+DEFAULT_SOCRATA_MAX_RETRIES = 2
+DEFAULT_SOCRATA_BACKOFF_SECONDS = (0.25, 0.75)
 
 
 def load_sources() -> dict[str, dict[str, Any]]:
@@ -272,9 +276,45 @@ def unavailable_rockaway_result(source: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _transient_request_error(exc: Exception) -> bool:
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    if status == 429 or isinstance(status, int) and status >= 500:
+        return True
+    name = exc.__class__.__name__.lower()
+    return isinstance(exc, (TimeoutError, ConnectionError)) or "timeout" in name or "connection" in name
+
+
+def _readable_request_error(exc: Exception, timeout_seconds: int) -> str:
+    if "timeout" in exc.__class__.__name__.lower() or isinstance(exc, TimeoutError):
+        return f"Request timed out after {timeout_seconds}s"
+    return str(exc) or "request_failed"
+
+
+def _stale_last_good_result(
+    source: dict[str, Any], previous_result: dict[str, Any] | None, reason: str,
+) -> dict[str, Any] | None:
+    previous_records = previous_result.get("records", []) if isinstance(previous_result, dict) else []
+    if not isinstance(previous_records, list) or not previous_records:
+        return None
+    records = [{**record, "data_state": "stale"} for record in previous_records]
+    return {
+        **previous_result,
+        "records": records,
+        "data_state": "stale",
+        "reason": reason,
+        "fetched_at": previous_result.get("fetched_at") or records[0].get("fetched_at"),
+        "activation_state": previous_result.get("activation_state") or source.get("activation", {}).get("state"),
+    }
+
+
 def fetch_rockaway_source(
     source: dict[str, Any], request_get: Any, fetched_at: str | None = None,
     geography_records: list[dict[str, Any]] | None = None,
+    app_token: str = "", previous_result: dict[str, Any] | None = None,
+    timeout_seconds: int = DEFAULT_SOCRATA_TIMEOUT_SECONDS,
+    max_retries: int = DEFAULT_SOCRATA_MAX_RETRIES,
+    backoff_seconds: tuple[float, ...] = DEFAULT_SOCRATA_BACKOFF_SECONDS,
+    sleep_fn: Any = time.sleep,
 ) -> dict[str, Any]:
     if not source.get("enabled"):
         return unavailable_rockaway_result(source)
@@ -284,22 +324,34 @@ def fetch_rockaway_source(
         return result
 
     fetched_at = fetched_at or datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-    try:
-        response = request_get(build_rockaway_query_url(source), timeout=10, headers={"Accept": "application/json"})
-        response.raise_for_status()
-        result = normalize_rockaway_payload(source, response.json(), fetched_at, fetched_at, geography_records or [])
-        result["fetched_at"] = fetched_at
-        return result
-    except Exception as exc:
-        return {
-            "records": [],
-            "data_state": "unavailable",
-            "reason": str(exc) or "request_failed",
-            "rejected_count": 0,
-            "fetched_at": fetched_at,
-            "activation_state": source.get("activation", {}).get("state"),
-            "scope_state": None,
-        }
+    headers = {"Accept": "application/json"}
+    if app_token:
+        headers["X-App-Token"] = app_token
+    final_error: Exception | None = None
+
+    for attempt in range(max_retries + 1):
+        try:
+            response = request_get(build_rockaway_query_url(source), timeout=timeout_seconds, headers=headers)
+            response.raise_for_status()
+            result = normalize_rockaway_payload(source, response.json(), fetched_at, fetched_at, geography_records or [])
+            result["fetched_at"] = fetched_at
+            return result
+        except Exception as exc:
+            final_error = exc
+            if not _transient_request_error(exc) or attempt == max_retries:
+                break
+            sleep_fn(backoff_seconds[min(attempt, len(backoff_seconds) - 1)] if backoff_seconds else 0)
+
+    reason = _readable_request_error(final_error or RuntimeError("request_failed"), timeout_seconds)
+    return _stale_last_good_result(source, previous_result, reason) or {
+        "records": [],
+        "data_state": "unavailable",
+        "reason": reason,
+        "rejected_count": 0,
+        "fetched_at": fetched_at,
+        "activation_state": source.get("activation", {}).get("state"),
+        "scope_state": None,
+    }
 
 
 def rockaway_source_card(source: dict[str, Any], result: dict[str, Any] | None = None) -> dict[str, Any]:

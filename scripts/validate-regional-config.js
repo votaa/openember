@@ -65,7 +65,6 @@ assert.deepEqual(
     "nyc_cb14_boundary",
     "nyc_hurricane_evacuation_centers_rockaway",
     "nycha_developments_rockaway",
-    "nypd_incidents_rockaway",
     "nys_civil_boundaries",
     "nys_dec_active_sites",
     "nys_electric_utility_territories",
@@ -92,6 +91,8 @@ assert.equal(sourceById["nypd_incidents_rockaway"].endpoint.endsWith("/5uac-w243
 assert.equal(sourceById["nycha_developments_rockaway"].endpoint.endsWith("/phvi-damg.geojson"), true)
 assert.equal(sourceById["nyc_cooling_centers_rockaway"].qualification, "gated")
 assert.equal(sourceById["nypd_incidents_rockaway"].qualification, "qualified")
+assert.equal(sourceById["nypd_incidents_rockaway"].enabled, false)
+assert.match(sourceById["nypd_incidents_rockaway"].gate, /historical/i)
 assert.equal(sourceById["nycha_developments_rockaway"].qualification, "qualified")
 assert.equal(sourceById.nypd_incidents_rockaway.normalization.scope.mask_source_id, "nyc_cb14_boundary")
 assert.equal(sourceById.nycha_developments_rockaway.normalization.scope.mask_source_id, "nyc_cb14_boundary")
@@ -125,7 +126,7 @@ assert.match(sourceById.nys_dec_active_sites.gate, /county geometry validation a
 
 for (const sourceId of [
   "nyc_cb14_boundary", "nyc_hurricane_evacuation_centers_rockaway",
-  "nypd_incidents_rockaway", "nycha_developments_rockaway",
+  "nycha_developments_rockaway",
   "coops_kings_point", "coops_montauk", "coops_battery_reference",
   "coops_sandy_hook_reference", "usgs_massapequa_creek",
   "usgs_peconic_river", "usgs_rosedale_reference", "nys_dec_active_sites",

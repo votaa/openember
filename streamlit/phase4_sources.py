@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
@@ -120,9 +122,17 @@ def fetch_phase4_source_bundle(
     request_get: Any,
     fetched_at: str | None = None,
     evaluated_at: str | None = None,
+    app_token: str = "",
+    previous_results: dict[str, dict[str, Any]] | None = None,
+    cache: dict[str, dict[str, Any]] | None = None,
+    now_seconds: float | None = None,
+    sleep_fn: Any = time.sleep,
 ) -> dict[str, Any]:
     fetched_at = fetched_at or datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     evaluated_at = evaluated_at or fetched_at
+    previous_results = previous_results or {}
+    cache = cache if cache is not None else {}
+    now_seconds = time.time() if now_seconds is None else now_seconds
     sources = {source["id"]: source for source in source_registry}
 
     def fetch_geography(source_id: str) -> tuple[str, dict[str, Any]]:
@@ -142,7 +152,21 @@ def fetch_phase4_source_bundle(
         if not source:
             return source_id, {"records": [], "data_state": "unavailable", "reason": "source_missing", "rejected_count": 0, "fetched_at": None}
         if source_id in ROCKAWAY_SOURCE_IDS:
-            return source_id, fetch_rockaway_source(source, request_get, fetched_at, geography_records)
+            cache_entry = cache.get(source_id) if source.get("family") == "socrata" else None
+            max_age = int(source.get("refresh_seconds") or 0)
+            if cache_entry and max_age > 0 and now_seconds - cache_entry["cached_at"] < max_age:
+                return source_id, copy.deepcopy(cache_entry["result"])
+            cached_result = cache_entry.get("result") if cache_entry else None
+            previous_result = cached_result if cached_result and cached_result.get("records") else previous_results.get(source_id)
+            result = fetch_rockaway_source(
+                source, request_get, fetched_at, geography_records,
+                app_token=app_token if source.get("family") == "socrata" else "",
+                previous_result=previous_result,
+                sleep_fn=sleep_fn,
+            )
+            if source.get("family") == "socrata" and result.get("data_state") != "stale" and result.get("records"):
+                cache[source_id] = {"cached_at": now_seconds, "result": copy.deepcopy(result)}
+            return source_id, result
         return source_id, fetch_regional_source(source, request_get, fetched_at, evaluated_at, geography_records)
 
     data_source_ids = [*ROCKAWAY_SOURCE_IDS, *PHASE4_OBSERVATION_SOURCE_IDS]

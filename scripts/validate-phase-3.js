@@ -20,10 +20,13 @@ for (const sourceId of rockaway) assert.ok(sources[sourceId], `missing Phase 3 R
 assert.equal(sources.nyc_311_rockaway.qualification, "qualified")
 assert.equal(sources.nyc_cooling_centers_rockaway.qualification, "gated")
 assert.match(sources.nyc_cooling_centers_rockaway.gate, /machine-readable/i)
-for (const sourceId of rockaway.filter((id) => id !== "nyc_cooling_centers_rockaway")) {
+for (const sourceId of rockaway.filter((id) => !["nyc_cooling_centers_rockaway", "nypd_incidents_rockaway"].includes(id))) {
   assert.equal(sources[sourceId].qualification, "qualified", `${sourceId} is not qualified`)
   assert.equal(sources[sourceId].enabled, true, `${sourceId} is not activated for Phase 4`)
 }
+assert.equal(sources.nypd_incidents_rockaway.qualification, "qualified")
+assert.equal(sources.nypd_incidents_rockaway.enabled, false)
+assert.match(sources.nypd_incidents_rockaway.gate, /historical/i)
 
 for (const sourceId of ["coops_kings_point", "coops_montauk", "coops_battery_reference", "coops_sandy_hook_reference"]) {
   assert.equal(sources[sourceId].enabled, true)

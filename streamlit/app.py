@@ -1216,6 +1216,7 @@ for k, v in [
     ("mb_layers_initialized", False), # distinguish intentional empty state from first load
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
     ("phase4_results", {source["id"]: unavailable_phase4_result(source) for source in PHASE4_SOURCES}),
+    ("phase4_cache", {}),
     ("active_phase4_layers", ["nyc_311_rockaway"]),
     ("phase4_initialized", False),
     ("chat_response_pending", False),
@@ -1225,7 +1226,13 @@ for k, v in [
 
 
 def refresh_phase4_sources():
-    bundle = fetch_phase4_source_bundle(CFG.source_registry, requests.get)
+    bundle = fetch_phase4_source_bundle(
+        CFG.source_registry,
+        requests.get,
+        app_token=st.session_state.nyc_token,
+        previous_results=st.session_state.phase4_results,
+        cache=st.session_state.phase4_cache,
+    )
     st.session_state.phase4_results = bundle["results"]
     st.session_state.phase4_initialized = True
 
@@ -1726,7 +1733,10 @@ with tab_nyc:
                                      type="password", key="nyc_token_input",
                                      placeholder="e.g. aBcDeFgHiJkLmNoP123456789")
         if st.button("Save Token", key="save_nyc_token"):
+            if token_input != st.session_state.nyc_token:
+                st.session_state.phase4_cache.clear()
             st.session_state.nyc_token = token_input
+            refresh_phase4_sources()
             st.success("Token saved for this session.")
 
     nyc_token = st.session_state.nyc_token

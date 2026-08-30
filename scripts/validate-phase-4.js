@@ -12,7 +12,6 @@ const sources = Object.fromEntries(config.source_registry.map(source => [source.
 const activeSourceIds = [
   "nyc_311_rockaway",
   "nyc_hurricane_evacuation_centers_rockaway",
-  "nypd_incidents_rockaway",
   "nycha_developments_rockaway",
   "coops_kings_point",
   "coops_montauk",
@@ -39,6 +38,8 @@ for (const sourceId of activeSourceIds) {
 assert.equal(sources.nyc_cooling_centers_rockaway.qualification, "gated")
 assert.equal(sources.nyc_cooling_centers_rockaway.enabled, false)
 assert.match(sources.nyc_cooling_centers_rockaway.gate, /machine-readable/i)
+assert.equal(sources.nypd_incidents_rockaway.enabled, false)
+assert.match(sources.nypd_incidents_rockaway.gate, /historical/i)
 
 const reactSource = fs.readFileSync(path.join(root, "src", "App.jsx"), "utf8")
 const streamlitSource = fs.readFileSync(path.join(root, "streamlit", "app.py"), "utf8")
