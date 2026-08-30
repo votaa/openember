@@ -2,7 +2,7 @@
 
 Qualification date: 2026-08-28
 
-These mappings define the minimum inputs for the normalized regional record planned for Phase 3. They do not implement an adapter.
+These mappings define the minimum inputs for the normalized regional record implemented in Phase 3. Qualification was revalidated on 2026-08-30 for NOAA CO-OPS, USGS Water Data, and NYS DEC Active Sites.
 
 ## Normalized record target
 
@@ -129,6 +129,8 @@ Reference stations: The Battery `8518750`, Sandy Hook `8531680`
 
 Fire Island `8515186` and Bay Shore `8515102` are not approved for live water levels. On 2026-08-28 both returned “No data was found. This product may not be offered,” and neither appeared in NOAA's active regional water-level station list.
 
+The shared adapter requests a six-hour GMT window, keeps only the newest valid observation, and marks readings older than 20 minutes stale. The 20-minute threshold accommodates NOAA's documented definition of `latest` as a point available within the preceding 18 minutes. Predictions remain separate and are never normalized as observations.
+
 ## USGS Water Data OGC API
 
 Collection: `https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items`
@@ -154,6 +156,8 @@ Required filters include `monitoring_location_id`, `parameter_code=00065`, an ex
 
 Do not reintroduce the existing all-New-York legacy NWIS query as fallback.
 
+The shared adapter uses a rolling 12-hour RFC 3339 interval and a 100-record limit. This keeps the normal 15-minute series below the cap and selects the newest valid observation by timestamp rather than assuming response order. Missing, mismatched, malformed, or expired observations remain partial, unavailable, or stale instead of falling back statewide.
+
 ## NYS DEC Active Sites
 
 Layer: `https://gisservices.dec.ny.gov/arcgis/rest/services/dil/dil_clean_up/MapServer/2`
@@ -171,6 +175,8 @@ Filter: `COUNTY IN ('Nassau','Suffolk')`
 | geometry | point geometry transformed to WGS84 |
 
 Carry NYS DEC attribution and its as-is/change-without-notice disclaimer.
+
+The shared adapter requests all selected fields with a 1,000-record cap, above the 242 records returned for Nassau and Suffolk on 2026-08-30. Each point must intersect the authoritative polygon for its claimed county. Live validation accepted 241 records and rejected one `Old Bethpage Landfill` record whose published point did not intersect its claimed Nassau geography; the result therefore remains explicitly partial.
 
 ## NYS Civil Boundaries
 

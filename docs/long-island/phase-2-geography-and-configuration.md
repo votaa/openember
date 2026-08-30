@@ -29,8 +29,8 @@ The following controls are deliberate:
 - Fire Island `8515186` and Bay Shore `8515102` are absent from live CO-OPS configuration.
 - Kings Point and Montauk are the selected live Long Island stations; The Battery and Sandy Hook are references.
 - NYC 311 is configured only for Queens Community Board 14 records with valid coordinates.
-- USGS configuration identifies the selected Massapequa Creek and Peconic River sites instead of the former statewide query; they remain disabled until Phase 3 supplies bounded datetime requests and normalized stale/error handling.
-- DEC and NYS GIS sources remain disabled until the Phase 3 ArcGIS adapter applies their required spatial filters.
+- USGS configuration identifies the selected Massapequa Creek, Peconic River, and Rosedale reference sites instead of the former statewide query. Phase 3 now supplies bounded datetime requests and normalized stale/error handling; display activation remains Phase 4 work.
+- Phase 3 implemented the DEC county-spatial adapter and the NYS Civil Boundaries adapter. DEC display remains disabled until Phase 4; the boundary source is active as shared filtering infrastructure.
 
 ## Phase boundary
 

@@ -50,10 +50,10 @@ Streamlit:
 
 The CB14 boundary/spatial adapter and shared evacuation-center, NYPD, and NYCHA normalization contracts are implemented. Phase 4 must fetch the CB14 mask before those sources, pass the normalized mask into their adapters, and activate equivalent cards and map controls in React and Streamlit. The evacuation-center card must display `confirmation_required`, link to the NYC finder, identify 311 as the verification channel, and never relabel `no_local_reference_facilities` as zero active centers. Cooling centers still require a stable machine-readable activation contract.
 
-Regional boundary infrastructure also remains incomplete. Phase 3 must activate
-and validate the configured NYS Civil Boundaries adapter for Nassau, Suffolk,
-and Queens and qualify the NYS DPS electric-utility territory dataset before
-Phase 4 exposes county and utility-responsibility overlays. Map Builder will
+Regional boundary infrastructure is complete at the Phase 3 contract level.
+The NYS Civil Boundaries and NYS DPS electric-utility territory adapters are
+active and validated; Phase 4 can expose county and utility-responsibility
+overlays. Map Builder will
 then provide **Limit to operational geography** and **Limit to PSEG Long Island
 territory** modes for supported Feature Layers. The shared filter applies after
 **Add to Map** to layers added through ESRI/Living Atlas search, Living Atlas

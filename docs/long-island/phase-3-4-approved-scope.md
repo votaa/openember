@@ -49,6 +49,9 @@ Use Queens Community Board 14 when the source publishes a reliable community-boa
 
 ### Phase 3 acceptance criteria
 
+Status: passed on 2026-08-30. Detailed evidence and commands are recorded in
+`docs/long-island/phase-3-completion.md`.
+
 - All five active Rockaway source families have verified current contracts or are explicitly left disabled with a documented reason.
 - Fixture tests prove that in-scope records normalize correctly and out-of-scope records are rejected.
 - React and Streamlit receive equivalent normalized records for the same fixture.

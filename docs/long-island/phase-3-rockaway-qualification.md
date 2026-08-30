@@ -1,6 +1,6 @@
 # Phase 3 Rockaway Source Qualification
 
-Status: implementation in progress
+Status: complete as part of the Phase 3 completion gate on 2026-08-30
 
 Qualification date: 2026-08-28
 
@@ -40,15 +40,16 @@ This slice does not add Phase 4 cards or map toggles. Sources remain disabled wh
 - Hurricane evacuation-center inventory and operational activation are separate concepts. The dataset has no open/closed field; every accepted facility remains `Activation unconfirmed`, with the NYC Hurricane Evacuation Zone Finder and 311 retained as the required confirmation channels.
 - A healthy Queens inventory with no CB14 intersection is `partial` with `no_local_reference_facilities`; a completely empty upstream inventory is separately labeled `empty_upstream_inventory`; a missing CB14 mask is `unavailable`.
 
-## Next Phase 3 slice
+## Phase 3 disposition
 
 The authoritative Queens Community Board 14 polygon and shared cross-runtime
 spatial-validation foundation were applied to NYPD point records and NYCHA
 development polygons on 2026-08-29. Hurricane evacuation-center empty-scope
 and activation-confirmation semantics were implemented in the following slice.
 These sources remain disabled until Phase 4 activates their equivalent React
-and Streamlit cards and map controls. The remaining Phase 3 work is the already
-approved NOAA, USGS, and DEC adapter qualification.
+and Streamlit cards and map controls. NOAA CO-OPS, USGS Water Data, and NYS DEC
+adapter qualification is complete; the full Phase 3 gate is recorded in
+`docs/long-island/phase-3-completion.md`.
 
 ## Deferred source
 

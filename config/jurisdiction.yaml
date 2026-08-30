@@ -337,9 +337,15 @@ source_registry:
   qualification: qualified
   enabled: true
   refresh_seconds: 360
-  stale_after_seconds: 900
+  stale_after_seconds: 1200
   station_id: '8516945'
   role: primary
+  product: water_level
+  datum: MLLW
+  time_zone: gmt
+  units: english
+  range_hours: 6
+  application: EMBER
   attribution: NOAA CO-OPS
   failure_state: stale
 - id: coops_montauk
@@ -352,9 +358,15 @@ source_registry:
   qualification: qualified
   enabled: true
   refresh_seconds: 360
-  stale_after_seconds: 900
+  stale_after_seconds: 1200
   station_id: '8510560'
   role: primary
+  product: water_level
+  datum: MLLW
+  time_zone: gmt
+  units: english
+  range_hours: 6
+  application: EMBER
   attribution: NOAA CO-OPS
   failure_state: stale
 - id: coops_battery_reference
@@ -367,9 +379,15 @@ source_registry:
   qualification: qualified
   enabled: true
   refresh_seconds: 360
-  stale_after_seconds: 900
+  stale_after_seconds: 1200
   station_id: '8518750'
   role: reference
+  product: water_level
+  datum: MLLW
+  time_zone: gmt
+  units: english
+  range_hours: 6
+  application: EMBER
   attribution: NOAA CO-OPS
   failure_state: stale
 - id: coops_sandy_hook_reference
@@ -382,9 +400,15 @@ source_registry:
   qualification: qualified
   enabled: true
   refresh_seconds: 360
-  stale_after_seconds: 900
+  stale_after_seconds: 1200
   station_id: '8531680'
   role: reference
+  product: water_level
+  datum: MLLW
+  time_zone: gmt
+  units: english
+  range_hours: 6
+  application: EMBER
   attribution: NOAA CO-OPS
   failure_state: stale
 - id: usgs_massapequa_creek
@@ -400,8 +424,11 @@ source_registry:
   stale_after_seconds: 3600
   monitoring_location_id: USGS-01309500
   parameter_code: '00065'
+  role: primary
+  window_hours: 12
+  query_limit: 100
   attribution: USGS Water Data for the Nation
-  gate: Phase 3 normalized adapter with an explicit bounded datetime window
+  gate: Phase 4 display activation; bounded Phase 3 adapter is implemented
   failure_state: stale
 - id: usgs_peconic_river
   name: USGS Peconic River gauge height
@@ -416,8 +443,11 @@ source_registry:
   stale_after_seconds: 3600
   monitoring_location_id: USGS-01304500
   parameter_code: '00065'
+  role: primary
+  window_hours: 12
+  query_limit: 100
   attribution: USGS Water Data for the Nation
-  gate: Phase 3 normalized adapter with an explicit bounded datetime window
+  gate: Phase 4 display activation; bounded Phase 3 adapter is implemented
   failure_state: stale
 - id: usgs_rosedale_reference
   name: USGS Conselyeas Pond Tributary reference
@@ -432,8 +462,11 @@ source_registry:
   stale_after_seconds: 3600
   monitoring_location_id: USGS-01311810
   parameter_code: '00065'
+  role: reference
+  window_hours: 12
+  query_limit: 100
   attribution: USGS Water Data for the Nation
-  gate: Phase 3 normalized adapter with an explicit bounded datetime window
+  gate: Phase 4 display activation; bounded Phase 3 adapter is implemented
   failure_state: stale
 - id: nys_dec_active_sites
   name: NYS DEC active cleanup sites
@@ -447,9 +480,11 @@ source_registry:
   refresh_seconds: 86400
   stale_after_seconds: 604800
   required_filter: "COUNTY IN ('Nassau','Suffolk')"
+  query_out_fields: [OBJECTID, SITECODE, SITENAME, PROGRAM, SITECLASS, COUNTY, TOWN, LOCALITY, ZIPCODE, DETAIL_URL]
+  query_limit: 1000
   attribution: NYS Department of Environmental Conservation
   disclaimer: Provided as-is and subject to change without notice
-  gate: Phase 3 ArcGIS adapter and county geometry validation
+  gate: Phase 4 display activation; Phase 3 ArcGIS adapter and county geometry validation are implemented
   failure_state: stale
 - id: nys_civil_boundaries
   name: NYS county civil boundaries

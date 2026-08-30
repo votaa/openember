@@ -24,3 +24,9 @@ a deliberately simplified CB14 mask. It proves in-scope acceptance,
 out-of-scope rejection, evacuation activation/empty-scope semantics,
 missing-mask failure, and React/Streamlit parity without caching live
 operational records.
+
+`phase-3-regional-observations.json` drives shared NOAA CO-OPS, USGS Water
+Data, and NYS DEC Active Sites contract tests. It uses synthetic water-level,
+gauge-height, cleanup-site, and county-mask records to validate bounded request
+construction, latest-observation selection, quality metadata, county geometry,
+failure states, and React/Streamlit parity without caching live conditions.

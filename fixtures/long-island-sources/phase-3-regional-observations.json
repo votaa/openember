@@ -1,0 +1,102 @@
+{
+  "fixture_version": 1,
+  "captured_on": "2026-08-30",
+  "notice": "Synthetic bounded contract samples. They must never be presented as current operational conditions.",
+  "fetched_at": "2026-08-30T14:00:00.000Z",
+  "evaluated_at": "2026-08-30T14:00:00.000Z",
+  "geography_records": [
+    {
+      "source_id": "nys_civil_boundaries",
+      "scope_key": "nassau",
+      "geometry": {"type": "Polygon", "coordinates": [[[-74.0, 40.5], [-73.4, 40.5], [-73.4, 41.0], [-74.0, 41.0], [-74.0, 40.5]]]}
+    },
+    {
+      "source_id": "nys_civil_boundaries",
+      "scope_key": "suffolk",
+      "geometry": {"type": "Polygon", "coordinates": [[[-73.4, 40.5], [-71.7, 40.5], [-71.7, 41.3], [-73.4, 41.3], [-73.4, 40.5]]]}
+    }
+  ],
+  "cases": [
+    {
+      "source_id": "coops_kings_point",
+      "payload": {
+        "metadata": {"id": "8516945", "name": "Kings Point", "lat": "40.8103", "lon": "-73.7649"},
+        "data": [
+          {"t": "2026-08-30 13:48", "v": "1.10", "s": "0.080", "f": "0,0,0,0", "q": "p"},
+          {"t": "2026-08-30 13:54", "v": "1.15", "s": "0.079", "f": "1,0,0,0", "q": "p"}
+        ]
+      }
+    },
+    {
+      "source_id": "coops_montauk",
+      "payload": {
+        "metadata": {"id": "8510560", "name": "Montauk", "lat": "41.0483", "lon": "-71.9594"},
+        "data": [
+          {"t": "2026-08-30 13:48", "v": "2.40", "s": "0.076", "f": "0,0,0,0", "q": "p"},
+          {"t": "2026-08-30 13:54", "v": "2.42", "s": "0.075", "f": "1,0,0,0", "q": "p"}
+        ]
+      }
+    },
+    {
+      "source_id": "coops_battery_reference",
+      "payload": {
+        "metadata": {"id": "8518750", "name": "The Battery", "lat": "40.7006", "lon": "-74.0142"},
+        "data": [
+          {"t": "2026-08-30 13:48", "v": "5.00", "s": "0.116", "f": "0,0,0,0", "q": "p"},
+          {"t": "2026-08-30 13:54", "v": "5.07", "s": "0.115", "f": "1,0,0,0", "q": "p"}
+        ]
+      }
+    },
+    {
+      "source_id": "coops_sandy_hook_reference",
+      "payload": {
+        "metadata": {"id": "8531680", "name": "Sandy Hook", "lat": "40.4669", "lon": "-74.0094"},
+        "data": [
+          {"t": "2026-08-30 13:48", "v": "5.60", "s": "0.024", "f": "0,0,0,0", "q": "p"},
+          {"t": "2026-08-30 13:54", "v": "5.65", "s": "0.023", "f": "0,0,0,0", "q": "p"}
+        ]
+      }
+    },
+    {
+      "source_id": "usgs_massapequa_creek",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {"type": "Feature", "id": "massapequa-old", "geometry": {"type": "Point", "coordinates": [-73.4553888889, 40.689]}, "properties": {"monitoring_location_id": "USGS-01309500", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:30:00+00:00", "value": "0.63", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:45:00+00:00"}},
+          {"type": "Feature", "id": "massapequa-latest", "geometry": {"type": "Point", "coordinates": [-73.4553888889, 40.689]}, "properties": {"monitoring_location_id": "USGS-01309500", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:45:00+00:00", "value": "0.64", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:58:00+00:00"}}
+        ]
+      }
+    },
+    {
+      "source_id": "usgs_peconic_river",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {"type": "Feature", "id": "peconic-old", "geometry": {"type": "Point", "coordinates": [-72.6869444444, 40.9136944444]}, "properties": {"monitoring_location_id": "USGS-01304500", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:30:00+00:00", "value": "0.29", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:45:00+00:00"}},
+          {"type": "Feature", "id": "peconic-latest", "geometry": {"type": "Point", "coordinates": [-72.6869444444, 40.9136944444]}, "properties": {"monitoring_location_id": "USGS-01304500", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:45:00+00:00", "value": "0.30", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:58:00+00:00"}}
+        ]
+      }
+    },
+    {
+      "source_id": "usgs_rosedale_reference",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {"type": "Feature", "id": "rosedale-old", "geometry": {"type": "Point", "coordinates": [-73.7433333333, 40.6620833333]}, "properties": {"monitoring_location_id": "USGS-01311810", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:30:00+00:00", "value": "0.52", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:45:00+00:00"}},
+          {"type": "Feature", "id": "rosedale-latest", "geometry": {"type": "Point", "coordinates": [-73.7433333333, 40.6620833333]}, "properties": {"monitoring_location_id": "USGS-01311810", "parameter_code": "00065", "statistic_id": "00011", "time": "2026-08-30T13:45:00+00:00", "value": "0.53", "unit_of_measure": "ft", "approval_status": "Provisional", "qualifier": null, "last_modified": "2026-08-30T13:58:00+00:00"}}
+        ]
+      }
+    },
+    {
+      "source_id": "nys_dec_active_sites",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {"type": "Feature", "id": 1, "geometry": {"type": "Point", "coordinates": [-73.60, 40.75]}, "properties": {"OBJECTID": 1, "SITECODE": "130001", "SITENAME": "Nassau fixture site", "PROGRAM": "State Superfund Program   ", "SITECLASS": "02", "COUNTY": "Nassau", "TOWN": "Hempstead", "LOCALITY": "Fixture", "ZIPCODE": "11500   ", "DETAIL_URL": "https://example.invalid/dec/130001"}},
+          {"type": "Feature", "id": 2, "geometry": {"type": "Point", "coordinates": [-72.80, 40.85]}, "properties": {"OBJECTID": 2, "SITECODE": "152001", "SITENAME": "Suffolk fixture site", "PROGRAM": "Brownfield Cleanup Program", "SITECLASS": "C", "COUNTY": "Suffolk", "TOWN": "Riverhead", "LOCALITY": "Fixture", "ZIPCODE": "11900", "DETAIL_URL": "https://example.invalid/dec/152001"}},
+          {"type": "Feature", "id": 3, "geometry": {"type": "Point", "coordinates": [-72.80, 40.85]}, "properties": {"OBJECTID": 3, "SITECODE": "reject-mismatch", "SITENAME": "County mismatch fixture", "PROGRAM": "Fixture", "SITECLASS": "Fixture", "COUNTY": "Nassau", "TOWN": "Fixture", "LOCALITY": "Fixture", "ZIPCODE": "00000", "DETAIL_URL": "https://example.invalid/dec/reject"}}
+        ]
+      }
+    }
+  ]
+}

@@ -95,6 +95,26 @@ assert.equal(sourceById.nycha_developments_rockaway.query_limit, 100)
 assert.equal(sourceById.nyc_cb14_boundary.required_filter, "BoroCD = 414")
 assert.deepEqual(sourceById.nys_civil_boundaries.required_fips, ["36059", "36103", "36081"])
 assert.equal(sourceById.nys_electric_utility_territories.spatial.scope_key_by_value["Long Island Power Authority"], "pseg_long_island")
+for (const sourceId of ["coops_kings_point", "coops_montauk", "coops_battery_reference", "coops_sandy_hook_reference"]) {
+  const source = sourceById[sourceId]
+  assert.equal(source.product, "water_level")
+  assert.equal(source.datum, "MLLW")
+  assert.equal(source.time_zone, "gmt")
+  assert.equal(source.units, "english")
+  assert.equal(source.range_hours, 6)
+  assert.equal(source.stale_after_seconds, 1200)
+}
+for (const sourceId of ["usgs_massapequa_creek", "usgs_peconic_river", "usgs_rosedale_reference"]) {
+  const source = sourceById[sourceId]
+  assert.equal(source.parameter_code, "00065")
+  assert.equal(source.window_hours, 12)
+  assert.equal(source.query_limit, 100)
+  assert.match(source.gate, /Phase 4 display activation/)
+}
+assert.equal(sourceById.nys_dec_active_sites.query_limit, 1000)
+assert.equal(sourceById.nys_dec_active_sites.query_out_fields.includes("DETAIL_URL"), true)
+assert.match(sourceById.nys_dec_active_sites.disclaimer, /as-is/)
+assert.match(sourceById.nys_dec_active_sites.gate, /county geometry validation are implemented/)
 
 const configuredCoopsIds = new Set(config.coops_stations.map((station) => station.id))
 for (const stationId of retiredCoopsStations) {
