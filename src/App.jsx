@@ -27,6 +27,11 @@ import {
   phase4SourceCard,
   unavailablePhase4Result,
 } from "./data/regional/phase4Sources.js"
+import {
+  discoverArcGISLayers,
+  fetchArcGISLayer,
+  isQueryableArcGISServiceUrl,
+} from "./data/esriLayers.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -394,7 +399,7 @@ function escapeMapHtml(value) {
   })[char])
 }
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[] }) {
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
@@ -484,7 +489,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       regionalLayerRefs.current = {}
 
       for (const [sourceId, records] of Object.entries(regionalRecords)) {
-        const source = CFG.sources.find(item => item.id === sourceId)
+        const source = regionalLayerMetadata[sourceId] || CFG.sources.find(item => item.id === sourceId)
         const color = source?.display?.color || "#60a5fa"
         const icon = source?.display?.icon || "📍"
         const group = L.layerGroup()
@@ -518,7 +523,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
         if (activeRegionalLayers.includes(sourceId)) group.addTo(map)
       }
     })
-  }, [regionalRecords, ready])
+  }, [regionalRecords, regionalLayerMetadata, ready])
 
   useEffect(() => {
     if (!ready || !leafRef.current) return
@@ -722,6 +727,7 @@ export default function App() {
   const [showWind, setShowWind]         = useState(true)
   const [files, setFiles]               = useState([])
   const [esriItems, setEsriItems]       = useState([])
+  const [esriMapLayers, setEsriMapLayers] = useState({})
   const [noaaItems, setNoaaItems]       = useState([])
   const [apiResults, setApiResults]     = useState([])
   const [apiStatus, setApiStatus]       = useState("idle")
@@ -754,6 +760,25 @@ export default function App() {
   const phase4Records = useMemo(
     () => Object.fromEntries(phase4Sources.map(source => [source.id, phase4Results[source.id]?.records || []])),
     [phase4Results, phase4Sources],
+  )
+  const esriMapRecords = useMemo(
+    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [layer.id, layer.records])),
+    [esriMapLayers],
+  )
+  const esriMapMetadata = useMemo(
+    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [layer.id, {
+      name: layer.name,
+      display: { color: layer.color, icon: layer.icon },
+    }])),
+    [esriMapLayers],
+  )
+  const regionalMapRecords = useMemo(
+    () => ({ ...phase4Records, ...esriMapRecords }),
+    [phase4Records, esriMapRecords],
+  )
+  const activeRegionalMapLayers = useMemo(
+    () => [...activePhase4Layers, ...Object.keys(esriMapLayers)],
+    [activePhase4Layers, esriMapLayers],
   )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
@@ -916,7 +941,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={phase4Records} activeRegionalLayers={activePhase4Layers} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -1062,7 +1087,14 @@ export default function App() {
               setEsriItems(p=>p.find(x=>x.itemId===item.itemId)?p:[...p,item])
               setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI layer added: ${item.name}. Try: "What does this layer cover?"`}])
               setRightTab("chat")
-            }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}/>
+            }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}
+              esriMapLayers={esriMapLayers}
+              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:layer})}
+              onMapLayerRemove={layerId=>setEsriMapLayers(previous=>{
+                const next = {...previous}
+                delete next[layerId]
+                return next
+              })}/>
           )}
 
           {/* Settings tab */}
@@ -1127,11 +1159,12 @@ function NOAAEndpointRow({ep, cached, onFetch}) {
 }
 
 // ── ESRI panel component ──────────────────────────────────────────────────────
-function ESRIPanel({onInject, esriItems, onRemove}) {
+function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd, onMapLayerRemove}) {
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal]     = useState(0)
+  const [mapState, setMapState] = useState({})
 
   const search = async () => {
     if (!query.trim()) return
@@ -1147,6 +1180,33 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
   }
 
   const injectedIds = new Set(esriItems.map(i=>i.itemId))
+  const mappedLayers = Object.values(esriMapLayers)
+
+  const updateMapState = (itemId, updates) => setMapState(previous => ({
+    ...previous,
+    [itemId]: { ...previous[itemId], ...updates },
+  }))
+
+  const addItemToMap = async item => {
+    const current = mapState[item.id] || {}
+    updateMapState(item.id, {loading:true,error:""})
+    try {
+      let layers = current.layers
+      if (!layers) {
+        layers = await discoverArcGISLayers(item.url)
+        if (layers.length > 1) {
+          updateMapState(item.id, {loading:false,layers,selectedUrl:layers[0].url})
+          return
+        }
+      }
+      const selected = layers.find(layer => layer.url === current.selectedUrl) || layers[0]
+      const layer = await fetchArcGISLayer(item, selected)
+      onMapLayerAdd(layer)
+      updateMapState(item.id, {loading:false,layers,selectedUrl:selected.url,error:""})
+    } catch (error) {
+      updateMapState(item.id, {loading:false,error:error.message || "Unable to load this ArcGIS layer"})
+    }
+  }
 
   return (
     <div style={{flex:1,overflowY:"auto",padding:"16px 18px"}}>
@@ -1158,16 +1218,29 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
         </button>
       </div>
       {total>0 && <div style={{fontSize:9,color:"#334",marginBottom:8}}>{total.toLocaleString()} results</div>}
-      {results.map(item=>(
+      {results.map(item=>{
+        const itemMapState = mapState[item.id] || {}
+        const selectedLayer = itemMapState.layers?.find(layer => layer.url === itemMapState.selectedUrl) || itemMapState.layers?.[0]
+        const selectedMapId = selectedLayer ? `esri_${item.id}_${selectedLayer.id}` : null
+        const selectedIsMapped = Boolean(selectedMapId && esriMapLayers[selectedMapId])
+        const itemMappedLayers = mappedLayers.filter(layer => layer.ownerItemId === item.id)
+        const canMap = isQueryableArcGISServiceUrl(item.url)
+        return (
         <div key={item.id} style={{marginBottom:8,padding:"8px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6}}>
           <div style={{display:"flex",gap:4,marginBottom:4,flexWrap:"wrap"}}>
             <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#60a5fa12",color:"#60a5fa",border:"1px solid #60a5fa22"}}>{item.type}</span>
             {String(item.owner || "").toLowerCase().includes("esri") && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#a78bfa12",color:"#a78bfa",border:"1px solid #a78bfa22"}}>Living Atlas</span>}
             {injectedIds.has(item.id) && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#4ade8012",color:"#4ade80",border:"1px solid #4ade8022"}}>✓ In KB</span>}
+            {itemMappedLayers.length>0 && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#22d3ee12",color:"#22d3ee",border:"1px solid #22d3ee22"}}>✓ On Map</span>}
           </div>
           <div style={{fontSize:10.5,color:"#dde",fontWeight:700,marginBottom:2}}>{item.title}</div>
           <div style={{fontSize:9.5,color:"#556",marginBottom:6}}>{(item.snippet||"").substring(0,120)}</div>
-          <div style={{display:"flex",gap:5}}>
+          {itemMapState.layers?.length>1 && (
+            <select aria-label={`Map layer for ${item.title}`} value={selectedLayer?.url || ""} onChange={event=>updateMapState(item.id,{selectedUrl:event.target.value,error:""})} style={{width:"100%",marginBottom:6,background:"#090d14",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:"#9de7f3",fontFamily:"inherit",fontSize:9.5}}>
+              {itemMapState.layers.map(layer=><option key={layer.url} value={layer.url}>{layer.id}: {layer.name}</option>)}
+            </select>
+          )}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
             {!injectedIds.has(item.id) ? (
               <button onClick={()=>{
                 const tags = (item.tags||[]).join(", ")
@@ -1179,11 +1252,20 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
             ) : (
               <button disabled style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",background:"transparent",color:"#334",fontFamily:"inherit"}}>✓ In KB</button>
             )}
+            {canMap && (selectedIsMapped ? (
+              <button onClick={()=>onMapLayerRemove(selectedMapId)} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee55",background:"#22d3ee12",color:"#22d3ee",cursor:"pointer",fontFamily:"inherit"}}>− Remove from Map</button>
+            ) : (
+              <button onClick={()=>addItemToMap(item)} disabled={itemMapState.loading} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee44",background:"transparent",color:"#22d3ee",cursor:itemMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:itemMapState.loading?0.55:1}}>
+                {itemMapState.loading?"Loading…":itemMapState.layers?.length>1?"+ Add Selected to Map":"+ Add to Map"}
+              </button>
+            ))}
             <a href={`https://www.arcgis.com/home/item.html?id=${item.id}`} target="_blank" rel="noopener noreferrer" style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",color:"#556",textDecoration:"none"}}>↗ AGOL</a>
             {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",color:"#556",textDecoration:"none"}}>↗ Service</a>}
           </div>
+          {itemMappedLayers.length>0 && <div style={{marginTop:5,fontSize:9,color:"#22d3ee88"}}>{itemMappedLayers.map(layer=>`${layer.name} (${layer.count.toLocaleString()} features)`).join(" · ")}</div>}
+          {itemMapState.error && <div role="alert" style={{marginTop:5,fontSize:9,color:"#f87171"}}>{itemMapState.error}</div>}
         </div>
-      ))}
+      )})}
       {esriItems.length>0 && (
         <div style={{marginTop:16,borderTop:"1px solid #111820",paddingTop:12}}>
           <div style={{fontSize:9.5,color:"#a78bfa",fontWeight:700,marginBottom:6}}>{esriItems.length} layer(s) in KB:</div>
