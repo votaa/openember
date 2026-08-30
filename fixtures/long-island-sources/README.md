@@ -30,3 +30,8 @@ Data, and NYS DEC Active Sites contract tests. It uses synthetic water-level,
 gauge-height, cleanup-site, and county-mask records to validate bounded request
 construction, latest-observation selection, quality metadata, county geometry,
 failure states, and React/Streamlit parity without caching live conditions.
+
+`phase-4-display.json` drives the shared source-card presentation tests for
+current, stale/partial, unavailable, activation-dependent, point, and polygon
+states. It contains synthetic result summaries only and is not an operational
+cache.

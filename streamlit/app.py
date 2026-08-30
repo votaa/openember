@@ -26,9 +26,14 @@ from setup_wizard import render_wizard
 from carto_tiles import basemap_config
 from regional_normalization import (
     ROCKAWAY_SOURCE_IDS,
-    fetch_rockaway_source,
-    rockaway_source_card,
-    unavailable_rockaway_result,
+)
+from phase4_sources import (
+    PHASE4_GEOGRAPHY_SOURCE_IDS,
+    PHASE4_OBSERVATION_SOURCE_IDS,
+    PHASE4_SOURCE_IDS,
+    fetch_phase4_source_bundle,
+    phase4_source_card,
+    unavailable_phase4_result,
 )
 from chat_state import (
     background_refresh_allowed,
@@ -51,6 +56,11 @@ ROCKAWAY_SOURCES = [
     source for source_id in ROCKAWAY_SOURCE_IDS
     if (source := CFG.source(source_id)) is not None
 ]
+PHASE4_SOURCES = [
+    source for source_id in PHASE4_SOURCE_IDS
+    if (source := CFG.source(source_id)) is not None
+]
+PHASE4_SOURCES_BY_ID = {source["id"]: source for source in PHASE4_SOURCES}
 
 # ── Config ────────────────────────────────────────────────────────────────────
 def _setting(name: str, default: str = "") -> str:
@@ -530,14 +540,14 @@ def fetch_wind_obs():
 
 def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
               live_readings=None, gauge_data=None, map_layers=None, map_points=None,
-              rockaway_results=None, active_rockaway_layers=None):
+              phase4_results=None, active_phase4_layers=None):
     live_readings = live_readings or {}
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
     map_points    = map_points or MAP_POINTS
-    rockaway_results = rockaway_results or {}
-    active_rockaway_layers = active_rockaway_layers or []
+    phase4_results = phase4_results or {}
+    active_phase4_layers = active_phase4_layers or []
     basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY)
     m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
                    tiles=None, prefer_canvas=True)
@@ -627,13 +637,14 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 tooltip=f'{f["name"]}' + (f' — {reading.get("level","?")} {reading.get("unit","")}' if reading else "")
             ).add_to(fg)
         fg.add_to(m)
-    # Phase 4 normalized Rockaway layers. Only records carrying approved source
-    # geometry are mapped; card-only sources never receive synthetic points.
-    for source in ROCKAWAY_SOURCES:
+    # Phase 4 normalized source layers. Approved point, line, and polygon
+    # geometry is rendered directly; card-only sources never receive synthetic
+    # map locations.
+    for source in PHASE4_SOURCES:
         source_id = source["id"]
-        if source_id not in active_rockaway_layers:
+        if source_id not in active_phase4_layers:
             continue
-        result = rockaway_results.get(source_id, {})
+        result = phase4_results.get(source_id, {})
         records = [record for record in result.get("records", []) if record.get("geometry")]
         if not records:
             continue
@@ -643,9 +654,6 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=True)
         for record in records:
             geometry = record.get("geometry", {})
-            if geometry.get("type") != "Point" or len(geometry.get("coordinates", [])) < 2:
-                continue
-            longitude, latitude = geometry["coordinates"][:2]
             popup_h = (
                 f'<div style="font-family:monospace;font-size:11px">'
                 f'<b style="color:{color}">{_html.escape(icon)} {_html.escape(str(record.get("title", "")))}</b><br>'
@@ -653,12 +661,27 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 f'<span style="color:#778">{_html.escape(str(record.get("source_name", "")))} · {_html.escape(str(record.get("observed_at", "")))}</span><br>'
                 f'<span style="color:#556">{_html.escape(str(record.get("attribution", "")))}</span></div>'
             )
-            folium.CircleMarker(
-                location=[latitude, longitude], radius=7,
-                color=color, fill=True, fill_color=color, fill_opacity=0.7,
-                popup=folium.Popup(popup_h, max_width=280),
-                tooltip=str(record.get("title", source["name"]))[:80],
-            ).add_to(fg)
+            geometry_type = geometry.get("type")
+            if geometry_type == "Point" and len(geometry.get("coordinates", [])) >= 2:
+                longitude, latitude = geometry["coordinates"][:2]
+                folium.CircleMarker(
+                    location=[latitude, longitude], radius=7,
+                    color=color, fill=True, fill_color=color, fill_opacity=0.7,
+                    popup=folium.Popup(popup_h, max_width=280),
+                    tooltip=str(record.get("title", source["name"]))[:80],
+                ).add_to(fg)
+            elif geometry_type in {"LineString", "MultiLineString", "Polygon", "MultiPolygon"}:
+                is_polygon = "Polygon" in geometry_type
+                folium.GeoJson(
+                    data=geometry,
+                    style_function=lambda _, layer_color=color, polygon=is_polygon: {
+                        "color": layer_color, "weight": 2 if polygon else 3,
+                        "opacity": 0.9, "fillColor": layer_color,
+                        "fillOpacity": 0.14 if polygon else 0,
+                    },
+                    popup=folium.Popup(popup_h, max_width=280),
+                    tooltip=str(record.get("title", source["name"]))[:80],
+                ).add_to(fg)
         fg.add_to(m)
     # Wind arrows
     if show_wind and wind_obs:
@@ -1192,25 +1215,96 @@ for k, v in [
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
     ("mb_layers_initialized", False), # distinguish intentional empty state from first load
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
-    ("rockaway_results", {source["id"]: unavailable_rockaway_result(source) for source in ROCKAWAY_SOURCES}),
-    ("active_rockaway_layers", ["nyc_311_rockaway"]),
-    ("rockaway_initialized", False),
+    ("phase4_results", {source["id"]: unavailable_phase4_result(source) for source in PHASE4_SOURCES}),
+    ("active_phase4_layers", ["nyc_311_rockaway"]),
+    ("phase4_initialized", False),
     ("chat_response_pending", False),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
 
 
-def refresh_rockaway_sources():
-    st.session_state.rockaway_results = {
-        source["id"]: fetch_rockaway_source(source, requests.get)
-        for source in ROCKAWAY_SOURCES
+def refresh_phase4_sources():
+    bundle = fetch_phase4_source_bundle(CFG.source_registry, requests.get)
+    st.session_state.phase4_results = bundle["results"]
+    st.session_state.phase4_initialized = True
+
+
+def render_phase4_source_cards(source_ids, key_prefix):
+    state_colors = {
+        "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
+        "unavailable": "#f87171", "access_required": "#a78bfa",
     }
-    st.session_state.rockaway_initialized = True
+    columns = st.columns(3)
+    for index, source_id in enumerate(source_ids):
+        source = PHASE4_SOURCES_BY_ID.get(source_id)
+        if not source:
+            continue
+        card = phase4_source_card(source, st.session_state.phase4_results.get(source_id))
+        state_color = state_colors.get(card["data_state"], "#778")
+        note = _html.escape(str(card.get("note") or ""))
+        observed = _html.escape(str(card.get("observed_at") or "Not available"))
+        fetched = _html.escape(str(card.get("fetched_at") or "Not available"))
+        is_active = source_id in st.session_state.active_phase4_layers
+        activation = ""
+        if card.get("activation_state"):
+            verification = f' · verify via {_html.escape(card["confirmation_phone"])}' if card.get("confirmation_phone") else ""
+            official_link = (
+                f' · <a href="{_html.escape(card["confirmation_url"])}" target="_blank" style="color:#60a5fa">official finder</a>'
+                if card.get("confirmation_url") else ""
+            )
+            activation = (
+                f'<div style="font-size:8px;color:#facc15;margin-top:5px">Activation: '
+                f'{_html.escape(card["activation_state"].replace("_", " "))}{verification}{official_link}</div>'
+            )
+        disclaimer = (
+            f'<div style="font-size:8px;color:#445;margin-top:5px">{_html.escape(card["disclaimer"])}</div>'
+            if card.get("disclaimer") else ""
+        )
+        rejected = f' · {card["rejected_count"]} rejected' if card.get("rejected_count") else ""
+        with columns[index % 3]:
+            st.markdown(
+                f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {card["color"]};'
+                f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:198px;font-family:monospace">'
+                f'<div style="display:flex;justify-content:space-between;gap:6px">'
+                f'<b style="font-size:10px;color:#dde">{_html.escape(card["icon"])} {_html.escape(card["name"])}</b>'
+                f'<span style="font-size:8px;color:{state_color};white-space:nowrap">{_html.escape(card["data_state"].replace("_", " ").upper())}</span></div>'
+                f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(card["owner"])} · {_html.escape(card["geography"])}</div>'
+                f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{card["record_count"]}</span> · MAPPED <span style="color:#aac">{card["map_count"]}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{observed}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{fetched}</span></div>'
+                f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{note}</div>'
+                f'{activation}{disclaimer}'
+                f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(card["kind"].replace("_", " "))} · {_html.escape(card["attribution"])}{rejected}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            if card["map_capable"]:
+                if st.button(
+                    "Remove from Map" if is_active else "Add to Map",
+                    key=f"{key_prefix}_map_{source_id}",
+                    use_container_width=True,
+                ):
+                    if is_active:
+                        st.session_state.active_phase4_layers = [
+                            active_id for active_id in st.session_state.active_phase4_layers
+                            if active_id != source_id
+                        ]
+                    else:
+                        st.session_state.active_phase4_layers = [*st.session_state.active_phase4_layers, source_id]
+                    st.rerun()
+            else:
+                st.button(
+                    "Not map-ready",
+                    key=f"{key_prefix}_map_{source_id}",
+                    use_container_width=True,
+                    disabled=True,
+                    help=card.get("note") or "No approved map geometry",
+                )
 
 
-if not st.session_state.rockaway_initialized:
-    refresh_rockaway_sources()
+if not st.session_state.phase4_initialized:
+    refresh_phase4_sources()
 
 # Fetch wind obs on first load
 if "wind_obs" not in st.session_state:
@@ -1484,8 +1578,8 @@ map_data = st_folium(
               gauge_data=st.session_state.gauge_data,
               map_layers=st.session_state.map_layers,
               map_points=st.session_state.get("_runtime_map_points", MAP_POINTS),
-              rockaway_results=st.session_state.rockaway_results,
-              active_rockaway_layers=st.session_state.active_rockaway_layers),
+              phase4_results=st.session_state.phase4_results,
+              active_phase4_layers=st.session_state.active_phase4_layers),
     width="100%", height=380, returned_objects=["last_object_clicked_popup"]
 )
 
@@ -1500,9 +1594,10 @@ st.markdown("---")
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-tab_chat, tab_noaa, tab_nyc, tab_esri, tab_mapbuilder, tab_setup = st.tabs([
+tab_chat, tab_noaa, tab_regional, tab_nyc, tab_esri, tab_mapbuilder, tab_setup = st.tabs([
     "💬 EMBER Chat",
     "📡 NOAA Data Stack",
+    "🗂 Regional Sources",
     "🗽 NYC Open Data",
     "⊕ ESRI / Living Atlas",
     "🗺 Map Builder",
@@ -1596,6 +1691,26 @@ with tab_noaa:
                     st.session_state.noaa_items.pop(i)
                     st.rerun()
 
+# ── Phase 4 Regional Sources Tab ──────────────────────────────────────────────
+with tab_regional:
+    title_col, refresh_col = st.columns([4, 1])
+    with title_col:
+        st.markdown("#### 🗂 Regional Sources")
+        st.caption("Shared NOAA, USGS, DEC, county, CB14, and electric-responsibility records with explicit data states")
+    with refresh_col:
+        if st.button("↺ Refresh", key="refresh_phase4_regional", use_container_width=True):
+            with st.spinner("Fetching bounded regional sources and authoritative masks…"):
+                refresh_phase4_sources()
+            st.rerun()
+
+    st.markdown("**Observations and inventories**")
+    render_phase4_source_cards(PHASE4_OBSERVATION_SOURCE_IDS, "regional_observation")
+    st.divider()
+    st.markdown("**Operational boundaries**")
+    st.caption("Optional overlays used by the shared operational and PSEG geography contracts")
+    render_phase4_source_cards(PHASE4_GEOGRAPHY_SOURCE_IDS, "regional_boundary")
+
+
 # ── NYC Open Data Tab ─────────────────────────────────────────────────────────
 with tab_nyc:
     st.markdown("#### 🗽 NYC Open Data")
@@ -1626,63 +1741,10 @@ with tab_nyc:
     with _rockaway_refresh_col:
         if st.button("↺ Refresh", key="refresh_rockaway_sources", use_container_width=True):
             with st.spinner("Fetching bounded Rockaway records…"):
-                refresh_rockaway_sources()
+                refresh_phase4_sources()
             st.rerun()
 
-    _state_colors = {
-        "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
-        "unavailable": "#f87171", "access_required": "#a78bfa",
-    }
-    _rockaway_cols = st.columns(3)
-    for _index, _source in enumerate(ROCKAWAY_SOURCES):
-        _card = rockaway_source_card(_source, st.session_state.rockaway_results.get(_source["id"]))
-        _state_color = _state_colors.get(_card["data_state"], "#778")
-        _note = _html.escape(str(_card.get("note") or ""))
-        _observed = _html.escape(str(_card.get("observed_at") or "Not available"))
-        _fetched = _html.escape(str(_card.get("fetched_at") or "Not available"))
-        _is_active = _source["id"] in st.session_state.active_rockaway_layers
-        with _rockaway_cols[_index % 3]:
-            st.markdown(
-                f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {_card["color"]};'
-                f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:174px;font-family:monospace">'
-                f'<div style="display:flex;justify-content:space-between;gap:6px">'
-                f'<b style="font-size:10px;color:#dde">{_html.escape(_card["icon"])} {_html.escape(_card["name"])}</b>'
-                f'<span style="font-size:8px;color:{_state_color};white-space:nowrap">{_html.escape(_card["data_state"].replace("_", " ").upper())}</span></div>'
-                f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(_card["owner"])} · {_html.escape(_card["geography"])}</div>'
-                f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{_card["record_count"]}</span></div>'
-                f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{_observed}</span></div>'
-                f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{_fetched}</span></div>'
-                f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{_note}</div>'
-                f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(_card["kind"].replace("_", " "))} · {_html.escape(_card["attribution"])}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-            if _card["map_capable"]:
-                _map_action = "Remove from Map" if _is_active else "Add to Map"
-                if st.button(
-                    _map_action,
-                    key=f'rockaway_map_{_source["id"]}',
-                    use_container_width=True,
-                ):
-                    if _is_active:
-                        st.session_state.active_rockaway_layers = [
-                            _source_id for _source_id in st.session_state.active_rockaway_layers
-                            if _source_id != _source["id"]
-                        ]
-                    else:
-                        st.session_state.active_rockaway_layers = [
-                            *st.session_state.active_rockaway_layers,
-                            _source["id"],
-                        ]
-                    st.rerun()
-            else:
-                st.button(
-                    "Not map-ready",
-                    key=f'rockaway_map_{_source["id"]}',
-                    use_container_width=True,
-                    disabled=True,
-                    help=_card.get("note") or "No approved map geometry",
-                )
+    render_phase4_source_cards(ROCKAWAY_SOURCE_IDS, "rockaway")
 
     st.divider()
 

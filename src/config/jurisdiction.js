@@ -98,6 +98,12 @@ export const SOURCE_REGISTRY = [
     "source_updated_at": "2026-06-01T20:29:51.000Z",
     "attribution": "NYC Department of City Planning",
     "disclaimer": "Community District boundaries are administrative boundaries and include Broad Channel in Queens CD 14.",
+    "display": {
+      "icon": "🗺",
+      "color": "#a78bfa",
+      "kind": "boundary",
+      "map_capable": true
+    },
     "spatial": {
       "role": "community_district_boundary",
       "key_field": "BoroCD",
@@ -226,7 +232,7 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://data.cityofnewyork.us/resource/p5md-weyf.json",
     "format": "json",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 86400,
     "stale_after_seconds": 1209600,
     "query_select": "the_geom,city,bldg_name,bldg_add,zip_code,borocode,state,accessible,bin,bbl",
@@ -282,7 +288,7 @@ export const SOURCE_REGISTRY = [
       "map_capable": true
     },
     "operational_note": "No CB14 facilities are currently published. This is not evidence that zero centers are active; confirm current locations, opening, and accessibility with the NYC Hurricane Evacuation Zone Finder or 311.",
-    "gate": "Phase 4 display activation; empty-scope and activation-confirmation semantics are implemented",
+    "gate": "Phase 4 display active; empty-scope and activation-confirmation semantics are implemented",
     "failure_state": "unavailable"
   },
   {
@@ -296,7 +302,7 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://data.cityofnewyork.us/resource/5uac-w243.json",
     "format": "json",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 86400,
     "stale_after_seconds": 1209600,
     "query_select": "cmplnt_num,addr_pct_cd,boro_nm,cmplnt_fr_dt,cmplnt_fr_tm,ofns_desc,pd_desc,law_cat_cd,crm_atpt_cptd_cd,prem_typ_desc,latitude,longitude",
@@ -342,7 +348,7 @@ export const SOURCE_REGISTRY = [
       "kind": "historical",
       "map_capable": true
     },
-    "gate": "Phase 4 display activation; authoritative CB14 point-in-polygon qualification is implemented",
+    "gate": "Phase 4 display active; authoritative CB14 point-in-polygon qualification is implemented",
     "failure_state": "unavailable"
   },
   {
@@ -356,7 +362,7 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://data.cityofnewyork.us/resource/phvi-damg.geojson",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 86400,
     "stale_after_seconds": 2592000,
     "query_select": "developmen,tds_num,borough,the_geom",
@@ -393,7 +399,7 @@ export const SOURCE_REGISTRY = [
       "kind": "reference",
       "map_capable": true
     },
-    "gate": "Phase 4 display activation; authoritative CB14 polygon-intersection qualification is implemented",
+    "gate": "Phase 4 display active; authoritative CB14 polygon-intersection qualification is implemented",
     "failure_state": "unavailable"
   },
   {
@@ -478,6 +484,12 @@ export const SOURCE_REGISTRY = [
     "stale_after_seconds": 1200,
     "station_id": "8516945",
     "role": "primary",
+    "display": {
+      "icon": "🌊",
+      "color": "#34d399",
+      "kind": "live_observation",
+      "map_capable": true
+    },
     "product": "water_level",
     "datum": "MLLW",
     "time_zone": "gmt",
@@ -504,6 +516,12 @@ export const SOURCE_REGISTRY = [
     "stale_after_seconds": 1200,
     "station_id": "8510560",
     "role": "primary",
+    "display": {
+      "icon": "🌊",
+      "color": "#34d399",
+      "kind": "live_observation",
+      "map_capable": true
+    },
     "product": "water_level",
     "datum": "MLLW",
     "time_zone": "gmt",
@@ -529,6 +547,12 @@ export const SOURCE_REGISTRY = [
     "stale_after_seconds": 1200,
     "station_id": "8518750",
     "role": "reference",
+    "display": {
+      "icon": "🌊",
+      "color": "#2dd4bf",
+      "kind": "reference_observation",
+      "map_capable": true
+    },
     "product": "water_level",
     "datum": "MLLW",
     "time_zone": "gmt",
@@ -554,6 +578,12 @@ export const SOURCE_REGISTRY = [
     "stale_after_seconds": 1200,
     "station_id": "8531680",
     "role": "reference",
+    "display": {
+      "icon": "🌊",
+      "color": "#2dd4bf",
+      "kind": "reference_observation",
+      "map_capable": true
+    },
     "product": "water_level",
     "datum": "MLLW",
     "time_zone": "gmt",
@@ -574,16 +604,22 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 900,
     "stale_after_seconds": 3600,
     "monitoring_location_id": "USGS-01309500",
     "parameter_code": "00065",
     "role": "primary",
+    "display": {
+      "icon": "📏",
+      "color": "#38bdf8",
+      "kind": "live_observation",
+      "map_capable": true
+    },
     "window_hours": 12,
     "query_limit": 100,
     "attribution": "USGS Water Data for the Nation",
-    "gate": "Phase 4 display activation; bounded Phase 3 adapter is implemented",
+    "gate": "Phase 4 display active; bounded Phase 3 adapter is implemented",
     "failure_state": "stale"
   },
   {
@@ -597,16 +633,22 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 900,
     "stale_after_seconds": 3600,
     "monitoring_location_id": "USGS-01304500",
     "parameter_code": "00065",
     "role": "primary",
+    "display": {
+      "icon": "📏",
+      "color": "#38bdf8",
+      "kind": "live_observation",
+      "map_capable": true
+    },
     "window_hours": 12,
     "query_limit": 100,
     "attribution": "USGS Water Data for the Nation",
-    "gate": "Phase 4 display activation; bounded Phase 3 adapter is implemented",
+    "gate": "Phase 4 display active; bounded Phase 3 adapter is implemented",
     "failure_state": "stale"
   },
   {
@@ -620,16 +662,22 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://api.waterdata.usgs.gov/ogcapi/v0/collections/continuous/items",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 900,
     "stale_after_seconds": 3600,
     "monitoring_location_id": "USGS-01311810",
     "parameter_code": "00065",
     "role": "reference",
+    "display": {
+      "icon": "📏",
+      "color": "#818cf8",
+      "kind": "reference_observation",
+      "map_capable": true
+    },
     "window_hours": 12,
     "query_limit": 100,
     "attribution": "USGS Water Data for the Nation",
-    "gate": "Phase 4 display activation; bounded Phase 3 adapter is implemented",
+    "gate": "Phase 4 display active; bounded Phase 3 adapter is implemented",
     "failure_state": "stale"
   },
   {
@@ -644,7 +692,7 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://gisservices.dec.ny.gov/arcgis/rest/services/dil/dil_clean_up/MapServer/2",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 86400,
     "stale_after_seconds": 604800,
     "required_filter": "COUNTY IN ('Nassau','Suffolk')",
@@ -661,9 +709,15 @@ export const SOURCE_REGISTRY = [
       "DETAIL_URL"
     ],
     "query_limit": 1000,
+    "display": {
+      "icon": "🧪",
+      "color": "#f97316",
+      "kind": "reference_inventory",
+      "map_capable": true
+    },
     "attribution": "NYS Department of Environmental Conservation",
     "disclaimer": "Provided as-is and subject to change without notice",
-    "gate": "Phase 4 display activation; Phase 3 ArcGIS adapter and county geometry validation are implemented",
+    "gate": "Phase 4 display active; Phase 3 ArcGIS adapter and county geometry validation are implemented",
     "failure_state": "stale"
   },
   {
@@ -695,6 +749,12 @@ export const SOURCE_REGISTRY = [
     ],
     "attribution": "NYS Office of Information Technology Services Geospatial Data Services",
     "disclaimer": "Provided as-is without warranty",
+    "display": {
+      "icon": "🗺",
+      "color": "#60a5fa",
+      "kind": "boundary",
+      "map_capable": true
+    },
     "spatial": {
       "role": "county_boundary",
       "key_field": "FIPS_CODE",
@@ -751,6 +811,12 @@ export const SOURCE_REGISTRY = [
     "attribution": "NYS Department of Public Service",
     "disclaimer": "Boundaries are provided for reference; users remain responsible for evaluating accuracy, original scale, methodology, and currency.",
     "operational_note": "The portal is maintained as needed, while the selected source geometries currently report DATEMOD 2016-05-17.",
+    "display": {
+      "icon": "⚡",
+      "color": "#facc15",
+      "kind": "responsibility_boundary",
+      "map_capable": true
+    },
     "spatial": {
       "role": "electric_utility_territory",
       "key_field": "comp_full",

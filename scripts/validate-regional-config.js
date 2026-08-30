@@ -63,8 +63,15 @@ assert.deepEqual(
     "coops_sandy_hook_reference",
     "nyc_311_rockaway",
     "nyc_cb14_boundary",
+    "nyc_hurricane_evacuation_centers_rockaway",
+    "nycha_developments_rockaway",
+    "nypd_incidents_rockaway",
     "nys_civil_boundaries",
+    "nys_dec_active_sites",
     "nys_electric_utility_territories",
+    "usgs_massapequa_creek",
+    "usgs_peconic_river",
+    "usgs_rosedale_reference",
   ],
   "only implemented, ungated sources may be enabled",
 )
@@ -75,7 +82,7 @@ assert.equal(sourceById["mta_lirr_alerts"].enabled, false)
 assert.match(sourceById["nyc_311_rockaway"].required_filter, /community_board = '14 QUEENS'/)
 assert.equal(sourceById["nyc_hurricane_evacuation_centers_rockaway"].endpoint.endsWith("/p5md-weyf.json"), true)
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.qualification, "qualified")
-assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.enabled, false)
+assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.enabled, true)
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.required_filter, "borocode = 4")
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.normalization.scope.mask_source_id, "nyc_cb14_boundary")
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.normalization.empty_scope_reason, "no_local_reference_facilities")
@@ -109,12 +116,25 @@ for (const sourceId of ["usgs_massapequa_creek", "usgs_peconic_river", "usgs_ros
   assert.equal(source.parameter_code, "00065")
   assert.equal(source.window_hours, 12)
   assert.equal(source.query_limit, 100)
-  assert.match(source.gate, /Phase 4 display activation/)
+  assert.match(source.gate, /Phase 4 display active/)
 }
 assert.equal(sourceById.nys_dec_active_sites.query_limit, 1000)
 assert.equal(sourceById.nys_dec_active_sites.query_out_fields.includes("DETAIL_URL"), true)
 assert.match(sourceById.nys_dec_active_sites.disclaimer, /as-is/)
 assert.match(sourceById.nys_dec_active_sites.gate, /county geometry validation are implemented/)
+
+for (const sourceId of [
+  "nyc_cb14_boundary", "nyc_hurricane_evacuation_centers_rockaway",
+  "nypd_incidents_rockaway", "nycha_developments_rockaway",
+  "coops_kings_point", "coops_montauk", "coops_battery_reference",
+  "coops_sandy_hook_reference", "usgs_massapequa_creek",
+  "usgs_peconic_river", "usgs_rosedale_reference", "nys_dec_active_sites",
+  "nys_civil_boundaries", "nys_electric_utility_territories",
+]) {
+  const display = sourceById[sourceId].display
+  assert.equal(display.map_capable, true, `${sourceId} is missing its Phase 4 map contract`)
+  assert.ok(display.icon && display.color && display.kind, `${sourceId} has incomplete Phase 4 presentation metadata`)
+}
 
 const configuredCoopsIds = new Set(config.coops_stations.map((station) => station.id))
 for (const stationId of retiredCoopsStations) {

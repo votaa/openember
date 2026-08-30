@@ -22,6 +22,7 @@ assert.equal(sources.nyc_cooling_centers_rockaway.qualification, "gated")
 assert.match(sources.nyc_cooling_centers_rockaway.gate, /machine-readable/i)
 for (const sourceId of rockaway.filter((id) => id !== "nyc_cooling_centers_rockaway")) {
   assert.equal(sources[sourceId].qualification, "qualified", `${sourceId} is not qualified`)
+  assert.equal(sources[sourceId].enabled, true, `${sourceId} is not activated for Phase 4`)
 }
 
 for (const sourceId of ["coops_kings_point", "coops_montauk", "coops_battery_reference", "coops_sandy_hook_reference"]) {
@@ -32,11 +33,11 @@ for (const sourceId of ["coops_kings_point", "coops_montauk", "coops_battery_ref
 for (const sourceId of ["usgs_massapequa_creek", "usgs_peconic_river", "usgs_rosedale_reference"]) {
   assert.equal(sources[sourceId].qualification, "qualified")
   assert.equal(sources[sourceId].window_hours, 12)
-  assert.equal(sources[sourceId].enabled, false)
+  assert.equal(sources[sourceId].enabled, true)
 }
 assert.equal(sources.nys_dec_active_sites.qualification, "qualified")
 assert.equal(sources.nys_dec_active_sites.query_limit, 1000)
-assert.equal(sources.nys_dec_active_sites.enabled, false)
+assert.equal(sources.nys_dec_active_sites.enabled, true)
 assert.equal(sources.nyc_cb14_boundary.enabled, true)
 assert.equal(sources.nys_civil_boundaries.enabled, true)
 assert.equal(sources.nys_electric_utility_territories.enabled, true)

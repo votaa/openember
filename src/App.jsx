@@ -17,10 +17,15 @@ import {
 import { appendCartoApiKey } from "./utils/carto.js"
 import {
   ROCKAWAY_SOURCE_IDS,
-  fetchRockawaySource,
-  rockawaySourceCard,
-  unavailableRockawayResult,
 } from "./data/regional/rockawaySources.js"
+import {
+  PHASE4_GEOGRAPHY_SOURCE_IDS,
+  PHASE4_OBSERVATION_SOURCE_IDS,
+  PHASE4_SOURCE_IDS,
+  fetchPhase4SourceBundle,
+  phase4SourceCard,
+  unavailablePhase4Result,
+} from "./data/regional/phase4Sources.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -455,8 +460,8 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
     }
   }, [activeLayers, ready])
 
-  // Phase 4 normalized Rockaway point layers. Records without approved geometry
-  // remain card-only and never receive an invented map location.
+  // Phase 4 normalized source layers. Point, line, and polygon records use the
+  // same approved geometry contract; records without geometry remain card-only.
   useEffect(() => {
     if (!ready || !leafRef.current) return
     const map = leafRef.current
@@ -472,16 +477,30 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
         const icon = source?.display?.icon || "📍"
         const group = L.layerGroup()
         for (const record of records || []) {
-          if (record.geometry?.type !== "Point" || !Array.isArray(record.geometry.coordinates)) continue
-          const [longitude, latitude] = record.geometry.coordinates.map(Number)
-          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue
-          const marker = L.marker([latitude, longitude], {icon:L.divIcon({
-            className:"", iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-16],
-            html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44">${escapeMapHtml(icon)}</div>`,
-          })})
-          marker.bindPopup(`<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${escapeMapHtml(icon)} ${escapeMapHtml(record.title)}</b><br><span style="color:#aac">${escapeMapHtml(record.description || record.category || "")}</span><br><br><span style="color:#778">${escapeMapHtml(record.source_name)} · ${escapeMapHtml(record.observed_at)}</span><br><span style="color:#556">${escapeMapHtml(record.attribution)}</span></div>`)
-          marker.on("click", () => onMarkerClick?.({name:record.title,note:record.description || record.category || "",sourceId}))
-          group.addLayer(marker)
+          const geometry = record.geometry
+          if (!geometry?.type) continue
+          const popup = `<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${escapeMapHtml(icon)} ${escapeMapHtml(record.title)}</b><br><span style="color:#aac">${escapeMapHtml(record.description || record.category || record.status || "")}</span><br><br><span style="color:#778">${escapeMapHtml(record.source_name)} · ${escapeMapHtml(record.observed_at || record.fetched_at || "Timestamp unavailable")}</span><br><span style="color:#556">${escapeMapHtml(record.attribution)}</span></div>`
+          let featureLayer = null
+          if (geometry.type === "Point" && Array.isArray(geometry.coordinates)) {
+            const [longitude, latitude] = geometry.coordinates.map(Number)
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue
+            featureLayer = L.marker([latitude, longitude], {icon:L.divIcon({
+              className:"", iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-16],
+              html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44">${escapeMapHtml(icon)}</div>`,
+            })})
+          } else if (["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(geometry.type)) {
+            featureLayer = L.geoJSON(geometry, {style: {
+              color,
+              weight: geometry.type.includes("Line") ? 3 : 2,
+              opacity: 0.9,
+              fillColor: color,
+              fillOpacity: geometry.type.includes("Polygon") ? 0.14 : 0,
+            }})
+          }
+          if (!featureLayer) continue
+          featureLayer.bindPopup(popup)
+          featureLayer.on("click", () => onMarkerClick?.({name:record.title,note:record.description || record.category || "",sourceId}))
+          group.addLayer(featureLayer)
         }
         regionalLayerRefs.current[sourceId] = group
         if (activeRegionalLayers.includes(sourceId)) group.addTo(map)
@@ -581,7 +600,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
-const ROCKAWAY_STATE_COLORS = {
+const SOURCE_STATE_COLORS = {
   current: "#4ade80",
   stale: "#facc15",
   partial: "#fb923c",
@@ -589,20 +608,27 @@ const ROCKAWAY_STATE_COLORS = {
   access_required: "#a78bfa",
 }
 
+const PHASE4_SOURCE_GROUPS = [
+  { id:"rockaway", label:"Rockaway / Queens CB14", detail:"Operational and reference sources scoped through the approved CB14 contract", sourceIds:ROCKAWAY_SOURCE_IDS },
+  { id:"observations", label:"Regional observations and inventories", detail:"NOAA water levels, USGS gauge height, and NYS DEC Active Sites", sourceIds:PHASE4_OBSERVATION_SOURCE_IDS },
+  { id:"boundaries", label:"Operational boundaries", detail:"CB14, county, and electric-utility responsibility overlays", sourceIds:PHASE4_GEOGRAPHY_SOURCE_IDS },
+]
+
 function compactTimestamp(value) {
   if (!value) return "Not available"
   const parsed = new Date(value)
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString()
 }
 
-function RockawayPanel({ sources, results, loading, onRefresh, activeLayers, onToggleLayer }) {
+function Phase4SourcesPanel({ sources, results, loading, onRefresh, activeLayers, onToggleLayer }) {
+  const sourcesById = new Map(sources.map(source => [source.id, source]))
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
       <div style={{flexShrink:0,padding:"12px 18px 9px",borderBottom:"1px solid #111820"}}>
         <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}>
           <div>
-            <div style={{color:"#60a5fa",fontWeight:700,marginBottom:3}}>🌊 Rockaway Sources</div>
-            <div style={{fontSize:9.5,color:"#556"}}>Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records</div>
+            <div style={{color:"#60a5fa",fontWeight:700,marginBottom:3}}>🗂 Phase 4 Sources</div>
+            <div style={{fontSize:9.5,color:"#556"}}>Shared normalized records · visible freshness and failure states · approved geometry only</div>
           </div>
           <button onClick={onRefresh} disabled={loading} style={{padding:"4px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit",opacity:loading?0.5:1}}>
             {loading?"↺ Fetching…":"↺ Refresh"}
@@ -610,35 +636,46 @@ function RockawayPanel({ sources, results, loading, onRefresh, activeLayers, onT
         </div>
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"10px 14px"}}>
-        {sources.map(source => {
-          const result = results[source.id] || unavailableRockawayResult(source)
-          const card = rockawaySourceCard(source, result)
-          const stateColor = ROCKAWAY_STATE_COLORS[card.data_state] || "#778"
-          const isActive = activeLayers.includes(source.id)
-          return (
-            <div key={source.id} style={{marginBottom:9,padding:"9px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderLeft:`3px solid ${card.color}`,borderRadius:6}}>
-              <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
-                <div style={{minWidth:0}}>
-                  <div style={{fontSize:10.5,color:"#dde",fontWeight:700}}>{card.icon} {card.name}</div>
-                  <div style={{fontSize:8.5,color:"#556",marginTop:2}}>{card.owner} · {card.geography}</div>
+        {PHASE4_SOURCE_GROUPS.map(group => (
+          <section key={group.id} style={{marginBottom:14}}>
+            <div style={{fontSize:10,color:"#aac",fontWeight:700,margin:"3px 2px"}}>{group.label}</div>
+            <div style={{fontSize:8.5,color:"#445",margin:"0 2px 7px"}}>{group.detail}</div>
+            {group.sourceIds.map(sourceId => {
+              const source = sourcesById.get(sourceId)
+              if (!source) return null
+              const result = results[source.id] || unavailablePhase4Result(source)
+              const card = phase4SourceCard(source, result)
+              const stateColor = SOURCE_STATE_COLORS[card.data_state] || "#778"
+              const isActive = activeLayers.includes(source.id)
+              return (
+                <div key={source.id} style={{marginBottom:9,padding:"9px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderLeft:`3px solid ${card.color}`,borderRadius:6}}>
+                  <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:10.5,color:"#dde",fontWeight:700}}>{card.icon} {card.name}</div>
+                      <div style={{fontSize:8.5,color:"#556",marginTop:2}}>{card.owner} · {card.geography}</div>
+                    </div>
+                    <span style={{fontSize:8,fontWeight:700,color:stateColor,border:`1px solid ${stateColor}55`,background:stateColor+"12",borderRadius:8,padding:"1px 6px",whiteSpace:"nowrap"}}>{card.data_state.replaceAll("_"," ").toUpperCase()}</span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:5,marginTop:7,fontSize:8.5}}>
+                    <div><span style={{color:"#334"}}>RECORDS</span><br/><span style={{color:"#aac"}}>{card.record_count}</span></div>
+                    <div><span style={{color:"#334"}}>MAPPED</span><br/><span style={{color:"#aac"}}>{card.map_count}</span></div>
+                    <div><span style={{color:"#334"}}>OBSERVED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.observed_at)}</span></div>
+                    <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
+                  </div>
+                  {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
+                  {card.activation_state && <div style={{fontSize:8.5,color:"#facc15",marginTop:5}}>Activation: {card.activation_state.replaceAll("_", " ")}{card.confirmation_phone?` · verify via ${card.confirmation_phone}`:""}{card.confirmation_url?<>{" · "}<a href={card.confirmation_url} target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>official finder</a></>:null}</div>}
+                  {card.disclaimer && <div style={{fontSize:8,color:"#445",marginTop:5}}>{card.disclaimer}</div>}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
+                    <span style={{fontSize:8,color:"#445"}}>{card.kind.replaceAll("_"," ")} · {card.attribution}{card.rejected_count?` · ${card.rejected_count} rejected`:""}</span>
+                    <button onClick={()=>onToggleLayer(source.id)} disabled={!card.map_capable} style={{padding:"2px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${card.map_capable?card.color+"55":"#1a1e28"}`,background:isActive?card.color+"18":"transparent",color:card.map_capable?card.color:"#334",cursor:card.map_capable?"pointer":"not-allowed",fontFamily:"inherit"}}>
+                      {card.map_capable ? (isActive?"Hide from map":"Show on map") : "Not map-ready"}
+                    </button>
+                  </div>
                 </div>
-                <span style={{fontSize:8,fontWeight:700,color:stateColor,border:`1px solid ${stateColor}55`,background:stateColor+"12",borderRadius:8,padding:"1px 6px",whiteSpace:"nowrap"}}>{card.data_state.replace("_"," ").toUpperCase()}</span>
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:5,marginTop:7,fontSize:8.5}}>
-                <div><span style={{color:"#334"}}>RECORDS</span><br/><span style={{color:"#aac"}}>{card.record_count}</span></div>
-                <div><span style={{color:"#334"}}>OBSERVED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.observed_at)}</span></div>
-                <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
-              </div>
-              {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
-                <span style={{fontSize:8,color:"#445"}}>{card.kind.replace("_"," ")} · {card.attribution}</span>
-                <button onClick={()=>onToggleLayer(source.id)} disabled={!card.map_capable} style={{padding:"2px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${card.map_capable?card.color+"55":"#1a1e28"}`,background:isActive?card.color+"18":"transparent",color:card.map_capable?card.color:"#334",cursor:card.map_capable?"pointer":"not-allowed",fontFamily:"inherit"}}>
-                  {card.map_capable ? (isActive?"Hide from map":"Show on map") : "No approved map geometry"}
-                </button>
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </section>
+        ))}
       </div>
     </div>
   )
@@ -686,23 +723,23 @@ export default function App() {
   const clampMapWidth = width => Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX, width))
   const [mapWidth, setMapWidth]         = useState(() => loadMapWidth(MAP_WIDTH_DEFAULT))
   const [liveReadings, setLiveReadings] = useState({})
-  const rockawaySources = useMemo(
-    () => ROCKAWAY_SOURCE_IDS.map(id => CFG.sources.find(source => source.id === id)).filter(Boolean),
+  const phase4Sources = useMemo(
+    () => PHASE4_SOURCE_IDS.map(id => CFG.sources.find(source => source.id === id)).filter(Boolean),
     [],
   )
-  const [rockawayResults, setRockawayResults] = useState(() => Object.fromEntries(
-    rockawaySources.map(source => [source.id, unavailableRockawayResult(source)]),
+  const [phase4Results, setPhase4Results] = useState(() => Object.fromEntries(
+    phase4Sources.map(source => [source.id, unavailablePhase4Result(source)]),
   ))
-  const [rockawayLoading, setRockawayLoading] = useState(false)
-  const [activeRockawayLayers, setActiveRockawayLayers] = useState(["nyc_311_rockaway"])
-  const toggleRockawayLayer = useCallback(sourceId => {
-    setActiveRockawayLayers(previous => previous.includes(sourceId)
+  const [phase4Loading, setPhase4Loading] = useState(false)
+  const [activePhase4Layers, setActivePhase4Layers] = useState(["nyc_311_rockaway"])
+  const togglePhase4Layer = useCallback(sourceId => {
+    setActivePhase4Layers(previous => previous.includes(sourceId)
       ? previous.filter(id => id !== sourceId)
       : [...previous, sourceId])
   }, [])
-  const rockawayRecords = useMemo(
-    () => Object.fromEntries(rockawaySources.map(source => [source.id, rockawayResults[source.id]?.records || []])),
-    [rockawayResults, rockawaySources],
+  const phase4Records = useMemo(
+    () => Object.fromEntries(phase4Sources.map(source => [source.id, phase4Results[source.id]?.records || []])),
+    [phase4Results, phase4Sources],
   )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
@@ -720,17 +757,17 @@ export default function App() {
     return () => window.removeEventListener("storage", onStorage)
   }, [])
 
-  const refreshRockawaySources = useCallback(async () => {
-    setRockawayLoading(true)
-    const entries = await Promise.all(rockawaySources.map(async source => [
-      source.id,
-      await fetchRockawaySource(source),
-    ]))
-    setRockawayResults(Object.fromEntries(entries))
-    setRockawayLoading(false)
-  }, [rockawaySources])
+  const refreshPhase4Sources = useCallback(async () => {
+    setPhase4Loading(true)
+    try {
+      const bundle = await fetchPhase4SourceBundle(CFG.sources)
+      setPhase4Results(bundle.results)
+    } finally {
+      setPhase4Loading(false)
+    }
+  }, [])
 
-  useEffect(() => { refreshRockawaySources() }, [refreshRockawaySources])
+  useEffect(() => { refreshPhase4Sources() }, [refreshPhase4Sources])
 
   const fetchAPIs = async () => {
     setFetching(true)
@@ -836,7 +873,7 @@ export default function App() {
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>MAP</span>
         {MAP_LAYER_TOGGLES.map(m => pill(m.label, activeMapLayers.includes(m.id), ()=>setActiveLayers(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id]), m.color))}
-        {pill("311 ROCKAWAY", activeRockawayLayers.includes("nyc_311_rockaway"), ()=>toggleRockawayLayer("nyc_311_rockaway"), "#f59e0b")}
+        {pill("311 ROCKAWAY", activePhase4Layers.includes("nyc_311_rockaway"), ()=>togglePhase4Layer("nyc_311_rockaway"), "#f59e0b")}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>WX</span>
         {pill("NEXRAD RADAR", showRadar, ()=>setShowRadar(p=>!p), "#3b82f6")}
@@ -855,7 +892,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={rockawayRecords} activeRegionalLayers={activeRockawayLayers} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={phase4Records} activeRegionalLayers={activePhase4Layers} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -889,7 +926,7 @@ export default function App() {
 
           {/* Tab bar */}
           <div style={{flexShrink:0,display:"flex",borderBottom:"1px solid #111820",background:"#090c12",overflowX:"auto"}}>
-            {[{id:"chat",label:"💬 CHAT"},{id:"rockaway",label:"🌊 ROCKAWAY"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
+            {[{id:"chat",label:"💬 CHAT"},{id:"sources",label:"🗂 SOURCES"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
               <button key={t.id} onClick={()=>setRightTab(t.id)} style={{padding:"8px 12px",flexShrink:0,background:rightTab===t.id?"#0d1117":"transparent",color:rightTab===t.id?"#e0e0e8":"#334",border:"none",borderBottom:rightTab===t.id?"2px solid #4ade80":"2px solid transparent",fontFamily:"inherit",fontSize:9.5,fontWeight:700,cursor:"pointer",letterSpacing:"0.04em"}}>
                 {t.label}
               </button>
@@ -939,14 +976,14 @@ export default function App() {
             </div>
           )}
 
-          {rightTab==="rockaway" && (
-            <RockawayPanel
-              sources={rockawaySources}
-              results={rockawayResults}
-              loading={rockawayLoading}
-              onRefresh={refreshRockawaySources}
-              activeLayers={activeRockawayLayers}
-              onToggleLayer={toggleRockawayLayer}
+          {rightTab==="sources" && (
+            <Phase4SourcesPanel
+              sources={phase4Sources}
+              results={phase4Results}
+              loading={phase4Loading}
+              onRefresh={refreshPhase4Sources}
+              activeLayers={activePhase4Layers}
+              onToggleLayer={togglePhase4Layer}
             />
           )}
 

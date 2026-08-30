@@ -128,7 +128,8 @@ The shared geography contract will distinguish:
 
 ## Phase 4: React and Streamlit display parity
 
-Phase 4 will add equivalent user-facing source cards and map toggles for both React/Vercel and Streamlit.
+Phase 4 now provides equivalent user-facing source cards and map toggles for
+both React/Vercel and Streamlit. The Map Builder geography-mode slice remains.
 
 The Rockaway display set is:
 
@@ -149,14 +150,11 @@ Each interface must:
 - Produce the same record counts for the same normalized snapshot, allowing only presentation differences.
 - Keep county and regional layers visually distinct from Rockaway-specific layers.
 
-### Remaining Phase 4 regional-boundary display work
+### Phase 4 regional-boundary display and remaining Map Builder work
 
-After the Phase 3 boundary adapter passes its acceptance criteria, Phase 4 will:
+County and utility-responsibility overlays are now active in both interfaces.
+The remaining Map Builder work will:
 
-- Expose Nassau, Suffolk, and Queens as optional county-boundary overlays in
-  both React/Vercel and Streamlit.
-- Expose the validated LIPA/PSEG and relevant municipal electric territories as
-  visually distinct, optional responsibility overlays.
 - Add two selectable filtering modes for supported Map Builder Feature Layers:
   - **Limit to operational geography** uses Nassau, Suffolk, and the approved
     Rockaway geography and preserves assets inside municipal utility areas.
@@ -183,7 +181,8 @@ that Rockaway rule with the broader Queens polygon.
 
 ### Phase 4 acceptance criteria
 
-- All five active Rockaway sources are visible through separate cards and toggles in React/Vercel and Streamlit.
+- Four active Rockaway sources and the visibly gated cooling-center source are
+  present through separate cards and controls in React/Vercel and Streamlit.
 - A user can identify the source, scope, timestamp, and freshness of every displayed layer.
 - No citywide NYC record is presented as a Rockaway condition.
 - Broad Channel inclusion is consistent with the approved Phase 3 geography policy.

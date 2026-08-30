@@ -67,11 +67,11 @@ The gate verifies:
 - generated configuration parity, Streamlit regression tests, production build,
   Python syntax, and clean diff formatting.
 
-## Phase 4 handoff
+## Phase 4 activation
 
-Phase 4 should activate equivalent cards and map controls in React and
-Streamlit using these records. It must fetch required geometry masks before
-spatially dependent sources, preserve reference-versus-primary roles, expose
-stale/partial/unavailable states, and retain the existing operational-versus-
-PSEG Map Builder geography modes. Cooling centers remain gated until a stable
-machine-readable activation contract is verified.
+Phase 4 now activates equivalent cards and map controls in React and Streamlit,
+fetches required geometry masks before dependent sources, preserves
+reference-versus-primary roles, and exposes stale/partial/unavailable states.
+The remaining Phase 4 slice is the operational-versus-PSEG Map Builder modes
+and React Living Atlas `Add to Map` parity. Cooling centers remain gated until a
+stable machine-readable activation contract is verified.
