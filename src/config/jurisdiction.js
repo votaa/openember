@@ -65,17 +65,66 @@ export const REGIONS = {
       "east": -73.73,
       "west": -73.96
     },
-    "boundary_source_id": null,
-    "scope_method": "community_board_filter",
+    "boundary_source_id": "nyc_cb14_boundary",
+    "scope_method": "authoritative_polygon",
     "boundary_filter": {
-      "borough": "QUEENS",
-      "community_board": "14 QUEENS"
+      "field": "BoroCD",
+      "value": 414
     },
     "includes_broad_channel": true,
     "future_enhancement": "Replace the CB14 filter with an authoritative peninsula polygon to exclude Broad Channel."
   }
 };
 export const SOURCE_REGISTRY = [
+  {
+    "id": "nyc_cb14_boundary",
+    "name": "NYC Queens Community District 14 boundary",
+    "owner": "NYC Department of City Planning",
+    "geographies": [
+      "rockaway"
+    ],
+    "family": "arcgis_feature_server",
+    "endpoint": "https://services5.arcgis.com/GfwWNkhOj9bNBqoJ/arcgis/rest/services/NYC_Community_Districts/FeatureServer/0",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 2592000,
+    "required_filter": "BoroCD = 414",
+    "query_out_fields": [
+      "OBJECTID",
+      "BoroCD"
+    ],
+    "source_updated_at": "2026-06-01T20:29:51.000Z",
+    "attribution": "NYC Department of City Planning",
+    "disclaimer": "Community District boundaries are administrative boundaries and include Broad Channel in Queens CD 14.",
+    "spatial": {
+      "role": "community_district_boundary",
+      "key_field": "BoroCD",
+      "id_field": "OBJECTID",
+      "observed_at_field": null,
+      "property_fields": [
+        "OBJECTID",
+        "BoroCD"
+      ],
+      "allowed_values": [
+        "414"
+      ],
+      "expected_scope_keys": [
+        "rockaway"
+      ],
+      "scope_key_by_value": {
+        "414": "rockaway"
+      },
+      "geography_by_value": {
+        "414": "rockaway"
+      },
+      "title_by_value": {
+        "414": "Queens Community District 14"
+      }
+    },
+    "failure_state": "stale"
+  },
   {
     "id": "nyc_311_rockaway",
     "name": "NYC 311 service requests — Rockaway",
@@ -475,7 +524,7 @@ export const SOURCE_REGISTRY = [
     "endpoint": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2",
     "format": "geojson",
     "qualification": "qualified",
-    "enabled": false,
+    "enabled": true,
     "refresh_seconds": 86400,
     "stale_after_seconds": 2592000,
     "required_fips": [
@@ -483,9 +532,114 @@ export const SOURCE_REGISTRY = [
       "36103",
       "36081"
     ],
+    "required_filter": "FIPS_CODE IN ('36059','36103','36081')",
+    "query_out_fields": [
+      "OBJECTID",
+      "NAME",
+      "FIPS_CODE",
+      "NYC",
+      "DATEMOD"
+    ],
     "attribution": "NYS Office of Information Technology Services Geospatial Data Services",
     "disclaimer": "Provided as-is without warranty",
-    "gate": "Phase 3 ArcGIS adapter and FIPS validation",
+    "spatial": {
+      "role": "county_boundary",
+      "key_field": "FIPS_CODE",
+      "id_field": "OBJECTID",
+      "name_field": "NAME",
+      "observed_at_field": "DATEMOD",
+      "property_fields": [
+        "OBJECTID",
+        "NAME",
+        "FIPS_CODE",
+        "NYC",
+        "DATEMOD"
+      ],
+      "allowed_values": [
+        "36059",
+        "36103",
+        "36081"
+      ],
+      "expected_scope_keys": [
+        "nassau",
+        "suffolk",
+        "queens"
+      ],
+      "scope_key_by_value": {
+        "36059": "nassau",
+        "36081": "queens",
+        "36103": "suffolk"
+      },
+      "geography_by_value": {
+        "36059": "nassau",
+        "36081": "queens",
+        "36103": "suffolk"
+      }
+    },
+    "failure_state": "stale"
+  },
+  {
+    "id": "nys_electric_utility_territories",
+    "name": "NYS electric utility service territories",
+    "owner": "NYS Department of Public Service",
+    "geographies": [
+      "regional"
+    ],
+    "family": "socrata_geojson",
+    "endpoint": "https://data.ny.gov/resource/awza-4vgu.geojson",
+    "format": "geojson",
+    "qualification": "qualified",
+    "enabled": true,
+    "refresh_seconds": 86400,
+    "stale_after_seconds": 2592000,
+    "required_filter": "comp_short = 'LIPA' OR comp_full IN ('Municipal Utility: FREEPORT','Municipal Utility: ROCKVILLE CENTRE','Municipal Utility: GREENPORT','Municipal Utility: FISHERS ISLAND')",
+    "query_select": "comp_full,comp_short,comp_id,datemod,notes,the_geom",
+    "query_limit": 10,
+    "attribution": "NYS Department of Public Service",
+    "disclaimer": "Boundaries are provided for reference; users remain responsible for evaluating accuracy, original scale, methodology, and currency.",
+    "operational_note": "The portal is maintained as needed, while the selected source geometries currently report DATEMOD 2016-05-17.",
+    "spatial": {
+      "role": "electric_utility_territory",
+      "key_field": "comp_full",
+      "id_field": "comp_full",
+      "name_field": "comp_full",
+      "observed_at_field": "datemod",
+      "property_fields": [
+        "comp_full",
+        "comp_short",
+        "comp_id",
+        "datemod",
+        "notes"
+      ],
+      "allowed_values": [
+        "Long Island Power Authority",
+        "Municipal Utility: FREEPORT",
+        "Municipal Utility: ROCKVILLE CENTRE",
+        "Municipal Utility: GREENPORT",
+        "Municipal Utility: FISHERS ISLAND"
+      ],
+      "expected_scope_keys": [
+        "pseg_long_island",
+        "municipal_freeport",
+        "municipal_rockville_centre",
+        "municipal_greenport",
+        "municipal_fishers_island"
+      ],
+      "scope_key_by_value": {
+        "Long Island Power Authority": "pseg_long_island",
+        "Municipal Utility: FREEPORT": "municipal_freeport",
+        "Municipal Utility: ROCKVILLE CENTRE": "municipal_rockville_centre",
+        "Municipal Utility: GREENPORT": "municipal_greenport",
+        "Municipal Utility: FISHERS ISLAND": "municipal_fishers_island"
+      },
+      "geography_by_value": {
+        "Long Island Power Authority": "regional",
+        "Municipal Utility: FREEPORT": "nassau",
+        "Municipal Utility: ROCKVILLE CENTRE": "nassau",
+        "Municipal Utility: GREENPORT": "suffolk",
+        "Municipal Utility: FISHERS ISLAND": "suffolk"
+      }
+    },
     "failure_state": "stale"
   },
   {

@@ -1,0 +1,94 @@
+{
+  "description": "Contract fixture with simplified test geometry. Runtime adapters use the authoritative source polygons.",
+  "fetched_at": "2026-08-29T16:00:00.000Z",
+  "evaluated_at": "2026-08-29T16:05:00.000Z",
+  "cases": [
+    {
+      "source_id": "nyc_cb14_boundary",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {"OBJECTID": 19, "BoroCD": 414},
+            "geometry": {
+              "type": "MultiPolygon",
+              "coordinates": [
+                [[[-3, 0], [0, 0], [0, 3], [-3, 3], [-3, 0]]],
+                [[[-3, 4], [-2, 4], [-2, 5], [-3, 5], [-3, 4]]]
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "nys_civil_boundaries",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {"OBJECTID": 30, "NAME": "Nassau", "FIPS_CODE": "36059", "NYC": "N", "DATEMOD": 1523491200000},
+            "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"OBJECTID": 52, "NAME": "Suffolk", "FIPS_CODE": "36103", "NYC": "N", "DATEMOD": null},
+            "geometry": {"type": "Polygon", "coordinates": [[[10, 0], [20, 0], [20, 10], [10, 10], [10, 0]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"OBJECTID": 41, "NAME": "Queens", "FIPS_CODE": "36081", "NYC": "Y", "DATEMOD": 1570147200000},
+            "geometry": {"type": "Polygon", "coordinates": [[[-10, 0], [0, 0], [0, 10], [-10, 10], [-10, 0]]]}
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "nys_electric_utility_territories",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {"comp_full": "Long Island Power Authority", "comp_short": "LIPA", "comp_id": "2066", "datemod": "2016-05-17T00:00:00.000Z", "notes": "Infrastructure managed by PSEG. Sometimes referred to as PSEG-LI."},
+            "geometry": {
+              "type": "MultiPolygon",
+              "coordinates": [
+                [
+                  [[0, 0], [20, 0], [20, 10], [0, 10], [0, 0]],
+                  [[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]],
+                  [[3, 1], [4, 1], [4, 2], [3, 2], [3, 1]],
+                  [[15, 1], [16, 1], [16, 2], [15, 2], [15, 1]],
+                  [[18, 1], [19, 1], [19, 2], [18, 2], [18, 1]]
+                ],
+                [[[-3, 0], [0, 0], [0, 3], [-3, 3], [-3, 0]]]
+              ]
+            }
+          },
+          {
+            "type": "Feature",
+            "properties": {"comp_full": "Municipal Utility: FREEPORT", "comp_short": "Municipal", "comp_id": "9999", "datemod": "2016-05-17T00:00:00.000Z", "notes": null},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[1, 1], [2, 1], [2, 2], [1, 2], [1, 1]]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"comp_full": "Municipal Utility: ROCKVILLE CENTRE", "comp_short": "Municipal", "comp_id": "9999", "datemod": "2016-05-17T00:00:00.000Z", "notes": null},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[3, 1], [4, 1], [4, 2], [3, 2], [3, 1]]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"comp_full": "Municipal Utility: GREENPORT", "comp_short": "Municipal", "comp_id": "9999", "datemod": "2016-05-17T00:00:00.000Z", "notes": null},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[15, 1], [16, 1], [16, 2], [15, 2], [15, 1]]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"comp_full": "Municipal Utility: FISHERS ISLAND", "comp_short": "Municipal", "comp_id": "9999", "datemod": "2016-05-17T00:00:00.000Z", "notes": null},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[18, 1], [19, 1], [19, 2], [18, 2], [18, 1]]]]}
+          }
+        ]
+      }
+    }
+  ]
+}

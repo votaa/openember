@@ -12,3 +12,8 @@ Every entry declares its provenance:
 - `documentation_sample`: a contract reproduced from the authority's API documentation because live access requires credentials.
 
 Dates, identifiers, coordinates, and values in synthetic fixtures are illustrative. Runtime adapters must retain source timestamps, geographic scope, attribution, and stale/unavailable state from live responses.
+
+`phase-3-regional-geography.json` drives the cross-runtime CB14, NYS county,
+and NYS DPS electric-territory contract tests. Its polygons are deliberately
+simplified test geometry, not cached runtime boundaries. Runtime adapters query
+the configured authoritative sources.

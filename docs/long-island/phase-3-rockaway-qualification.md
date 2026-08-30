@@ -37,7 +37,12 @@ This slice does not add Phase 4 cards or map toggles. Sources remain disabled wh
 
 ## Next Phase 3 slice
 
-Add the authoritative Queens Community Board 14 polygon and a shared point/polygon intersection implementation. That unlocks safe qualification of NYPD incidents and NYCHA developments, and provides the future path for excluding Broad Channel when the project adopts a peninsula-only boundary. Then implement hurricane-center empty/activation handling and continue the already approved NOAA, USGS, DEC, and civil-boundary adapter work.
+The authoritative Queens Community Board 14 polygon and shared cross-runtime
+spatial-validation foundation were implemented on 2026-08-29. The next slice is
+to use that contract to qualify NYPD point records and NYCHA development
+polygons without relying on precinct-only, borough-only, or unverified ZIP/TDS
+shortcuts. Then implement hurricane-center empty/activation handling and
+continue the already approved NOAA, USGS, and DEC adapter work.
 
 ## Deferred source
 

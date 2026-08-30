@@ -57,26 +57,33 @@ Use Queens Community Board 14 when the source publishes a reliable community-boa
 - No browser bundle contains a Socrata token or other server-side credential.
 - Existing configuration validation, production build, Python syntax, and diff checks pass.
 
-### Remaining Phase 3 regional-boundary infrastructure
+### Phase 3 regional-boundary infrastructure
 
-Phase 3 must complete the configured NYS Civil Boundaries integration before
-county polygons are treated as an operational geography filter:
+Foundation status: implemented on 2026-08-29. React and Streamlit now have
+equivalent adapters, normalized polygon records, query builders, source-state
+handling, and point/line/polygon spatial predicates for the sources below.
+Fixture parity and live endpoint checks validate one CB14 polygon, three county
+polygons, and five selected electric-territory polygons. The remaining Phase 3
+work is to apply this foundation to the gated operational sources, especially
+NYPD and NYCHA, rather than create another geometry contract.
 
-- Activate the `nys_civil_boundaries` ArcGIS adapter.
-- Retrieve only Nassau, Suffolk, and Queens county polygons and validate their
+The implemented NYS Civil Boundaries contract:
+
+- Activates the `nys_civil_boundaries` ArcGIS adapter.
+- Retrieves only Nassau, Suffolk, and Queens county polygons and validates their
   canonical FIPS codes (`36059`, `36103`, and `36081`).
-- Preserve NYS ITS attribution, source modification metadata, and the published
+- Preserves NYS ITS attribution, source modification metadata, and the published
   as-is/no-warranty disclaimer with the normalized polygons.
-- Provide one shared polygon/filter contract to React and Streamlit so later
+- Provides one shared polygon/filter contract to React and Streamlit so later
   Map Builder filtering cannot produce different geographic results between
   interfaces.
-- Add fixture coverage proving that unexpected counties, missing or incorrect
+- Includes fixture coverage proving that unexpected counties, missing or incorrect
   FIPS values, malformed geometry, and failed upstream responses are rejected
   or surfaced through the documented unavailable/stale states.
 
-Phase 3 must also qualify the NYS Department of Public Service `NYS Electric
+Phase 3 also qualifies the NYS Department of Public Service `NYS Electric
 Utility Service Territories` dataset (`awza-4vgu`) as the authoritative utility
-responsibility overlay. The adapter and tests must:
+responsibility overlay. The adapter and tests:
 
 - Resolve the PSEG Long Island territory through the published Long Island
   Power Authority record (`COMP_SHORT = 'LIPA'`, `COMP_ID = '2066'`) and retain

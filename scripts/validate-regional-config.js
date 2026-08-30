@@ -28,8 +28,9 @@ const allowedFailureStates = new Set(["stale", "unavailable", "access_required"]
 const retiredCoopsStations = new Set(["8515186", "8515102"])
 
 assert.deepEqual(Object.keys(config.regions).sort(), expectedRegionIds.sort())
-assert.equal(config.regions.rockaway.boundary_filter.borough, "QUEENS")
-assert.equal(config.regions.rockaway.boundary_filter.community_board, "14 QUEENS")
+assert.equal(config.regions.rockaway.boundary_source_id, "nyc_cb14_boundary")
+assert.equal(config.regions.rockaway.boundary_filter.field, "BoroCD")
+assert.equal(config.regions.rockaway.boundary_filter.value, 414)
 assert.equal(config.regions.rockaway.includes_broad_channel, true)
 
 const regionFips = Object.values(config.regions).map((region) => region.county_fips)
@@ -61,8 +62,11 @@ assert.deepEqual(
     "coops_montauk",
     "coops_sandy_hook_reference",
     "nyc_311_rockaway",
+    "nyc_cb14_boundary",
+    "nys_civil_boundaries",
+    "nys_electric_utility_territories",
   ],
-  "only already-supported, ungated Phase 2 sources may be enabled",
+  "only implemented, ungated sources may be enabled",
 )
 assert.equal(sourceById["511ny_events"].failure_state, "access_required")
 assert.equal(sourceById["mta_lirr_realtime"].enabled, false)
@@ -75,6 +79,9 @@ assert.equal(sourceById["nycha_developments_rockaway"].endpoint.endsWith("/phvi-
 assert.equal(sourceById["nyc_cooling_centers_rockaway"].qualification, "gated")
 assert.equal(sourceById["nypd_incidents_rockaway"].qualification, "gated")
 assert.equal(sourceById["nycha_developments_rockaway"].qualification, "gated")
+assert.equal(sourceById.nyc_cb14_boundary.required_filter, "BoroCD = 414")
+assert.deepEqual(sourceById.nys_civil_boundaries.required_fips, ["36059", "36103", "36081"])
+assert.equal(sourceById.nys_electric_utility_territories.spatial.scope_key_by_value["Long Island Power Authority"], "pseg_long_island")
 
 const configuredCoopsIds = new Set(config.coops_stations.map((station) => station.id))
 for (const stationId of retiredCoopsStations) {
