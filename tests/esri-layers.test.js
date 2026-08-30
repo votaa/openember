@@ -59,17 +59,19 @@ test("applies a server-side geography geometry before the 500-record cap", async
   const layer = { id:4, name:"Assets", url:`${item.url}/4` }
   await fetchArcGISLayer(item, layer, {
     geometry:{rings:[[[-74,40],[-73,40],[-73,41],[-74,40]]],spatialReference:{wkid:4326}},
-    fetchImpl:async url => {
-      calls.push(url)
+    fetchImpl:async (url, options) => {
+      calls.push({url, options})
       if (url.endsWith("?f=json")) return response({name:"Assets",capabilities:"Query"})
       return response({type:"FeatureCollection",features:[{type:"Feature",properties:{name:"Local"},geometry:{type:"Point",coordinates:[-73.5,40.5]}}]})
     },
   })
-  const query = new URL(calls[1])
-  assert.equal(query.searchParams.get("resultRecordCount"), "500")
-  assert.equal(query.searchParams.get("geometryType"), "esriGeometryPolygon")
-  assert.equal(query.searchParams.get("spatialRel"), "esriSpatialRelIntersects")
-  assert.match(query.searchParams.get("geometry"), /spatialReference/)
+  assert.equal(calls[1].url, "https://example.com/arcgis/rest/services/Assets/FeatureServer/4/query")
+  assert.equal(calls[1].options.method, "POST")
+  const query = new URLSearchParams(calls[1].options.body)
+  assert.equal(query.get("resultRecordCount"), "500")
+  assert.equal(query.get("geometryType"), "esriGeometryPolygon")
+  assert.equal(query.get("spatialRel"), "esriSpatialRelIntersects")
+  assert.match(query.get("geometry"), /spatialReference/)
 })
 
 test("falls back to ArcGIS JSON and normalizes point, path, and ring geometry", async () => {

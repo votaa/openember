@@ -128,8 +128,17 @@ export function normalizeArcGISFeatures(payload, { item, layer, fetchedAt = new 
 }
 
 async function queryLayer(layerUrl, params, fetchImpl) {
-  const queryUrl = `${layerUrl}/query?${new URLSearchParams(params)}`
-  const response = await fetchImpl(queryUrl, { signal: AbortSignal.timeout(20000) })
+  const queryUrl = `${layerUrl}/query`
+  const scopedQuery = Boolean(params.geometry)
+  const request = scopedQuery
+    ? {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+        body: new URLSearchParams(params),
+        signal: AbortSignal.timeout(20000),
+      }
+    : { signal: AbortSignal.timeout(20000) }
+  const response = await fetchImpl(scopedQuery ? queryUrl : `${queryUrl}?${new URLSearchParams(params)}`, request)
   let payload = null
   try { payload = await response.json() } catch { /* handled below */ }
   return { response, payload }
