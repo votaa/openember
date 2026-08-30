@@ -16,7 +16,7 @@ React/Vercel and Streamlit now expose the same five active Rockaway source cards
 
 Each card identifies the owner, Rockaway/Queens Community Board 14 scope, data state, record count, latest observation time, retrieval time, attribution, source kind, and qualification or operational note. The current scope still includes Broad Channel.
 
-NYC 311 uses a bounded live Socrata request for the 500 most recent qualifying records and the Phase 3 normalizer. React and Streamlit use the same limit for map browsing, and the point records have an independent map toggle. The other four cards remain visibly unavailable with their qualification gate; Phase 4 does not disguise an unresolved source as an empty or current result. FDNY historical incidents are intentionally absent; their deferred analytics option is documented in `docs/long-island/future-fdny-historical-analytics.md`.
+NYC 311 uses a bounded live Socrata request for the 500 most recent qualifying records and the Phase 3 normalizer. React and Streamlit use the same limit for map browsing, and the point records have an independent map toggle. NYPD, NYCHA, and hurricane evacuation centers now have qualified shared contracts but remain disabled pending Phase 4 activation. Cooling centers remain visibly gated. FDNY historical incidents are intentionally absent; their deferred analytics option is documented in `docs/long-island/future-fdny-historical-analytics.md`.
 
 ## State and map rules
 
@@ -36,7 +36,7 @@ React:
 3. Select the `ROCKAWAY` tab in the right panel.
 4. Confirm all five active cards are present and that only qualified sources attempt a fetch.
 5. Confirm the NYC 311 card also offers explicit `Hide from map` / `Show on map` controls and its popup identifies the source and observation time.
-6. Confirm cooling centers and evacuation centers show their explicit unavailable/gate reason; activate and verify the qualified NYPD and NYCHA controls.
+6. Confirm cooling centers show their explicit unavailable gate; activate and verify the qualified evacuation-center, NYPD, and NYCHA controls.
 
 Streamlit:
 
@@ -48,7 +48,7 @@ Streamlit:
 
 ## Remaining Phase 4 work
 
-The CB14 boundary/spatial adapter and shared NYPD/NYCHA normalization contracts are implemented. Phase 4 must fetch the CB14 mask before those sources, pass the normalized mask into their adapters, and activate equivalent cards and map controls in React and Streamlit. Cooling centers still require a stable machine-readable activation contract. Hurricane evacuation centers still require approved empty-result and activation semantics.
+The CB14 boundary/spatial adapter and shared evacuation-center, NYPD, and NYCHA normalization contracts are implemented. Phase 4 must fetch the CB14 mask before those sources, pass the normalized mask into their adapters, and activate equivalent cards and map controls in React and Streamlit. The evacuation-center card must display `confirmation_required`, link to the NYC finder, identify 311 as the verification channel, and never relabel `no_local_reference_facilities` as zero active centers. Cooling centers still require a stable machine-readable activation contract.
 
 Regional boundary infrastructure also remains incomplete. Phase 3 must activate
 and validate the configured NYS Civil Boundaries adapter for Nassau, Suffolk,

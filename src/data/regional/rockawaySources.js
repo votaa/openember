@@ -25,6 +25,8 @@ export function unavailableRockawayResult(source) {
     reason: source?.enabled ? "not_fetched" : source?.gate || "source_disabled",
     rejected_count: 0,
     fetched_at: null,
+    activation_state: source?.activation?.state || null,
+    scope_state: null,
   }
 }
 
@@ -51,6 +53,8 @@ export async function fetchRockawaySource(source, {
       reason: error?.message || "request_failed",
       rejected_count: 0,
       fetched_at: fetchedAt,
+      activation_state: source.activation?.state || null,
+      scope_state: null,
     }
   }
 }
@@ -75,5 +79,9 @@ export function rockawaySourceCard(source, result = unavailableRockawayResult(so
     icon: source.display?.icon || "📍",
     color: source.display?.color || "#60a5fa",
     map_capable: source.display?.map_capable === true && mapCount > 0,
+    activation_state: result.activation_state || source.activation?.state || null,
+    scope_state: result.scope_state || null,
+    confirmation_url: source.activation?.confirmation_url || null,
+    confirmation_phone: source.activation?.confirmation_phone || null,
   }
 }

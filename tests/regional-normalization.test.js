@@ -55,7 +55,7 @@ test("React and Streamlit normalize the shared Rockaway fixture identically", ()
   assert.deepEqual(javascriptOutput(), python)
 })
 
-test("React and Streamlit spatially qualify NYPD points and NYCHA polygons identically", () => {
+test("React and Streamlit spatially qualify NYPD, NYCHA, and evacuation-center records identically", () => {
   const python = JSON.parse(execFileSync(
     "python3",
     [path.join(root, "streamlit", "regional_normalization.py"), "--fixture", spatialFixturePath],
@@ -68,6 +68,52 @@ test("React and Streamlit spatially qualify NYPD points and NYCHA polygons ident
   assert.equal(output.nypd_incidents_rockaway.records[0].observed_at, "2026-06-30T20:00:00")
   assert.deepEqual(output.nycha_developments_rockaway.records.map(record => record.title), ["HAMMEL"])
   assert.equal(output.nycha_developments_rockaway.records[0].geometry.type, "MultiPolygon")
+  const evacuation = output.nyc_hurricane_evacuation_centers_rockaway
+  assert.deepEqual(evacuation.records.map(record => record.title), ["IN-SCOPE EVACUATION CENTER FIXTURE"])
+  assert.equal(evacuation.records[0].activation_state, "confirmation_required")
+  assert.equal(evacuation.records[0].status, "Activation unconfirmed")
+})
+
+test("a healthy inventory with no CB14 facilities is not reported as zero active centers", () => {
+  const fixtureCase = spatialFixture.cases.find(item => item.source_id === "nyc_hurricane_evacuation_centers_rockaway")
+  const result = normalizeRockawayPayload(
+    sources[fixtureCase.source_id],
+    [fixtureCase.rows[1]],
+    spatialFixture.fetched_at,
+    spatialFixture.evaluated_at,
+    spatialFixture.geography_records,
+  )
+  assert.equal(result.data_state, "partial")
+  assert.equal(result.records.length, 0)
+  assert.equal(result.reason, "no_local_reference_facilities")
+  assert.equal(result.scope_state, "no_local_reference_facilities")
+  assert.equal(result.activation_state, "confirmation_required")
+})
+
+test("an empty evacuation inventory remains distinct from an empty local scope", () => {
+  const result = normalizeRockawayPayload(
+    sources.nyc_hurricane_evacuation_centers_rockaway,
+    [],
+    spatialFixture.fetched_at,
+    spatialFixture.evaluated_at,
+    spatialFixture.geography_records,
+  )
+  assert.equal(result.reason, "empty_upstream_inventory")
+  assert.equal(result.scope_state, "upstream_inventory_empty")
+  assert.equal(result.activation_state, "confirmation_required")
+})
+
+test("malformed evacuation records cannot masquerade as no local facilities", () => {
+  const result = normalizeRockawayPayload(
+    sources.nyc_hurricane_evacuation_centers_rockaway,
+    [{ bldg_name: "Missing geometry and identifier" }],
+    spatialFixture.fetched_at,
+    spatialFixture.evaluated_at,
+    spatialFixture.geography_records,
+  )
+  assert.equal(result.data_state, "unavailable")
+  assert.equal(result.reason, "malformed_records")
+  assert.equal(result.scope_state, null)
 })
 
 test("spatial sources fail closed when the authoritative CB14 mask is missing", () => {
@@ -124,11 +170,13 @@ test("React and Streamlit derive equivalent Phase 4 source cards", () => {
   ))
   assert.deepEqual(javascriptCards, pythonCards)
   assert.equal(javascriptCards.nyc_311_rockaway.map_capable, true)
+  assert.equal(javascriptCards.nyc_hurricane_evacuation_centers_rockaway.activation_state, "confirmation_required")
+  assert.equal(javascriptCards.nyc_hurricane_evacuation_centers_rockaway.confirmation_phone, "311")
   assert.equal(javascriptCards.nypd_incidents_rockaway.data_state, "unavailable")
 })
 
 test("bounded source queries carry their approved filter and limit", () => {
-  for (const sourceId of ["nyc_311_rockaway", "nypd_incidents_rockaway", "nycha_developments_rockaway"]) {
+  for (const sourceId of ["nyc_311_rockaway", "nyc_hurricane_evacuation_centers_rockaway", "nypd_incidents_rockaway", "nycha_developments_rockaway"]) {
     const source = sources[sourceId]
     const url = new URL(buildRockawayQueryUrl(source))
     assert.equal(url.searchParams.get("$where"), source.required_filter)

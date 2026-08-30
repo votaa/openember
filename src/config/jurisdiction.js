@@ -229,16 +229,60 @@ export const SOURCE_REGISTRY = [
     "enabled": false,
     "refresh_seconds": 86400,
     "stale_after_seconds": 1209600,
-    "required_filter": "zip_code IN ('11691.0','11692.0','11693.0','11694.0','11695.0','11697.0')",
+    "query_select": "the_geom,city,bldg_name,bldg_add,zip_code,borocode,state,accessible,bin,bbl",
+    "required_filter": "borocode = 4",
+    "query_limit": 100,
+    "source_updated_at": "2025-11-13T19:21:49.000Z",
     "attribution": "NYC Open Data / NYC Emergency Management (NYCEM)",
+    "normalization": {
+      "payload_kind": "rows",
+      "scope": {
+        "kind": "geometry_intersects",
+        "mask_source_id": "nyc_cb14_boundary",
+        "mask_scope_key": "rockaway"
+      },
+      "geometry": {
+        "kind": "geometry_field",
+        "field": "the_geom"
+      },
+      "id_field": "bin",
+      "category_value": "Hurricane evacuation center",
+      "status_value": "Activation unconfirmed",
+      "title_field": "bldg_name",
+      "description_fields": [
+        "bldg_add",
+        "city",
+        "state",
+        "zip_code"
+      ],
+      "audit_properties": [
+        "bldg_name",
+        "bldg_add",
+        "city",
+        "state",
+        "zip_code",
+        "accessible",
+        "bin",
+        "bbl"
+      ],
+      "empty_scope_reason": "no_local_reference_facilities",
+      "empty_scope_state": "no_local_reference_facilities"
+    },
+    "activation": {
+      "state": "confirmation_required",
+      "status_field": null,
+      "confirmation_url": "https://maps.nyc.gov/hurricane/",
+      "confirmation_phone": "311",
+      "note": "Published facilities are reference locations only; confirm current opening and accessibility before use."
+    },
     "display": {
       "icon": "🏫",
       "color": "#facc15",
       "kind": "reference",
       "map_capable": true
     },
-    "operational_note": "No Rockaway-ZIP centers were published at qualification time; activation must be confirmed with NYC or 311.",
-    "gate": "Phase 3 empty-result semantics and Phase 4 activation-status disclosure",
+    "operational_note": "No CB14 facilities are currently published. This is not evidence that zero centers are active; confirm current locations, opening, and accessibility with the NYC Hurricane Evacuation Zone Finder or 311.",
+    "gate": "Phase 4 display activation; empty-scope and activation-confirmation semantics are implemented",
     "failure_state": "unavailable"
   },
   {

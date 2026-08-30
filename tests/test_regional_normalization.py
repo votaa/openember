@@ -62,6 +62,11 @@ class RegionalNormalizationTests(unittest.TestCase):
         self.assertFalse(qualified_card["map_capable"])
         self.assertIn("Phase 4", qualified_card["note"])
 
+        evacuation = SOURCES["nyc_hurricane_evacuation_centers_rockaway"]
+        evacuation_card = rockaway_source_card(evacuation, unavailable_rockaway_result(evacuation))
+        self.assertEqual(evacuation_card["activation_state"], "confirmation_required")
+        self.assertEqual(evacuation_card["confirmation_phone"], "311")
+
     def test_spatial_point_and_polygon_qualification(self):
         output = {
             case["source_id"]: normalize_rockaway_payload(
@@ -74,6 +79,32 @@ class RegionalNormalizationTests(unittest.TestCase):
         self.assertEqual([record["properties"]["source_record_id"] for record in output["nypd_incidents_rockaway"]["records"]], ["spatial-nypd-in"])
         self.assertEqual([record["title"] for record in output["nycha_developments_rockaway"]["records"]], ["HAMMEL"])
         self.assertEqual(output["nycha_developments_rockaway"]["records"][0]["observed_at"], "2026-05-15T15:07:23.000Z")
+
+        evacuation = output["nyc_hurricane_evacuation_centers_rockaway"]
+        self.assertEqual([record["title"] for record in evacuation["records"]], ["IN-SCOPE EVACUATION CENTER FIXTURE"])
+        self.assertEqual(evacuation["records"][0]["activation_state"], "confirmation_required")
+
+    def test_evacuation_empty_scope_is_not_zero_active_centers(self):
+        case = next(item for item in SPATIAL_FIXTURE["cases"] if item["source_id"] == "nyc_hurricane_evacuation_centers_rockaway")
+        result = normalize_rockaway_payload(
+            SOURCES[case["source_id"]], [case["rows"][1]], SPATIAL_FIXTURE["fetched_at"],
+            SPATIAL_FIXTURE["evaluated_at"], SPATIAL_FIXTURE["geography_records"],
+        )
+        self.assertEqual(result["data_state"], "partial")
+        self.assertEqual(result["reason"], "no_local_reference_facilities")
+        self.assertEqual(result["scope_state"], "no_local_reference_facilities")
+        self.assertEqual(result["activation_state"], "confirmation_required")
+
+    def test_malformed_evacuation_rows_fail_closed(self):
+        result = normalize_rockaway_payload(
+            SOURCES["nyc_hurricane_evacuation_centers_rockaway"],
+            [{"bldg_name": "Missing geometry and identifier"}],
+            SPATIAL_FIXTURE["fetched_at"], SPATIAL_FIXTURE["evaluated_at"],
+            SPATIAL_FIXTURE["geography_records"],
+        )
+        self.assertEqual(result["data_state"], "unavailable")
+        self.assertEqual(result["reason"], "malformed_records")
+        self.assertIsNone(result["scope_state"])
 
     def test_spatial_qualification_requires_cb14_mask(self):
         case = SPATIAL_FIXTURE["cases"][0]

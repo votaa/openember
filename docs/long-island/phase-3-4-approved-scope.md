@@ -68,6 +68,13 @@ foundation was applied to NYPD points and NYCHA multipolygons. Both now have
 shared React/Streamlit normalization contracts and fail closed without the
 authoritative CB14 mask; Phase 4 activation remains separate.
 
+The hurricane evacuation-center contract was completed on 2026-08-29. It
+queries the healthy Queens reference inventory, applies the same authoritative
+CB14 point rule, and distinguishes no local published facilities from an empty
+or failed upstream response. Because the dataset does not publish open/closed
+status, every result requires confirmation through the NYC Hurricane
+Evacuation Zone Finder or 311 before operational use.
+
 The implemented NYS Civil Boundaries contract:
 
 - Activates the `nys_civil_boundaries` ArcGIS adapter.

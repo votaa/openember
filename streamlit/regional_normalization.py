@@ -60,6 +60,10 @@ def _geometry(row: dict[str, Any], contract: dict[str, Any]) -> dict[str, Any] |
         return None
     if kind == "feature_geometry":
         return row.get("geometry") if isinstance(row.get("geometry"), dict) else None
+    if kind == "geometry_field":
+        properties = row.get("properties") if row.get("type") == "Feature" else row
+        geometry = properties.get(contract.get("field")) if isinstance(properties, dict) else None
+        return geometry if isinstance(geometry, dict) else None
     if kind != "point_fields":
         raise ValueError("unsupported_geometry_contract")
     try:
@@ -88,6 +92,36 @@ def _observed_timestamp(row: dict[str, Any], source: dict[str, Any], contract: d
     if date_value and time_value:
         return f"{date_value[:10]}T{time_value}"
     return date_value or _text(source.get("source_updated_at"))
+
+
+def _valid_point_geometry(geometry: Any) -> bool:
+    if not isinstance(geometry, dict) or geometry.get("type") != "Point":
+        return False
+    coordinates = geometry.get("coordinates")
+    if not isinstance(coordinates, list) or len(coordinates) < 2:
+        return False
+    try:
+        longitude, latitude = float(coordinates[0]), float(coordinates[1])
+    except (TypeError, ValueError):
+        return False
+    return -180 <= longitude <= 180 and -90 <= latitude <= 90
+
+
+def _structurally_valid_record(source: dict[str, Any], row: Any) -> bool:
+    if not isinstance(row, dict):
+        return False
+    contract = source["normalization"]
+    properties = row.get("properties") if row.get("type") == "Feature" else row
+    if not isinstance(properties, dict):
+        return False
+    geometry = _geometry(row, contract.get("geometry", {}))
+    if contract.get("geometry", {}).get("kind") != "none" and not _valid_point_geometry(geometry):
+        return False
+    return bool(
+        _text(properties.get(contract["id_field"]))
+        and _observed_timestamp(properties, source, contract)
+        and _text(properties.get(contract["title_field"]))
+    )
 
 
 def _mask_for_scope(geography_records: list[dict[str, Any]], scope: dict[str, Any]) -> dict[str, Any] | None:
@@ -171,6 +205,8 @@ def normalize_rockaway_record(
         "source_url": source["endpoint"],
         "attribution": source["attribution"],
         "data_state": data_state,
+        "activation_state": source.get("activation", {}).get("state"),
+        "activation_note": source.get("activation", {}).get("note"),
     }
 
 
@@ -179,16 +215,19 @@ def normalize_rockaway_payload(
     geography_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not source.get("normalization"):
-        return {"records": [], "data_state": source.get("failure_state", "unavailable"), "reason": "source_not_normalizable", "rejected_count": 0}
+        return {"records": [], "data_state": source.get("failure_state", "unavailable"), "reason": "source_not_normalizable", "rejected_count": 0, "activation_state": source.get("activation", {}).get("state"), "scope_state": None}
     rows = payload.get("features") if source["normalization"].get("payload_kind") == "feature_collection" and isinstance(payload, dict) and payload.get("type") == "FeatureCollection" else payload if isinstance(payload, list) else None
     if not isinstance(rows, list):
-        return {"records": [], "data_state": "unavailable", "reason": "malformed_payload", "rejected_count": 0}
+        return {"records": [], "data_state": "unavailable", "reason": "malformed_payload", "rejected_count": 0, "activation_state": source.get("activation", {}).get("state"), "scope_state": None}
     if not rows:
-        return {"records": [], "data_state": "partial", "reason": "empty_payload", "rejected_count": 0}
+        return {"records": [], "data_state": "partial", "reason": "empty_upstream_inventory" if source.get("activation") else "empty_payload", "rejected_count": 0, "activation_state": source.get("activation", {}).get("state"), "scope_state": "upstream_inventory_empty" if source.get("activation") else None}
 
     scope = source["normalization"].get("scope", {})
     if scope.get("kind") == "geometry_intersects" and not _mask_for_scope(geography_records or [], scope):
-        return {"records": [], "data_state": "unavailable", "reason": "missing_spatial_mask", "rejected_count": 0}
+        return {"records": [], "data_state": "unavailable", "reason": "missing_spatial_mask", "rejected_count": 0, "activation_state": source.get("activation", {}).get("state"), "scope_state": None}
+    structurally_valid_count = sum(1 for row in rows if _structurally_valid_record(source, row)) if source.get("activation") else len(rows)
+    if source.get("activation") and structurally_valid_count == 0:
+        return {"records": [], "data_state": "unavailable", "reason": "malformed_records", "rejected_count": len(rows), "activation_state": source.get("activation", {}).get("state"), "scope_state": None}
     records = [normalize_rockaway_record(source, row, fetched_at, geography_records=geography_records or []) for row in rows]
     records = [record for record in records if record is not None]
     rejected_count = len(rows) - len(records)
@@ -197,11 +236,14 @@ def normalize_rockaway_payload(
     data_state = "stale" if is_stale else "partial" if rejected_count else "current"
     for record in records:
         record["data_state"] = data_state
+    empty_scope = not records and rejected_count == len(rows) and structurally_valid_count == len(rows)
     return {
         "records": records,
         "data_state": data_state,
-        "reason": "records_rejected" if rejected_count else None,
+        "reason": source["normalization"].get("empty_scope_reason") if empty_scope and source["normalization"].get("empty_scope_reason") else "records_rejected" if rejected_count else None,
         "rejected_count": rejected_count,
+        "activation_state": source.get("activation", {}).get("state"),
+        "scope_state": source["normalization"].get("empty_scope_state", "no_in_scope_records") if empty_scope else "in_scope_records_available",
     }
 
 
@@ -225,6 +267,8 @@ def unavailable_rockaway_result(source: dict[str, Any]) -> dict[str, Any]:
         "reason": "not_fetched" if source.get("enabled") else source.get("gate", "source_disabled"),
         "rejected_count": 0,
         "fetched_at": None,
+        "activation_state": source.get("activation", {}).get("state"),
+        "scope_state": None,
     }
 
 
@@ -253,6 +297,8 @@ def fetch_rockaway_source(
             "reason": str(exc) or "request_failed",
             "rejected_count": 0,
             "fetched_at": fetched_at,
+            "activation_state": source.get("activation", {}).get("state"),
+            "scope_state": None,
         }
 
 
@@ -278,6 +324,10 @@ def rockaway_source_card(source: dict[str, Any], result: dict[str, Any] | None =
         "icon": display.get("icon", "📍"),
         "color": display.get("color", "#60a5fa"),
         "map_capable": display.get("map_capable") is True and map_count > 0,
+        "activation_state": result.get("activation_state") or source.get("activation", {}).get("state"),
+        "scope_state": result.get("scope_state"),
+        "confirmation_url": source.get("activation", {}).get("confirmation_url"),
+        "confirmation_phone": source.get("activation", {}).get("confirmation_phone"),
     }
 
 

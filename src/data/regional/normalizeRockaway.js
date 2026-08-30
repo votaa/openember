@@ -30,6 +30,10 @@ function matchesFieldScope(row, scope) {
 function recordGeometry(row, geometryContract) {
   if (geometryContract?.kind === "none") return null
   if (geometryContract?.kind === "feature_geometry") return row?.geometry || null
+  if (geometryContract?.kind === "geometry_field") {
+    const properties = row?.type === "Feature" ? row.properties : row
+    return properties?.[geometryContract.field] || null
+  }
   if (geometryContract?.kind !== "point_fields") throw new Error("unsupported_geometry_contract")
 
   const properties = row?.type === "Feature" ? row.properties : row
@@ -55,6 +59,27 @@ function observedTimestamp(row, source, contract) {
   const timeValue = normalizedText(row[contract.observed_time_field])
   if (dateValue && timeValue) return `${dateValue.slice(0, 10)}T${timeValue}`
   return dateValue || normalizedText(source.source_updated_at)
+}
+
+function validPointGeometry(geometry) {
+  if (geometry?.type !== "Point" || !Array.isArray(geometry.coordinates) || geometry.coordinates.length < 2) return false
+  const longitude = Number(geometry.coordinates[0])
+  const latitude = Number(geometry.coordinates[1])
+  return Number.isFinite(longitude) && Number.isFinite(latitude)
+    && longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90
+}
+
+function structurallyValidRecord(source, row) {
+  const contract = source.normalization
+  const properties = row?.type === "Feature" ? row.properties : row
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) return false
+  const geometry = recordGeometry(row, contract.geometry)
+  if (contract.geometry?.kind !== "none" && !validPointGeometry(geometry)) return false
+  return Boolean(
+    normalizedText(properties[contract.id_field])
+    && observedTimestamp(properties, source, contract)
+    && normalizedText(properties[contract.title_field]),
+  )
 }
 
 function maskForScope(geographyRecords, scope) {
@@ -122,28 +147,36 @@ export function normalizeRockawayRecord(source, row, fetchedAt, dataState = "cur
     source_url: source.endpoint,
     attribution: source.attribution,
     data_state: dataState,
+    activation_state: source.activation?.state || null,
+    activation_note: source.activation?.note || null,
   }
 }
 
 export function normalizeRockawayPayload(source, payload, fetchedAt, evaluatedAt = fetchedAt, geographyRecords = []) {
   if (!source?.normalization) {
-    return { records: [], data_state: source?.failure_state || "unavailable", reason: "source_not_normalizable", rejected_count: 0 }
+    return { records: [], data_state: source?.failure_state || "unavailable", reason: "source_not_normalizable", rejected_count: 0, activation_state: source?.activation?.state || null, scope_state: null }
   }
   const rows = source.normalization.payload_kind === "feature_collection"
     ? payload?.type === "FeatureCollection" && Array.isArray(payload.features) ? payload.features : null
     : Array.isArray(payload) ? payload : null
   if (!rows) {
-    return { records: [], data_state: "unavailable", reason: "malformed_payload", rejected_count: 0 }
+    return { records: [], data_state: "unavailable", reason: "malformed_payload", rejected_count: 0, activation_state: source.activation?.state || null, scope_state: null }
   }
   if (rows.length === 0) {
-    return { records: [], data_state: "partial", reason: "empty_payload", rejected_count: 0 }
+    return { records: [], data_state: "partial", reason: source.activation ? "empty_upstream_inventory" : "empty_payload", rejected_count: 0, activation_state: source.activation?.state || null, scope_state: source.activation ? "upstream_inventory_empty" : null }
   }
 
   const expiresAt = addSeconds(fetchedAt, source.stale_after_seconds)
   const isStale = new Date(evaluatedAt).getTime() > new Date(expiresAt).getTime()
   const scope = source.normalization.scope
   if (scope?.kind === "geometry_intersects" && !maskForScope(geographyRecords, scope)) {
-    return { records: [], data_state: "unavailable", reason: "missing_spatial_mask", rejected_count: 0 }
+    return { records: [], data_state: "unavailable", reason: "missing_spatial_mask", rejected_count: 0, activation_state: source.activation?.state || null, scope_state: null }
+  }
+  const structurallyValidCount = source.activation
+    ? rows.filter((row) => structurallyValidRecord(source, row)).length
+    : rows.length
+  if (source.activation && structurallyValidCount === 0) {
+    return { records: [], data_state: "unavailable", reason: "malformed_records", rejected_count: rows.length, activation_state: source.activation.state || null, scope_state: null }
   }
   const provisional = rows
     .map((row) => normalizeRockawayRecord(source, row, fetchedAt, "current", geographyRecords))
@@ -151,11 +184,16 @@ export function normalizeRockawayPayload(source, payload, fetchedAt, evaluatedAt
   const rejectedCount = rows.length - provisional.length
   const dataState = isStale ? "stale" : rejectedCount > 0 ? "partial" : "current"
   const records = provisional.map((record) => ({ ...record, data_state: dataState }))
+  const emptyScope = records.length === 0 && rejectedCount === rows.length && structurallyValidCount === rows.length
 
   return {
     records,
     data_state: dataState,
-    reason: rejectedCount > 0 ? "records_rejected" : null,
+    reason: emptyScope && source.normalization.empty_scope_reason
+      ? source.normalization.empty_scope_reason
+      : rejectedCount > 0 ? "records_rejected" : null,
     rejected_count: rejectedCount,
+    activation_state: source.activation?.state || null,
+    scope_state: emptyScope ? source.normalization.empty_scope_state || "no_in_scope_records" : "in_scope_records_available",
   }
 }

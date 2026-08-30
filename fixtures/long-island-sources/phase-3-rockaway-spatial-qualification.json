@@ -65,6 +65,35 @@
           }
         ]
       }
+    },
+    {
+      "source_id": "nyc_hurricane_evacuation_centers_rockaway",
+      "rows": [
+        {
+          "the_geom": {"type": "Point", "coordinates": [-73.80, 40.59]},
+          "city": "Rockaway fixture",
+          "bldg_name": "IN-SCOPE EVACUATION CENTER FIXTURE",
+          "bldg_add": "1 Fixture Way",
+          "zip_code": "11691.0",
+          "borocode": "4",
+          "state": "NY",
+          "accessible": "Y",
+          "bin": "fixture-evac-in",
+          "bbl": "fixture-bbl-in"
+        },
+        {
+          "the_geom": {"type": "Point", "coordinates": [-73.80, 40.70]},
+          "city": "Queens fixture",
+          "bldg_name": "OUT-OF-SCOPE EVACUATION CENTER FIXTURE",
+          "bldg_add": "2 Fixture Way",
+          "zip_code": "11432.0",
+          "borocode": "4",
+          "state": "NY",
+          "accessible": "Y",
+          "bin": "fixture-evac-out",
+          "bbl": "fixture-bbl-out"
+        }
+      ]
     }
   ]
 }
