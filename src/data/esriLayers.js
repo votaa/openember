@@ -140,6 +140,7 @@ export async function fetchArcGISLayer(item, layer, {
   maxFeatures = DEFAULT_MAX_FEATURES,
   entryPath = "search",
   color = item?.color || "#a78bfa",
+  geometry = null,
 } = {}) {
   const discovered = layer?.url ? layer : (await discoverArcGISLayers(item?.url, { fetchImpl }))[0]
   if (!discovered?.url) throw new Error("Select an ArcGIS feature layer first")
@@ -157,6 +158,11 @@ export async function fetchArcGISLayer(item, layer, {
     outSR: "4326",
     resultRecordCount: String(maxFeatures),
     f: "geojson",
+  }
+  if (geometry) {
+    params.geometry = JSON.stringify(geometry)
+    params.geometryType = "esriGeometryPolygon"
+    params.spatialRel = "esriSpatialRelIntersects"
   }
 
   let { response, payload } = await queryLayer(resolvedLayer.url, params, fetchImpl)

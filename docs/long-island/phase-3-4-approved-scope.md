@@ -163,6 +163,9 @@ County and utility-responsibility overlays and the shared Map Builder filtering 
   regardless of whether a layer was added through ESRI/Living Atlas search,
   Living Atlas quick-add, or a pasted Feature Service URL. This includes the
   hospitals and fire/EMS stations quick-adds.
+- Keeps the 500-record browse cap meaningful by sending the selected geography
+  mask to ArcGIS before the cap is applied; an unfiltered nationwide sample is
+  not reused as the source for a filtered local result.
 - Labels filtering as a display/query scope applied after **Add to Map**; it does
   not narrow Living Atlas search results or change the upstream source dataset.
 - Disables the geography modes with an explanation for Map Services, imagery,

@@ -37,6 +37,17 @@ export function filterMasksByMode(geographyRecords, mode) {
   return masksForMode(geographyRecords, mode)
 }
 
+// ArcGIS FeatureServer queries need a single polygon geometry. Multiple
+// disconnected masks are represented as multiple rings in the same polygon.
+export function arcGISGeometryForMode(geographyRecords, mode) {
+  const rings = filterMasksByMode(geographyRecords, mode).flatMap((geometry) => {
+    if (geometry.type === "Polygon") return geometry.coordinates
+    if (geometry.type === "MultiPolygon") return geometry.coordinates.flat()
+    return []
+  }).map((ring) => ring.slice().reverse())
+  return rings.length ? { rings, spatialReference:{wkid:4326} } : null
+}
+
 export function evaluateMapBuilderFilter(layer, geographyRecords) {
   const records = Array.isArray(layer?.records) ? layer.records : []
   const requestedMode = layer?.filterMode || MAP_BUILDER_FILTER_MODES.UNFILTERED
@@ -52,6 +63,8 @@ export function evaluateMapBuilderFilter(layer, geographyRecords) {
     reason: null,
   }
   if (requestedMode === MAP_BUILDER_FILTER_MODES.UNFILTERED) return base
+  if (layer?.filterLoading) return { ...base, reason:"loading_filtered_records" }
+  if (layer?.filterError) return { ...base, reason:layer.filterError }
   if (!supported) return { ...base, reason:"unsupported_layer_type" }
   try {
     const filtered = filterFeaturesByMode(records, geographyRecords, requestedMode)

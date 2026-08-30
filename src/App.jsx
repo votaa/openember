@@ -36,6 +36,7 @@ import {
   MAP_BUILDER_FILTER_LABELS,
   MAP_BUILDER_FILTER_MODES,
   MAP_BUILDER_PRESETS,
+  arcGISGeometryForMode,
   evaluateMapBuilderFilter,
 } from "./data/mapBuilderFilters.js"
 
@@ -1100,17 +1101,43 @@ export default function App() {
 
           {/* ESRI tab — simplified inline */}
           {rightTab==="esri" && (
-            <ESRIPanel onInject={item=>{
+          <ESRIPanel onInject={item=>{
               setEsriItems(p=>p.find(x=>x.itemId===item.itemId)?p:[...p,item])
               setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI layer added: ${item.name}. Try: "What does this layer cover?"`}])
               setRightTab("chat")
             }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}
               esriMapLayers={evaluatedEsriMapLayers}
-              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:layer})}
-              onMapLayerFilterChange={(layerId,filterMode)=>setEsriMapLayers(previous=>({
-                ...previous,
-                [layerId]: {...previous[layerId],filterMode},
-              }))}
+              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:{...layer,baseRecords:layer.records}})}
+              onMapLayerFilterChange={async (layerId,filterMode)=>{
+                const layer = esriMapLayers[layerId]
+                if (!layer) return
+                if (filterMode === MAP_BUILDER_FILTER_MODES.UNFILTERED) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{
+                    ...previous[layerId], records:previous[layerId].baseRecords || previous[layerId].records,
+                    filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
+                  }}))
+                  return
+                }
+                const geometry = arcGISGeometryForMode(geographyFilterRecords, filterMode)
+                if (!geometry) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:false,filterError:"missing_geography_masks"}}))
+                  return
+                }
+                setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:true,filterError:""}}))
+                try {
+                  const refreshed = await fetchArcGISLayer(
+                    {id:layer.ownerItemId,title:layer.name,owner:layer.owner,type:layer.sourceType,url:layer.originalUrl,color:layer.color},
+                    {id:layer.sublayerId,name:layer.name,url:layer.url},
+                    {entryPath:layer.entryPath,color:layer.color,geometry},
+                  )
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{
+                    ...previous[layerId], records:refreshed.records, count:refreshed.records.length,
+                    filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
+                  }}))
+                } catch (error) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterLoading:false,filterError:error.message || "filtered_query_failed"}}))
+                }
+              }}
               onMapLayerRemove={layerId=>setEsriMapLayers(previous=>{
                 const next = {...previous}
                 delete next[layerId]
@@ -1344,7 +1371,7 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
               <select aria-label={`Geography filter for ${layer.name}`} value={layer.filterMode||MAP_BUILDER_FILTER_MODES.UNFILTERED} onChange={event=>onMapLayerFilterChange(layer.id,event.target.value)} disabled={!filter.supported} title={!filter.supported?"Geography filtering is available only for queryable Feature Layers":"Applied after Add to Map"} style={{width:"100%",background:"#0d1117",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:filter.supported?"#9de7f3":"#445",fontFamily:"inherit",fontSize:9}}>
                 {Object.entries(MAP_BUILDER_FILTER_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
               </select>
-              <div style={{marginTop:4,fontSize:8.5,color:fallback?"#facc15":"#667"}}>{fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); displaying unfiltered.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
+              <div style={{marginTop:4,fontSize:8.5,color:layer.filterLoading||fallback?"#facc15":"#667"}}>{layer.filterLoading?`Loading up to 500 features in ${MAP_BUILDER_FILTER_LABELS[layer.filterMode]}…`:layer.filterError?`Filtered query failed (${layer.filterError.replaceAll("_"," ")}); showing last successful result.`:fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); displaying unfiltered.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
             </div>
           })}
         </div>

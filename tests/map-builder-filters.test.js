@@ -69,3 +69,17 @@ test("missing masks disclose an unfiltered fallback", () => {
   assert.equal(result.effectiveMode, MAP_BUILDER_FILTER_MODES.UNFILTERED)
   assert.equal(result.reason, "missing_geography_masks")
 })
+
+test("a failed server-side filtered refresh keeps the last successful records", () => {
+  const result = evaluateMapBuilderFilter({
+    type:"Feature Layer",
+    sourceType:"Feature Layer",
+    url:"https://example.test/FeatureServer/0",
+    filterMode:MAP_BUILDER_FILTER_MODES.OPERATIONAL,
+    filterError:"filtered_query_failed",
+    records:fixture.features.slice(0, 2),
+  }, fixture.geography_records)
+  assert.equal(result.effectiveMode, MAP_BUILDER_FILTER_MODES.UNFILTERED)
+  assert.equal(result.reason, "filtered_query_failed")
+  assert.deepEqual(result.records, fixture.features.slice(0, 2))
+})

@@ -116,8 +116,11 @@ The Map Builder provides **Unfiltered**, **Limit to operational geography**,
 and **Limit to PSEG Long Island territory** modes for supported Feature Layers.
 The shared filter applies after **Add to Map** to layers added through
 ESRI/Living Atlas search, Living Atlas quick-adds, or pasted Feature Service
-URLs; it does not narrow catalog search results or generically clip Map
-Services, imagery, or vector tiles.
+URLs. Unfiltered mode keeps the 500-record browse cap; the two geographic modes
+send the authoritative mask to ArcGIS first, then apply the same 500-record cap
+to the scoped query. This prevents a nationwide first page from being mistaken
+for an empty local result. The filter does not narrow catalog search results or
+generically clip Map Services, imagery, or vector tiles.
 
 React Living Atlas search, quick-add, and pasted-URL layers now share the same
 Map Builder state and normalized feature filtering. Streamlit uses the same

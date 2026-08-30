@@ -53,6 +53,25 @@ test("loads GeoJSON with WGS84 output and a bounded record count", async () => {
   assert.equal(result.format, "geojson")
 })
 
+test("applies a server-side geography geometry before the 500-record cap", async () => {
+  const calls = []
+  const item = { id:"abc", title:"Assets", owner:"county", type:"Feature Layer", url:"https://example.com/arcgis/rest/services/Assets/FeatureServer" }
+  const layer = { id:4, name:"Assets", url:`${item.url}/4` }
+  await fetchArcGISLayer(item, layer, {
+    geometry:{rings:[[[-74,40],[-73,40],[-73,41],[-74,40]]],spatialReference:{wkid:4326}},
+    fetchImpl:async url => {
+      calls.push(url)
+      if (url.endsWith("?f=json")) return response({name:"Assets",capabilities:"Query"})
+      return response({type:"FeatureCollection",features:[{type:"Feature",properties:{name:"Local"},geometry:{type:"Point",coordinates:[-73.5,40.5]}}]})
+    },
+  })
+  const query = new URL(calls[1])
+  assert.equal(query.searchParams.get("resultRecordCount"), "500")
+  assert.equal(query.searchParams.get("geometryType"), "esriGeometryPolygon")
+  assert.equal(query.searchParams.get("spatialRel"), "esriSpatialRelIntersects")
+  assert.match(query.searchParams.get("geometry"), /spatialReference/)
+})
+
 test("falls back to ArcGIS JSON and normalizes point, path, and ring geometry", async () => {
   const item = { id:"xyz", title:"Operations", owner:"county" }
   const layer = { id:7, name:"Assets", url:"https://example.com/arcgis/rest/services/Ops/MapServer/7" }
