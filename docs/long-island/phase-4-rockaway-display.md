@@ -1,6 +1,6 @@
 # Phase 4 Rockaway and Regional Display
 
-Status: source display activation implemented; Map Builder geography-mode parity remains
+Status: complete
 
 Implementation date: 2026-08-30
 
@@ -76,6 +76,11 @@ React:
 5. Add and remove NYPD and NYCHA to verify point and polygon rendering.
 6. Add one NOAA/USGS/DEC source and one boundary overlay. Confirm the button
    changes between `Show on map` and `Hide from map`.
+7. Select `ESRI`, add a Feature Layer through search, a quick-add, and a pasted
+   Feature Service URL, then verify unfiltered, operational-geography, and PSEG
+   modes update the displayed feature count.
+8. Confirm Map Services, imagery, and vector tiles disclose that geography
+   filtering is unavailable.
 
 Streamlit:
 
@@ -88,6 +93,9 @@ Streamlit:
 5. Select `Regional Sources`; add one point source and one boundary source.
 6. Confirm the corresponding controls change to `Remove from Map` and the
    popups agree with React after both interfaces refresh.
+7. Select `Map Builder` and verify the same three entry paths and geography
+   modes. Confirm municipal assets remain in operational mode and are excluded
+   by the PSEG-only mode.
 
 ## Completion gate
 
@@ -102,19 +110,22 @@ mask-before-dependent-source orchestration, state and map presentation
 contracts, Streamlit regression tests, a production build, Python compilation,
 and diff-format checks.
 
-## Remaining Phase 4 work
+## Phase 4 Map Builder closeout
 
-The remaining Map Builder slice must provide **Limit to operational geography**
+The Map Builder provides **Unfiltered**, **Limit to operational geography**,
 and **Limit to PSEG Long Island territory** modes for supported Feature Layers.
 The shared filter applies after **Add to Map** to layers added through
 ESRI/Living Atlas search, Living Atlas quick-adds, or pasted Feature Service
 URLs; it does not narrow catalog search results or generically clip Map
 Services, imagery, or vector tiles.
 
-React Living Atlas search still needs `Add to Map` parity with Streamlit as part
-of that remaining slice. The broader operational mode must retain hospitals,
+React Living Atlas search, quick-add, and pasted-URL layers now share the same
+Map Builder state and normalized feature filtering. Streamlit uses the same
+authoritative masks in the ArcGIS layer view. The broader operational mode retains hospitals,
 fire/EMS stations, and other assets in Freeport, Rockville Centre, Greenport,
-and Fishers Island, while the PSEG mode may exclude them as non-PSEG territory.
+and Fishers Island, while the PSEG mode excludes them as non-PSEG territory.
+Unsupported layer types remain visibly unfiltered, and missing masks produce an
+explicit unfiltered fallback rather than appearing to honor a spatial limit.
 The authoritative source contract, acceptance criteria, and
 Queens-versus-Rockaway caveat remain in
 `docs/long-island/phase-3-4-approved-scope.md`.

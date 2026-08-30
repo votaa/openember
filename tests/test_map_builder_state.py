@@ -18,6 +18,9 @@ class MapBuilderStateTests(unittest.TestCase):
         self.assertTrue(initialized)
         self.assertEqual(layers[0]["name"], "Roads")
         self.assertEqual(layers[0]["opacity"], 1.0)
+        self.assertEqual(layers[0]["source_type"], "Feature Layer")
+        self.assertEqual(layers[0]["entry_path"], "configured")
+        self.assertEqual(layers[0]["filter_mode"], "unfiltered")
 
     def test_intentionally_empty_layers_are_not_reseeded(self):
         configured = [{"name": "Roads", "url": "https://example.test/FeatureServer/2"}]

@@ -135,7 +135,12 @@ async function queryLayer(layerUrl, params, fetchImpl) {
   return { response, payload }
 }
 
-export async function fetchArcGISLayer(item, layer, { fetchImpl = fetch, maxFeatures = DEFAULT_MAX_FEATURES } = {}) {
+export async function fetchArcGISLayer(item, layer, {
+  fetchImpl = fetch,
+  maxFeatures = DEFAULT_MAX_FEATURES,
+  entryPath = "search",
+  color = item?.color || "#a78bfa",
+} = {}) {
   const discovered = layer?.url ? layer : (await discoverArcGISLayers(item?.url, { fetchImpl }))[0]
   if (!discovered?.url) throw new Error("Select an ArcGIS feature layer first")
 
@@ -172,11 +177,17 @@ export async function fetchArcGISLayer(item, layer, { fetchImpl = fetch, maxFeat
     ownerItemId: item.id,
     sublayerId: resolvedLayer.id,
     name: resolvedLayer.name && resolvedLayer.name !== item.title ? `${item.title} — ${resolvedLayer.name}` : item.title,
-    color: "#a78bfa",
+    color,
     icon: "⊕",
+    type: "Feature Layer",
+    sourceType: item.type || "Feature Layer",
+    entryPath,
+    filterMode: "unfiltered",
     records,
     count: records.length,
     url: resolvedLayer.url,
+    originalUrl: item.url || resolvedLayer.url,
+    attribution: `ArcGIS Online · ${item.owner || "public source"}`,
     format,
   }
 }

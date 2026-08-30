@@ -49,6 +49,15 @@ from esri_presentation import (
 )
 from map_builder_state import initialize_map_builder_layers
 from map_builder_presets import LIVING_ATLAS_PRESETS
+from map_builder_filters import (
+    FILTER_LABELS as MAP_BUILDER_FILTER_LABELS,
+    FILTER_MODES as MAP_BUILDER_FILTER_MODES,
+    OPERATIONAL as MAP_BUILDER_OPERATIONAL,
+    PSEG_LONG_ISLAND as MAP_BUILDER_PSEG,
+    UNFILTERED as MAP_BUILDER_UNFILTERED,
+    filter_masks_by_mode,
+    filter_supported as map_builder_filter_supported,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -1160,7 +1169,8 @@ def add_operational_esri_layer(item_id: str, item_title: str, layer_choice: dict
 
 
 def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: dict,
-                                  color: str = "#a78bfa") -> dict:
+                                  color: str = "#a78bfa", source_type: str = "Feature Layer",
+                                  entry_path: str = "search") -> dict:
     """Add one selected ArcGIS Feature Layer with its presentation metadata."""
     metadata_result = fetch_esri_layer_metadata(layer_choice["url"])
     metadata = metadata_result.get("metadata")
@@ -1175,6 +1185,9 @@ def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: d
         "url": layer_choice["url"],
         "item_id": "",
         "type": "Feature Layer",
+        "source_type": source_type,
+        "entry_path": entry_path,
+        "filter_mode": MAP_BUILDER_UNFILTERED,
         "opacity": 1.0,
         "visible": True,
         "color": color,
@@ -2239,6 +2252,23 @@ with tab_mapbuilder:
     st.markdown("#### 🗺 ESRI ArcGIS Map Builder")
     st.caption("Build an interactive map with ArcGIS Online layers — powered by the ArcGIS Maps SDK for JavaScript (CDN, no install)")
 
+    geography_filter_records = [
+        record
+        for source_id in PHASE4_GEOGRAPHY_SOURCE_IDS
+        for record in st.session_state.phase4_results.get(source_id, {}).get("records", [])
+    ]
+    filter_masks = {}
+    filter_mask_errors = {}
+    for filter_mode in (MAP_BUILDER_OPERATIONAL, MAP_BUILDER_PSEG):
+        try:
+            mode_masks = filter_masks_by_mode(geography_filter_records, filter_mode)
+            if not mode_masks:
+                raise ValueError("missing_geography_masks")
+            filter_masks[filter_mode] = mode_masks
+        except ValueError as exc:
+            filter_masks[filter_mode] = []
+            filter_mask_errors[filter_mode] = str(exc) or "geography_filter_unavailable"
+
     # ── Layer management sidebar within tab ────────────────────────────────────
     mb_col_left, mb_col_right = st.columns([1, 2])
 
@@ -2267,7 +2297,8 @@ with tab_mapbuilder:
                                     st.error(discovery["error"])
                                 elif len(discovery.get("layers", [])) == 1:
                                     add_map_builder_feature_layer(
-                                        item["id"], item.get("title", item["id"]), discovery["layers"][0]
+                                        item["id"], item.get("title", item["id"]), discovery["layers"][0],
+                                        source_type=item.get("type", "Feature Service"), entry_path="search"
                                     )
                                 elif discovery.get("layers"):
                                     st.session_state.esri_pending_adds[f"builder:{item['id']}"] = {
@@ -2281,6 +2312,8 @@ with tab_mapbuilder:
                                     "url": surl, "item_id": item["id"],
                                     "type": item.get("type", "Feature Layer"), "opacity": 1.0,
                                     "visible": True, "color": "#a78bfa",
+                                    "source_type": item.get("type", "Map Service"),
+                                    "entry_path": "search", "filter_mode": MAP_BUILDER_UNFILTERED,
                                 })
                             st.rerun()
 
@@ -2298,7 +2331,8 @@ with tab_mapbuilder:
                                 for choice in choices:
                                     if choice["url"] in selected_urls:
                                         add_map_builder_feature_layer(
-                                            item["id"], item.get("title", item["id"]), choice
+                                            item["id"], item.get("title", item["id"]), choice,
+                                            source_type=item.get("type", "Feature Service"), entry_path="search"
                                         )
                                 st.session_state.esri_pending_adds.pop(f"builder:{item['id']}", None)
                                 st.rerun()
@@ -2327,11 +2361,16 @@ with tab_mapbuilder:
                     st.error(discovery["error"])
                 elif len(discovery.get("layers", [])) == 1:
                     add_map_builder_feature_layer(
-                        entry_id, mb_name_in or discovery["layers"][0]["name"], discovery["layers"][0], "#60a5fa"
+                        entry_id, mb_name_in or discovery["layers"][0]["name"], discovery["layers"][0], "#60a5fa",
+                        source_type=mb_type_sel, entry_path="pasted_url"
                     )
                 elif discovery.get("layers"):
                     st.session_state.esri_pending_adds["builder:manual"] = {
-                        "item": {"id": entry_id, "title": mb_name_in or "Feature Service"},
+                        "item": {
+                            "id": entry_id,
+                            "title": mb_name_in or "Feature Service",
+                            "source_type": mb_type_sel,
+                        },
                         "layers": discovery.get("layers", []),
                     }
                 else:
@@ -2341,6 +2380,8 @@ with tab_mapbuilder:
                     "id": entry_id, "name": mb_name_in or entry_id[:30], "url": surl,
                     "item_id": entry_id if is_item_id else "", "type": mb_type_sel,
                     "opacity": 1.0, "visible": True, "color": "#60a5fa",
+                    "source_type": mb_type_sel, "entry_path": "pasted_url",
+                    "filter_mode": MAP_BUILDER_UNFILTERED,
                 })
             st.rerun()
 
@@ -2358,7 +2399,10 @@ with tab_mapbuilder:
                 item = manual_pending["item"]
                 for choice in choices:
                     if choice["url"] in selected_urls:
-                        add_map_builder_feature_layer(item["id"], item["title"], choice, "#60a5fa")
+                        add_map_builder_feature_layer(
+                            item["id"], item["title"], choice, "#60a5fa",
+                            source_type=item.get("source_type", "Feature Layer"), entry_path="pasted_url"
+                        )
                 st.session_state.esri_pending_adds.pop("builder:manual", None)
                 st.rerun()
 
@@ -2374,7 +2418,8 @@ with tab_mapbuilder:
                         discovery = discover_esri_feature_layers(preset["url"])
                         if discovery.get("layers"):
                             add_map_builder_feature_layer(
-                                preset["url"], preset["name"], discovery["layers"][0], preset["color"]
+                                preset["url"], preset["name"], discovery["layers"][0], preset["color"],
+                                source_type=preset["type"], entry_path="quick_add"
                             )
                         else:
                             st.error(discovery.get("error") or "No Feature Layers found")
@@ -2383,6 +2428,8 @@ with tab_mapbuilder:
                             "id": preset["url"], "name": preset["name"], "url": preset["url"],
                             "item_id": "", "type": preset["type"], "opacity": 1.0,
                             "visible": True, "color": preset["color"],
+                            "source_type": preset["type"], "entry_path": "quick_add",
+                            "filter_mode": MAP_BUILDER_UNFILTERED,
                         })
                     st.rerun()
             else:
@@ -2421,6 +2468,38 @@ with tab_mapbuilder:
 
                     if layer.get("metadata_error"):
                         st.caption(f"Metadata fallback: {layer['metadata_error']}")
+
+                    st.caption(
+                        f"Added through {layer.get('entry_path', 'configured').replace('_', ' ')} · "
+                        f"Original service: {layer.get('url', '')}"
+                    )
+                    filter_is_supported = map_builder_filter_supported(layer)
+                    current_filter_mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
+                    if current_filter_mode not in MAP_BUILDER_FILTER_MODES:
+                        current_filter_mode = MAP_BUILDER_UNFILTERED
+                    selected_filter_mode = st.selectbox(
+                        "Geography display filter",
+                        MAP_BUILDER_FILTER_MODES,
+                        index=MAP_BUILDER_FILTER_MODES.index(current_filter_mode),
+                        format_func=lambda mode: MAP_BUILDER_FILTER_LABELS[mode],
+                        key=f"mb_filter_{li}_{layer['id'][:8]}",
+                        disabled=not filter_is_supported,
+                        help=(
+                            "Applied after Add to Map using the authoritative operational or PSEG polygons."
+                            if filter_is_supported else
+                            "Geography filtering is unavailable for Map Services, imagery, vector tiles, and other non-Feature Layer types."
+                        ),
+                    )
+                    st.session_state.mb_layers[li]["filter_mode"] = (
+                        selected_filter_mode if filter_is_supported else MAP_BUILDER_UNFILTERED
+                    )
+                    if not filter_is_supported:
+                        st.caption("Unfiltered · this layer type cannot honor the shared Feature Layer geography contract.")
+                    elif filter_mask_errors.get(selected_filter_mode):
+                        st.warning(
+                            "Geography filter unavailable; this layer is currently displayed unfiltered. "
+                            f"{filter_mask_errors[selected_filter_mode].replace('_', ' ')}"
+                        )
 
                     new_opacity = st.slider("Opacity", 0.0, 1.0,
                                             value=float(layer.get("opacity", 1.0)),
@@ -2473,6 +2552,18 @@ with tab_mapbuilder:
                 "url":     l["url"],
                 "item_id": l.get("item_id",""),
                 "type":    l.get("type","Feature Layer"),
+                "source_type": l.get("source_type", l.get("type", "Feature Layer")),
+                "entry_path": l.get("entry_path", "configured"),
+                "filter_mode": (
+                    l.get("filter_mode", MAP_BUILDER_UNFILTERED)
+                    if map_builder_filter_supported(l)
+                    and not filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
+                    else MAP_BUILDER_UNFILTERED
+                ),
+                "filter_error": (
+                    "unsupported_layer_type" if not map_builder_filter_supported(l)
+                    else filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
+                ),
                 "opacity": l.get("opacity", 1.0),
                 "visible": l.get("visible", True),
                 "color": l.get("color", "#a78bfa"),
@@ -2480,6 +2571,7 @@ with tab_mapbuilder:
             }
             for l in st.session_state.mb_layers
         ])
+        filter_masks_json = json.dumps(filter_masks)
         center = CFG.center
         basemap = st.session_state.get("mb_basemap","dark-gray-vector")
 
@@ -2513,6 +2605,7 @@ with tab_mapbuilder:
     const LAYERS   = {layers_json};
     const CENTER   = [{center[0]}, {center[1]}];
     const BASEMAP  = "{basemap}";
+    const FILTER_MASKS = {filter_masks_json};
 
     require([
       "esri/Map",
@@ -2521,6 +2614,7 @@ with tab_mapbuilder:
       "esri/layers/MapImageLayer",
       "esri/layers/ImageryLayer",
       "esri/layers/VectorTileLayer",
+      "esri/geometry/Polygon",
       "esri/widgets/LayerList",
       "esri/widgets/Legend",
       "esri/widgets/Search",
@@ -2530,7 +2624,7 @@ with tab_mapbuilder:
       "esri/widgets/BasemapGallery",
       "esri/widgets/Expand",
     ], function(Map, MapView, FeatureLayer, MapImageLayer, ImageryLayer,
-                VectorTileLayer, LayerList, Legend, Search, ScaleBar,
+                VectorTileLayer, Polygon, LayerList, Legend, Search, ScaleBar,
                 Fullscreen, Home, BasemapGallery, Expand) {{
 
       const map = new Map({{ basemap: BASEMAP }});
@@ -2591,6 +2685,18 @@ with tab_mapbuilder:
       }});
 
       // ── Add layers ────────────────────────────────────────────────────────
+      function filterPolygon(mode) {{
+        const geometries = FILTER_MASKS[mode] || [];
+        const rings = [];
+        geometries.forEach(function(geometry) {{
+          if (geometry.type === "Polygon") geometry.coordinates.forEach(function(ring) {{ rings.push(ring.slice().reverse()); }});
+          if (geometry.type === "MultiPolygon") geometry.coordinates.forEach(function(polygon) {{
+            polygon.forEach(function(ring) {{ rings.push(ring.slice().reverse()); }});
+          }});
+        }});
+        return rings.length ? new Polygon({{ rings:rings, spatialReference:{{wkid:4326}} }}) : null;
+      }}
+
       LAYERS.forEach(function(layerCfg) {{
         var lyr;
         var opts = {{
@@ -2644,6 +2750,22 @@ with tab_mapbuilder:
         }});
 
         map.add(lyr);
+
+        if (layerCfg.filter_mode && layerCfg.filter_mode !== "unfiltered") {{
+          const geometry = filterPolygon(layerCfg.filter_mode);
+          if (geometry) {{
+            view.whenLayerView(lyr).then(function(layerView) {{
+              layerView.filter = {{ geometry:geometry, spatialRelationship:"intersects" }};
+              return lyr.queryFeatureCount({{ geometry:geometry, spatialRelationship:"intersects" }});
+            }}).then(function(count) {{
+              document.getElementById("status").textContent =
+                "✓ " + layerCfg.name + " · " + count + " filtered feature(s)";
+            }}).catch(function(err) {{
+              document.getElementById("status").textContent =
+                "⚠ " + layerCfg.name + " filter: " + (err.message || "filter error");
+            }});
+          }}
+        }}
       }});
 
       // Metadata-aware hover labels for points, lines, and polygons.

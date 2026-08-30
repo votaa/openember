@@ -32,6 +32,12 @@ import {
   fetchArcGISLayer,
   isQueryableArcGISServiceUrl,
 } from "./data/esriLayers.js"
+import {
+  MAP_BUILDER_FILTER_LABELS,
+  MAP_BUILDER_FILTER_MODES,
+  MAP_BUILDER_PRESETS,
+  evaluateMapBuilderFilter,
+} from "./data/mapBuilderFilters.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -761,24 +767,35 @@ export default function App() {
     () => Object.fromEntries(phase4Sources.map(source => [source.id, phase4Results[source.id]?.records || []])),
     [phase4Results, phase4Sources],
   )
+  const geographyFilterRecords = useMemo(
+    () => PHASE4_GEOGRAPHY_SOURCE_IDS.flatMap(sourceId => phase4Results[sourceId]?.records || []),
+    [phase4Results],
+  )
+  const evaluatedEsriMapLayers = useMemo(
+    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [
+      layer.id,
+      { ...layer, filter:evaluateMapBuilderFilter(layer, geographyFilterRecords) },
+    ])),
+    [esriMapLayers, geographyFilterRecords],
+  )
   const esriMapRecords = useMemo(
-    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [layer.id, layer.records])),
-    [esriMapLayers],
+    () => Object.fromEntries(Object.values(evaluatedEsriMapLayers).map(layer => [layer.id, layer.filter.records])),
+    [evaluatedEsriMapLayers],
   )
   const esriMapMetadata = useMemo(
-    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [layer.id, {
+    () => Object.fromEntries(Object.values(evaluatedEsriMapLayers).map(layer => [layer.id, {
       name: layer.name,
       display: { color: layer.color, icon: layer.icon },
     }])),
-    [esriMapLayers],
+    [evaluatedEsriMapLayers],
   )
   const regionalMapRecords = useMemo(
     () => ({ ...phase4Records, ...esriMapRecords }),
     [phase4Records, esriMapRecords],
   )
   const activeRegionalMapLayers = useMemo(
-    () => [...activePhase4Layers, ...Object.keys(esriMapLayers)],
-    [activePhase4Layers, esriMapLayers],
+    () => [...activePhase4Layers, ...Object.keys(evaluatedEsriMapLayers)],
+    [activePhase4Layers, evaluatedEsriMapLayers],
   )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
@@ -1088,8 +1105,12 @@ export default function App() {
               setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI layer added: ${item.name}. Try: "What does this layer cover?"`}])
               setRightTab("chat")
             }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}
-              esriMapLayers={esriMapLayers}
+              esriMapLayers={evaluatedEsriMapLayers}
               onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:layer})}
+              onMapLayerFilterChange={(layerId,filterMode)=>setEsriMapLayers(previous=>({
+                ...previous,
+                [layerId]: {...previous[layerId],filterMode},
+              }))}
               onMapLayerRemove={layerId=>setEsriMapLayers(previous=>{
                 const next = {...previous}
                 delete next[layerId]
@@ -1159,12 +1180,20 @@ function NOAAEndpointRow({ep, cached, onFetch}) {
 }
 
 // ── ESRI panel component ──────────────────────────────────────────────────────
-function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd, onMapLayerRemove}) {
+function manualArcGISItemId(url) {
+  let hash = 0
+  for (const char of String(url)) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0
+  return `manual_${Math.abs(hash)}`
+}
+
+function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove}) {
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal]     = useState(0)
   const [mapState, setMapState] = useState({})
+  const [manualUrl, setManualUrl] = useState("")
+  const [manualName, setManualName] = useState("")
 
   const search = async () => {
     if (!query.trim()) return
@@ -1187,7 +1216,7 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
     [itemId]: { ...previous[itemId], ...updates },
   }))
 
-  const addItemToMap = async item => {
+  const addItemToMap = async (item, entryPath="search") => {
     const current = mapState[item.id] || {}
     updateMapState(item.id, {loading:true,error:""})
     try {
@@ -1200,13 +1229,24 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
         }
       }
       const selected = layers.find(layer => layer.url === current.selectedUrl) || layers[0]
-      const layer = await fetchArcGISLayer(item, selected)
-      onMapLayerAdd(layer)
+      const layer = await fetchArcGISLayer(item, selected, {entryPath,color:item.color})
       updateMapState(item.id, {loading:false,layers,selectedUrl:selected.url,error:""})
+      onMapLayerAdd(layer)
     } catch (error) {
       updateMapState(item.id, {loading:false,error:error.message || "Unable to load this ArcGIS layer"})
     }
   }
+
+  const manualItem = manualUrl.trim() ? {
+    id:manualArcGISItemId(manualUrl.trim()),
+    title:manualName.trim() || "Pasted ArcGIS Feature Service",
+    owner:"User-provided ArcGIS service",
+    type:/\/MapServer(?:\/\d+)?\/?$/i.test(manualUrl.trim()) ? "Map Service" : "Feature Service",
+    url:manualUrl.trim(),
+    color:"#60a5fa",
+  } : null
+  const manualMapState = manualItem ? mapState[manualItem.id] || {} : {}
+  const manualSelectedLayer = manualMapState.layers?.find(layer=>layer.url===manualMapState.selectedUrl) || manualMapState.layers?.[0]
 
   return (
     <div style={{flex:1,overflowY:"auto",padding:"16px 18px"}}>
@@ -1216,6 +1256,28 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
         <button onClick={search} disabled={loading} style={{padding:"6px 14px",borderRadius:4,fontSize:10,border:"1px solid #a78bfa33",background:"transparent",color:"#a78bfa",cursor:"pointer",fontFamily:"inherit",opacity:loading?0.5:1}}>
           {loading?"…":"🔍 Search"}
         </button>
+      </div>
+      <div style={{marginBottom:12,padding:"9px 10px",border:"1px solid #1a1e28",borderRadius:6,background:"#090d14"}}>
+        <div style={{fontSize:9.5,color:"#60a5fa",fontWeight:700,marginBottom:6}}>MAP BUILDER · PASTE FEATURE SERVICE</div>
+        <input value={manualUrl} onChange={event=>setManualUrl(event.target.value)} placeholder="https://…/FeatureServer or /FeatureServer/0" style={{width:"100%",boxSizing:"border-box",background:"#0d1117",border:"1px solid #1a1e28",borderRadius:4,padding:"5px 8px",color:"#e0e0e8",fontFamily:"inherit",fontSize:9.5,outline:"none",marginBottom:5}}/>
+        <div style={{display:"flex",gap:5}}>
+          <input value={manualName} onChange={event=>setManualName(event.target.value)} placeholder="Layer name (optional)" style={{flex:1,minWidth:0,background:"#0d1117",border:"1px solid #1a1e28",borderRadius:4,padding:"5px 8px",color:"#e0e0e8",fontFamily:"inherit",fontSize:9.5,outline:"none"}}/>
+          <button onClick={()=>manualItem&&addItemToMap(manualItem,"pasted_url")} disabled={!manualItem||manualMapState.loading} style={{padding:"3px 9px",borderRadius:4,fontSize:9,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:manualMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:!manualItem||manualMapState.loading?0.5:1}}>{manualMapState.loading?"Loading…":"+ Add URL"}</button>
+        </div>
+        {manualMapState.layers?.length>1 && <select aria-label="Pasted service sublayer" value={manualSelectedLayer?.url||""} onChange={event=>updateMapState(manualItem.id,{selectedUrl:event.target.value,error:""})} style={{width:"100%",marginTop:6,background:"#0d1117",border:"1px solid #60a5fa44",borderRadius:4,padding:"4px 6px",color:"#9dc7f3",fontFamily:"inherit",fontSize:9}}>{manualMapState.layers.map(layer=><option key={layer.url} value={layer.url}>{layer.id}: {layer.name}</option>)}</select>}
+        {manualMapState.layers?.length>1 && <button onClick={()=>addItemToMap(manualItem,"pasted_url")} style={{marginTop:5,padding:"2px 9px",borderRadius:4,fontSize:9,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit"}}>+ Add selected sublayer</button>}
+        {manualMapState.error && <div role="alert" style={{marginTop:5,fontSize:9,color:"#f87171"}}>{manualMapState.error}</div>}
+      </div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:9.5,color:"#facc15",fontWeight:700,marginBottom:6}}>LIVING ATLAS QUICK-ADDS</div>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+          {MAP_BUILDER_PRESETS.map(preset=>{
+            const mapped = mappedLayers.some(layer=>layer.ownerItemId===preset.id)
+            const supported = preset.type === "Feature Layer" && isQueryableArcGISServiceUrl(preset.url)
+            return <button key={preset.id} onClick={()=>supported&&!mapped&&addItemToMap({...preset,title:preset.name},"quick_add")} disabled={!supported||mapped} title={!supported?"Map Services, imagery, and vector tiles cannot be added as queryable features":preset.owner} style={{padding:"3px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${preset.color}44`,background:mapped?`${preset.color}12`:"transparent",color:supported?preset.color:"#445",cursor:supported&&!mapped?"pointer":"default",fontFamily:"inherit"}}>{mapped?"✓ ":supported?"+ ":"Unavailable · "}{preset.name}</button>
+          })}
+        </div>
+        <div style={{marginTop:5,fontSize:8.5,color:"#556"}}>Map Services, imagery, and vector tiles remain unfiltered; non-queryable quick-adds are disabled.</div>
       </div>
       {total>0 && <div style={{fontSize:9,color:"#334",marginBottom:8}}>{total.toLocaleString()} results</div>}
       {results.map(item=>{
@@ -1255,7 +1317,7 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
             {canMap && (selectedIsMapped ? (
               <button onClick={()=>onMapLayerRemove(selectedMapId)} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee55",background:"#22d3ee12",color:"#22d3ee",cursor:"pointer",fontFamily:"inherit"}}>− Remove from Map</button>
             ) : (
-              <button onClick={()=>addItemToMap(item)} disabled={itemMapState.loading} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee44",background:"transparent",color:"#22d3ee",cursor:itemMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:itemMapState.loading?0.55:1}}>
+              <button onClick={()=>addItemToMap(item,"search")} disabled={itemMapState.loading} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee44",background:"transparent",color:"#22d3ee",cursor:itemMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:itemMapState.loading?0.55:1}}>
                 {itemMapState.loading?"Loading…":itemMapState.layers?.length>1?"+ Add Selected to Map":"+ Add to Map"}
               </button>
             ))}
@@ -1264,8 +1326,29 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
           </div>
           {itemMappedLayers.length>0 && <div style={{marginTop:5,fontSize:9,color:"#22d3ee88"}}>{itemMappedLayers.map(layer=>`${layer.name} (${layer.count.toLocaleString()} features)`).join(" · ")}</div>}
           {itemMapState.error && <div role="alert" style={{marginTop:5,fontSize:9,color:"#f87171"}}>{itemMapState.error}</div>}
+          {!canMap && <div style={{marginTop:5,fontSize:9,color:"#667"}}>Map and geography filtering unavailable for this item type.</div>}
         </div>
       )})}
+      {mappedLayers.length>0 && (
+        <div style={{marginTop:16,borderTop:"1px solid #15303a",paddingTop:12}}>
+          <div style={{fontSize:9.5,color:"#22d3ee",fontWeight:700,marginBottom:7}}>MAP BUILDER LAYERS ({mappedLayers.length})</div>
+          {mappedLayers.map(layer=>{
+            const filter = layer.filter
+            const fallback = filter.requestedMode!==filter.effectiveMode
+            return <div key={layer.id} style={{marginBottom:8,padding:"7px 8px",border:"1px solid #16313a",borderRadius:5,background:"#071018"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"center"}}>
+                <span style={{fontSize:9.5,color:layer.color,fontWeight:700}}>{layer.name}</span>
+                <button aria-label={`Remove ${layer.name} from map`} onClick={()=>onMapLayerRemove(layer.id)} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
+              </div>
+              <div style={{fontSize:8.5,color:"#557",margin:"3px 0 5px"}}>{layer.entryPath.replaceAll("_"," ")} · <a href={layer.originalUrl||layer.url} target="_blank" rel="noopener noreferrer" style={{color:"#668"}}>original service</a></div>
+              <select aria-label={`Geography filter for ${layer.name}`} value={layer.filterMode||MAP_BUILDER_FILTER_MODES.UNFILTERED} onChange={event=>onMapLayerFilterChange(layer.id,event.target.value)} disabled={!filter.supported} title={!filter.supported?"Geography filtering is available only for queryable Feature Layers":"Applied after Add to Map"} style={{width:"100%",background:"#0d1117",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:filter.supported?"#9de7f3":"#445",fontFamily:"inherit",fontSize:9}}>
+                {Object.entries(MAP_BUILDER_FILTER_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
+              </select>
+              <div style={{marginTop:4,fontSize:8.5,color:fallback?"#facc15":"#667"}}>{fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); displaying unfiltered.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
+            </div>
+          })}
+        </div>
+      )}
       {esriItems.length>0 && (
         <div style={{marginTop:16,borderTop:"1px solid #111820",paddingTop:12}}>
           <div style={{fontSize:9.5,color:"#a78bfa",fontWeight:700,marginBottom:6}}>{esriItems.length} layer(s) in KB:</div>

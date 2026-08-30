@@ -1,12 +1,12 @@
 # Long Island Data Integration: Approved Phase 3 and Phase 4 Scope
 
-Status: approved for implementation
+Status: implemented and closed on 2026-08-30
 
 Approval date: 2026-08-28
 
 ## Outcome
 
-Phase 3 will qualify and normalize the approved regional sources, including five active Rockaway operational source families. Phase 4 will display the resulting records with equivalent source cards and map layers in both React/Vercel and Streamlit.
+Phase 3 qualified and normalized the approved regional sources. Phase 4 displays the resulting records with equivalent source cards, map layers, Living Atlas search-to-map behavior, and Map Builder geography modes in React/Vercel and Streamlit.
 
 The active Rockaway source families are:
 
@@ -129,7 +129,7 @@ The shared geography contract will distinguish:
 ## Phase 4: React and Streamlit display parity
 
 Phase 4 now provides equivalent user-facing source cards and map toggles for
-both React/Vercel and Streamlit. The Map Builder geography-mode slice remains.
+both React/Vercel and Streamlit, including the completed Map Builder geography modes.
 
 The Rockaway display set is:
 
@@ -150,26 +150,25 @@ Each interface must:
 - Produce the same record counts for the same normalized snapshot, allowing only presentation differences.
 - Keep county and regional layers visually distinct from Rockaway-specific layers.
 
-### Phase 4 regional-boundary display and remaining Map Builder work
+### Phase 4 regional-boundary display and Map Builder closeout
 
-County and utility-responsibility overlays are now active in both interfaces.
-The remaining Map Builder work will:
+County and utility-responsibility overlays and the shared Map Builder filtering contract are active in both interfaces. The delivered Map Builder behavior:
 
-- Add two selectable filtering modes for supported Map Builder Feature Layers:
+- Provides unfiltered display plus two selectable filtering modes for supported Map Builder Feature Layers:
   - **Limit to operational geography** uses Nassau, Suffolk, and the approved
     Rockaway geography and preserves assets inside municipal utility areas.
   - **Limit to PSEG Long Island territory** uses only the validated LIPA/PSEG
     service polygon and excludes municipal and other non-PSEG territory.
-- Apply the selected mode through the shared Map Builder Feature Layer contract
+- Applies the selected mode through the shared Map Builder Feature Layer contract
   regardless of whether a layer was added through ESRI/Living Atlas search,
   Living Atlas quick-add, or a pasted Feature Service URL. This includes the
   hospitals and fire/EMS stations quick-adds.
-- Label filtering as a display/query scope applied after **Add to Map**; it does
+- Labels filtering as a display/query scope applied after **Add to Map**; it does
   not narrow Living Atlas search results or change the upstream source dataset.
-- Disable the geography modes with an explanation for Map Services, imagery,
+- Disables the geography modes with an explanation for Map Services, imagery,
   vector tiles, or other layer types that cannot honor the shared Feature Layer
   spatial-filter contract.
-- Keep the original nationwide service URL and source attribution visible so a
+- Keeps the original nationwide service URL and source attribution visible so a
   geographic display filter is not mistaken for a locally owned or complete
   local dataset.
 

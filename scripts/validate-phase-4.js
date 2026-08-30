@@ -42,18 +42,32 @@ assert.equal(sources.nypd_incidents_rockaway.enabled, false)
 assert.match(sources.nypd_incidents_rockaway.gate, /historical/i)
 
 const reactSource = fs.readFileSync(path.join(root, "src", "App.jsx"), "utf8")
+const reactMapBuilderFilters = fs.readFileSync(path.join(root, "src", "data", "mapBuilderFilters.js"), "utf8")
 const streamlitSource = fs.readFileSync(path.join(root, "streamlit", "app.py"), "utf8")
+const streamlitMapBuilderFilters = fs.readFileSync(path.join(root, "streamlit", "map_builder_filters.py"), "utf8")
 for (const sourceText of [reactSource, streamlitSource]) {
   assert.match(sourceText, /phase4Source|phase4_source/)
   assert.match(sourceText, /Polygon/)
   assert.match(sourceText, /partial/)
   assert.match(sourceText, /unavailable/)
 }
+for (const sourceText of [reactMapBuilderFilters, streamlitMapBuilderFilters]) {
+  assert.match(sourceText, /Limit to operational geography/)
+  assert.match(sourceText, /Limit to PSEG Long Island territory/)
+  assert.match(sourceText, /unfiltered/i)
+}
+assert.match(reactSource, /MAP_BUILDER_PRESETS/)
+assert.match(streamlitSource, /filter_masks_by_mode/)
 
 assert.equal(
   fs.existsSync(path.join(root, "fixtures", "long-island-sources", "phase-4-display.json")),
   true,
   "missing Phase 4 parity fixture",
 )
+assert.equal(
+  fs.existsSync(path.join(root, "fixtures", "long-island-sources", "map-builder-filter-parity.json")),
+  true,
+  "missing Map Builder filter parity fixture",
+)
 
-console.log(`✓ Phase 4 display gate valid: ${activeSourceIds.length} active sources, cooling centers visibly gated`)
+console.log(`✓ Phase 4 closeout gate valid: ${activeSourceIds.length} active sources, Map Builder parity, cooling centers visibly gated`)
