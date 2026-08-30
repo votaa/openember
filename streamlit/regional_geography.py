@@ -11,6 +11,14 @@ from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parent.parent
 GEOGRAPHY_FILTER_MODES = {"operational", "pseg_long_island"}
+_POLYGON_VALIDITY_CACHE: dict[int, tuple[dict, bool]] = {}
+_POLYGON_BOUNDS_CACHE: dict[int, tuple[dict, tuple[float, float, float, float]]] = {}
+
+
+def _bounded_cache_store(cache: dict, key: int, value: tuple) -> None:
+    if len(cache) >= 256:
+        cache.clear()
+    cache[key] = value
 
 
 def load_sources() -> dict[str, dict[str, Any]]:
@@ -72,15 +80,20 @@ def _valid_ring(ring: Any) -> bool:
 def valid_polygon_geometry(geometry: Any) -> bool:
     if not isinstance(geometry, dict) or not isinstance(geometry.get("coordinates"), list):
         return False
+    cached = _POLYGON_VALIDITY_CACHE.get(id(geometry))
+    if cached and cached[0] is geometry:
+        return cached[1]
     coordinates = geometry["coordinates"]
+    valid = False
     if geometry.get("type") == "Polygon":
-        return bool(coordinates) and all(_valid_ring(ring) for ring in coordinates)
-    if geometry.get("type") == "MultiPolygon":
-        return bool(coordinates) and all(
+        valid = bool(coordinates) and all(_valid_ring(ring) for ring in coordinates)
+    elif geometry.get("type") == "MultiPolygon":
+        valid = bool(coordinates) and all(
             isinstance(polygon, list) and bool(polygon) and all(_valid_ring(ring) for ring in polygon)
             for polygon in coordinates
         )
-    return False
+    _bounded_cache_store(_POLYGON_VALIDITY_CACHE, id(geometry), (geometry, valid))
+    return valid
 
 
 def _point_on_segment(point: list, start: list, end: list) -> bool:
@@ -151,8 +164,29 @@ def _outer_rings(geometry: dict) -> list[list]:
     return [polygon[0] for polygon in polygons]
 
 
+def _geometry_bounds(geometry: dict) -> tuple[float, float, float, float]:
+    cached = _POLYGON_BOUNDS_CACHE.get(id(geometry))
+    if cached and cached[0] is geometry:
+        return cached[1]
+    points = [point for ring in _polygon_rings(geometry) for point in ring]
+    bounds = (
+        min(float(point[0]) for point in points),
+        min(float(point[1]) for point in points),
+        max(float(point[0]) for point in points),
+        max(float(point[1]) for point in points),
+    )
+    _bounded_cache_store(_POLYGON_BOUNDS_CACHE, id(geometry), (geometry, bounds))
+    return bounds
+
+
+def _bounds_intersect(left: tuple[float, float, float, float], right: tuple[float, float, float, float]) -> bool:
+    return left[0] <= right[2] and left[2] >= right[0] and left[1] <= right[3] and left[3] >= right[1]
+
+
 def polygons_intersect(left: dict, right: dict) -> bool:
     if not valid_polygon_geometry(left) or not valid_polygon_geometry(right):
+        return False
+    if not _bounds_intersect(_geometry_bounds(left), _geometry_bounds(right)):
         return False
     for left_ring in _polygon_rings(left):
         for right_ring in _polygon_rings(right):

@@ -17,6 +17,8 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const fixturePath = path.join(root, "fixtures", "long-island-sources", "phase-3-rockaway-normalization.json")
 const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"))
+const spatialFixturePath = path.join(root, "fixtures", "long-island-sources", "phase-3-rockaway-spatial-qualification.json")
+const spatialFixture = JSON.parse(fs.readFileSync(spatialFixturePath, "utf8"))
 const sources = Object.fromEntries(SOURCE_REGISTRY.map((source) => [source.id, source]))
 
 function javascriptOutput() {
@@ -31,6 +33,19 @@ function javascriptOutput() {
   ]))
 }
 
+function spatialJavascriptOutput() {
+  return Object.fromEntries(spatialFixture.cases.map((fixtureCase) => [
+    fixtureCase.source_id,
+    normalizeRockawayPayload(
+      sources[fixtureCase.source_id],
+      fixtureCase.rows || fixtureCase.payload,
+      spatialFixture.fetched_at,
+      spatialFixture.evaluated_at,
+      spatialFixture.geography_records,
+    ),
+  ]))
+}
+
 test("React and Streamlit normalize the shared Rockaway fixture identically", () => {
   const python = JSON.parse(execFileSync(
     "python3",
@@ -38,6 +53,34 @@ test("React and Streamlit normalize the shared Rockaway fixture identically", ()
     { encoding: "utf8" },
   ))
   assert.deepEqual(javascriptOutput(), python)
+})
+
+test("React and Streamlit spatially qualify NYPD points and NYCHA polygons identically", () => {
+  const python = JSON.parse(execFileSync(
+    "python3",
+    [path.join(root, "streamlit", "regional_normalization.py"), "--fixture", spatialFixturePath],
+    { encoding: "utf8" },
+  ))
+  const output = spatialJavascriptOutput()
+  assert.deepEqual(output, python)
+  assert.deepEqual(output.nypd_incidents_rockaway.records.map(record => record.properties.source_record_id), ["spatial-nypd-in"])
+  assert.equal(output.nypd_incidents_rockaway.records[0].geometry.type, "Point")
+  assert.equal(output.nypd_incidents_rockaway.records[0].observed_at, "2026-06-30T20:00:00")
+  assert.deepEqual(output.nycha_developments_rockaway.records.map(record => record.title), ["HAMMEL"])
+  assert.equal(output.nycha_developments_rockaway.records[0].geometry.type, "MultiPolygon")
+})
+
+test("spatial sources fail closed when the authoritative CB14 mask is missing", () => {
+  for (const fixtureCase of spatialFixture.cases) {
+    const result = normalizeRockawayPayload(
+      sources[fixtureCase.source_id],
+      fixtureCase.rows || fixtureCase.payload,
+      spatialFixture.fetched_at,
+      spatialFixture.evaluated_at,
+    )
+    assert.equal(result.data_state, "unavailable")
+    assert.equal(result.reason, "missing_spatial_mask")
+  }
 })
 
 test("out-of-scope rows make a response partial instead of a false current zero", () => {
@@ -85,11 +128,11 @@ test("React and Streamlit derive equivalent Phase 4 source cards", () => {
 })
 
 test("bounded source queries carry their approved filter and limit", () => {
-  for (const sourceId of ["nyc_311_rockaway"]) {
+  for (const sourceId of ["nyc_311_rockaway", "nypd_incidents_rockaway", "nycha_developments_rockaway"]) {
     const source = sources[sourceId]
     const url = new URL(buildRockawayQueryUrl(source))
     assert.equal(url.searchParams.get("$where"), source.required_filter)
-    assert.equal(url.searchParams.get("$limit"), "500")
-    assert.equal(url.searchParams.get("$order"), source.query_order)
+    assert.equal(url.searchParams.get("$limit"), String(source.query_limit))
+    if (source.query_order) assert.equal(url.searchParams.get("$order"), source.query_order)
   }
 })

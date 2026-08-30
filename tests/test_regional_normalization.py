@@ -18,6 +18,9 @@ unavailable_rockaway_result = MODULE.unavailable_rockaway_result
 FIXTURE = json.loads(
     (ROOT / "fixtures" / "long-island-sources" / "phase-3-rockaway-normalization.json").read_text()
 )
+SPATIAL_FIXTURE = json.loads(
+    (ROOT / "fixtures" / "long-island-sources" / "phase-3-rockaway-spatial-qualification.json").read_text()
+)
 SOURCES = load_sources()
 
 
@@ -54,10 +57,31 @@ class RegionalNormalizationTests(unittest.TestCase):
         self.assertIn("%24where=", query_url)
         self.assertIn("%24limit=500", query_url)
 
-        gated = SOURCES["nypd_incidents_rockaway"]
-        gated_card = rockaway_source_card(gated, unavailable_rockaway_result(gated))
-        self.assertFalse(gated_card["map_capable"])
-        self.assertIn("point-in-polygon", gated_card["note"])
+        qualified = SOURCES["nypd_incidents_rockaway"]
+        qualified_card = rockaway_source_card(qualified, unavailable_rockaway_result(qualified))
+        self.assertFalse(qualified_card["map_capable"])
+        self.assertIn("Phase 4", qualified_card["note"])
+
+    def test_spatial_point_and_polygon_qualification(self):
+        output = {
+            case["source_id"]: normalize_rockaway_payload(
+                SOURCES[case["source_id"]], case.get("rows", case.get("payload")),
+                SPATIAL_FIXTURE["fetched_at"], SPATIAL_FIXTURE["evaluated_at"],
+                SPATIAL_FIXTURE["geography_records"],
+            )
+            for case in SPATIAL_FIXTURE["cases"]
+        }
+        self.assertEqual([record["properties"]["source_record_id"] for record in output["nypd_incidents_rockaway"]["records"]], ["spatial-nypd-in"])
+        self.assertEqual([record["title"] for record in output["nycha_developments_rockaway"]["records"]], ["HAMMEL"])
+        self.assertEqual(output["nycha_developments_rockaway"]["records"][0]["observed_at"], "2026-05-15T15:07:23.000Z")
+
+    def test_spatial_qualification_requires_cb14_mask(self):
+        case = SPATIAL_FIXTURE["cases"][0]
+        result = normalize_rockaway_payload(
+            SOURCES[case["source_id"]], case["rows"], SPATIAL_FIXTURE["fetched_at"], SPATIAL_FIXTURE["evaluated_at"]
+        )
+        self.assertEqual(result["data_state"], "unavailable")
+        self.assertEqual(result["reason"], "missing_spatial_mask")
 
 
 if __name__ == "__main__":

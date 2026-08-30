@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from regional_geography import geometry_intersects_mask
 VALID_DATA_STATES = {"current", "stale", "partial", "unavailable", "access_required"}
 ROCKAWAY_SOURCE_IDS = [
     "nyc_311_rockaway",
@@ -42,9 +45,7 @@ def _text(value: Any) -> str | None:
     return result or None
 
 
-def _matches_scope(row: dict[str, Any], scope: dict[str, Any] | None) -> bool:
-    if not scope or scope.get("kind") != "all_fields":
-        return False
+def _matches_field_scope(row: dict[str, Any], scope: dict[str, Any]) -> bool:
     for requirement in scope.get("fields", []):
         actual = _text(row.get(requirement["field"]))
         expected = {str(value).upper() for value in requirement.get("values", [])}
@@ -57,11 +58,14 @@ def _geometry(row: dict[str, Any], contract: dict[str, Any]) -> dict[str, Any] |
     kind = contract.get("kind")
     if kind == "none":
         return None
+    if kind == "feature_geometry":
+        return row.get("geometry") if isinstance(row.get("geometry"), dict) else None
     if kind != "point_fields":
         raise ValueError("unsupported_geometry_contract")
     try:
-        latitude = float(row[contract["latitude_field"]])
-        longitude = float(row[contract["longitude_field"]])
+        properties = row.get("properties") if row.get("type") == "Feature" else row
+        latitude = float(properties[contract["latitude_field"]])
+        longitude = float(properties[contract["longitude_field"]])
     except (KeyError, TypeError, ValueError):
         return None
     if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
@@ -78,34 +82,72 @@ def _status(row: dict[str, Any], contract: dict[str, Any]) -> str | None:
     return None
 
 
+def _observed_timestamp(row: dict[str, Any], source: dict[str, Any], contract: dict[str, Any]) -> str | None:
+    date_value = _text(row.get(contract.get("observed_at_field")))
+    time_value = _text(row.get(contract.get("observed_time_field")))
+    if date_value and time_value:
+        return f"{date_value[:10]}T{time_value}"
+    return date_value or _text(source.get("source_updated_at"))
+
+
+def _mask_for_scope(geography_records: list[dict[str, Any]], scope: dict[str, Any]) -> dict[str, Any] | None:
+    return next(
+        (
+            record.get("geometry")
+            for record in geography_records
+            if record.get("source_id") == scope.get("mask_source_id")
+            and record.get("scope_key") == scope.get("mask_scope_key")
+        ),
+        None,
+    )
+
+
+def _matches_scope(
+    row: dict[str, Any], scope: dict[str, Any] | None, geometry: dict[str, Any] | None,
+    geography_records: list[dict[str, Any]],
+) -> bool:
+    if scope and scope.get("kind") == "all_fields":
+        return _matches_field_scope(row, scope)
+    if scope and scope.get("kind") == "geometry_intersects":
+        mask = _mask_for_scope(geography_records, scope)
+        return bool(mask and geometry and geometry_intersects_mask(geometry, mask))
+    return False
+
+
 def normalize_rockaway_record(
-    source: dict[str, Any], row: Any, fetched_at: str, data_state: str = "current"
+    source: dict[str, Any], row: Any, fetched_at: str, data_state: str = "current",
+    geography_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any] | None:
     contract = source.get("normalization")
     if not contract:
         raise ValueError("source_not_normalizable")
     if data_state not in VALID_DATA_STATES:
         raise ValueError("invalid_data_state")
-    if not isinstance(row, dict) or not _matches_scope(row, contract.get("scope")):
+    if not isinstance(row, dict):
+        return None
+    properties_row = row.get("properties") if row.get("type") == "Feature" else row
+    if not isinstance(properties_row, dict):
         return None
 
     geometry = _geometry(row, contract.get("geometry", {}))
-    if contract.get("geometry", {}).get("kind") == "point_fields" and geometry is None:
+    if contract.get("geometry", {}).get("kind") != "none" and geometry is None:
+        return None
+    if not _matches_scope(properties_row, contract.get("scope"), geometry, geography_records or []):
         return None
 
-    source_record_id = _text(row.get(contract["id_field"]))
-    observed_at = _text(row.get(contract["observed_at_field"]))
-    title = _text(row.get(contract["title_field"]))
+    source_record_id = _text(properties_row.get(contract["id_field"]))
+    observed_at = _observed_timestamp(properties_row, source, contract)
+    title = _text(properties_row.get(contract["title_field"]))
     if not source_record_id or not observed_at or not title:
         return None
 
     description = " ".join(
-        value for value in (_text(row.get(field)) for field in contract.get("description_fields", [])) if value
+        value for value in (_text(properties_row.get(field)) for field in contract.get("description_fields", [])) if value
     ) or None
     properties = {
-        field: row[field]
+        field: properties_row[field]
         for field in contract.get("audit_properties", [])
-        if field in row and row[field] is not None
+        if field in properties_row and properties_row[field] is not None
     }
     properties["source_record_id"] = source_record_id
     if source.get("source_timestamp_timezone"):
@@ -120,9 +162,9 @@ def normalize_rockaway_record(
         "fetched_at": fetched_at,
         "expires_at": _add_seconds(fetched_at, source.get("stale_after_seconds", 0)),
         "geometry": geometry,
-        "category": _text(row.get(contract.get("category_field"))),
-        "severity": _text(row.get(contract.get("severity_field"))) if contract.get("severity_field") else None,
-        "status": _status(row, contract),
+        "category": _text(properties_row.get(contract.get("category_field"))) or _text(contract.get("category_value")),
+        "severity": _text(properties_row.get(contract.get("severity_field"))) if contract.get("severity_field") else None,
+        "status": _text(contract.get("status_value")) or _status(properties_row, contract),
         "title": title,
         "description": description,
         "properties": properties,
@@ -133,18 +175,23 @@ def normalize_rockaway_record(
 
 
 def normalize_rockaway_payload(
-    source: dict[str, Any], payload: Any, fetched_at: str, evaluated_at: str | None = None
+    source: dict[str, Any], payload: Any, fetched_at: str, evaluated_at: str | None = None,
+    geography_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not source.get("normalization"):
         return {"records": [], "data_state": source.get("failure_state", "unavailable"), "reason": "source_not_normalizable", "rejected_count": 0}
-    if not isinstance(payload, list):
+    rows = payload.get("features") if source["normalization"].get("payload_kind") == "feature_collection" and isinstance(payload, dict) and payload.get("type") == "FeatureCollection" else payload if isinstance(payload, list) else None
+    if not isinstance(rows, list):
         return {"records": [], "data_state": "unavailable", "reason": "malformed_payload", "rejected_count": 0}
-    if not payload:
+    if not rows:
         return {"records": [], "data_state": "partial", "reason": "empty_payload", "rejected_count": 0}
 
-    records = [normalize_rockaway_record(source, row, fetched_at) for row in payload]
+    scope = source["normalization"].get("scope", {})
+    if scope.get("kind") == "geometry_intersects" and not _mask_for_scope(geography_records or [], scope):
+        return {"records": [], "data_state": "unavailable", "reason": "missing_spatial_mask", "rejected_count": 0}
+    records = [normalize_rockaway_record(source, row, fetched_at, geography_records=geography_records or []) for row in rows]
     records = [record for record in records if record is not None]
-    rejected_count = len(payload) - len(records)
+    rejected_count = len(rows) - len(records)
     expires_at = _parse_instant(_add_seconds(fetched_at, source.get("stale_after_seconds", 0)))
     is_stale = _parse_instant(evaluated_at or fetched_at) > expires_at
     data_state = "stale" if is_stale else "partial" if rejected_count else "current"
@@ -182,7 +229,8 @@ def unavailable_rockaway_result(source: dict[str, Any]) -> dict[str, Any]:
 
 
 def fetch_rockaway_source(
-    source: dict[str, Any], request_get: Any, fetched_at: str | None = None
+    source: dict[str, Any], request_get: Any, fetched_at: str | None = None,
+    geography_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     if not source.get("enabled"):
         return unavailable_rockaway_result(source)
@@ -195,7 +243,7 @@ def fetch_rockaway_source(
     try:
         response = request_get(build_rockaway_query_url(source), timeout=10, headers={"Accept": "application/json"})
         response.raise_for_status()
-        result = normalize_rockaway_payload(source, response.json(), fetched_at)
+        result = normalize_rockaway_payload(source, response.json(), fetched_at, fetched_at, geography_records or [])
         result["fetched_at"] = fetched_at
         return result
     except Exception as exc:
@@ -238,7 +286,8 @@ def _fixture_output(path: Path) -> dict[str, Any]:
     sources = load_sources()
     return {
         case["source_id"]: normalize_rockaway_payload(
-            sources[case["source_id"]], case["rows"], fixture["fetched_at"], fixture["evaluated_at"]
+            sources[case["source_id"]], case.get("rows", case.get("payload")), fixture["fetched_at"], fixture["evaluated_at"],
+            fixture.get("geography_records", []),
         )
         for case in fixture["cases"]
     }

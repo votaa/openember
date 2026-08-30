@@ -63,9 +63,10 @@ Foundation status: implemented on 2026-08-29. React and Streamlit now have
 equivalent adapters, normalized polygon records, query builders, source-state
 handling, and point/line/polygon spatial predicates for the sources below.
 Fixture parity and live endpoint checks validate one CB14 polygon, three county
-polygons, and five selected electric-territory polygons. The remaining Phase 3
-work is to apply this foundation to the gated operational sources, especially
-NYPD and NYCHA, rather than create another geometry contract.
+polygons, and five selected electric-territory polygons. On 2026-08-29 the same
+foundation was applied to NYPD points and NYCHA multipolygons. Both now have
+shared React/Streamlit normalization contracts and fail closed without the
+authoritative CB14 mask; Phase 4 activation remains separate.
 
 The implemented NYS Civil Boundaries contract:
 

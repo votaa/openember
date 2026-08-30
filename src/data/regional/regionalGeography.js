@@ -1,4 +1,6 @@
 const VALID_DATA_STATES = new Set(["current", "stale", "partial", "unavailable"])
+const POLYGON_VALIDITY_CACHE = new WeakMap()
+const POLYGON_BOUNDS_CACHE = new WeakMap()
 export const GEOGRAPHY_FILTER_MODES = Object.freeze({
   OPERATIONAL: "operational",
   PSEG_LONG_ISLAND: "pseg_long_island",
@@ -42,14 +44,17 @@ function validRing(ring) {
 
 export function validPolygonGeometry(geometry) {
   if (!geometry || !Array.isArray(geometry.coordinates)) return false
+  if (POLYGON_VALIDITY_CACHE.has(geometry)) return POLYGON_VALIDITY_CACHE.get(geometry)
+  let valid = false
   if (geometry.type === "Polygon") {
-    return geometry.coordinates.length > 0 && geometry.coordinates.every(validRing)
+    valid = geometry.coordinates.length > 0 && geometry.coordinates.every(validRing)
   }
   if (geometry.type === "MultiPolygon") {
-    return geometry.coordinates.length > 0
+    valid = geometry.coordinates.length > 0
       && geometry.coordinates.every((polygon) => Array.isArray(polygon) && polygon.length > 0 && polygon.every(validRing))
   }
-  return false
+  POLYGON_VALIDITY_CACHE.set(geometry, valid)
+  return valid
 }
 
 function pointOnSegment(point, start, end) {
@@ -122,6 +127,24 @@ function outerRings(geometry) {
   return polygons.map((polygon) => polygon[0])
 }
 
+function geometryBounds(geometry) {
+  if (POLYGON_BOUNDS_CACHE.has(geometry)) return POLYGON_BOUNDS_CACHE.get(geometry)
+  const coordinates = polygonRings(geometry).flat()
+  const bounds = coordinates.reduce((result, point) => ({
+    minX: Math.min(result.minX, Number(point[0])),
+    minY: Math.min(result.minY, Number(point[1])),
+    maxX: Math.max(result.maxX, Number(point[0])),
+    maxY: Math.max(result.maxY, Number(point[1])),
+  }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
+  POLYGON_BOUNDS_CACHE.set(geometry, bounds)
+  return bounds
+}
+
+function boundsIntersect(left, right) {
+  return left.minX <= right.maxX && left.maxX >= right.minX
+    && left.minY <= right.maxY && left.maxY >= right.minY
+}
+
 function polygonBoundariesIntersect(left, right) {
   for (const leftRing of polygonRings(left)) {
     for (const rightRing of polygonRings(right)) {
@@ -137,6 +160,7 @@ function polygonBoundariesIntersect(left, right) {
 
 export function polygonsIntersect(left, right) {
   if (!validPolygonGeometry(left) || !validPolygonGeometry(right)) return false
+  if (!boundsIntersect(geometryBounds(left), geometryBounds(right))) return false
   if (polygonBoundariesIntersect(left, right)) return true
   return outerRings(left).some((ring) => pointInPolygon(ring[0], right))
     || outerRings(right).some((ring) => pointInPolygon(ring[0], left))

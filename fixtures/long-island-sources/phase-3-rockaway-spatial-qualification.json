@@ -1,0 +1,70 @@
+{
+  "fixture_version": 1,
+  "captured_on": "2026-08-29",
+  "notice": "Synthetic bounded spatial-contract samples. They must never be presented as current operational conditions.",
+  "fetched_at": "2026-08-29T18:00:00.000Z",
+  "evaluated_at": "2026-08-29T18:00:00.000Z",
+  "geography_records": [
+    {
+      "source_id": "nyc_cb14_boundary",
+      "scope_key": "rockaway",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-73.94, 40.54], [-73.73, 40.54], [-73.73, 40.63], [-73.94, 40.63], [-73.94, 40.54]]]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "source_id": "nypd_incidents_rockaway",
+      "rows": [
+        {
+          "cmplnt_num": "spatial-nypd-in",
+          "addr_pct_cd": "101",
+          "boro_nm": "QUEENS",
+          "cmplnt_fr_dt": "2026-06-30T00:00:00.000",
+          "cmplnt_fr_tm": "20:00:00",
+          "ofns_desc": "ROBBERY",
+          "pd_desc": "ROBBERY,BICYCLE",
+          "law_cat_cd": "FELONY",
+          "crm_atpt_cptd_cd": "COMPLETED",
+          "prem_typ_desc": "OTHER",
+          "latitude": "40.59147787",
+          "longitude": "-73.76675344"
+        },
+        {
+          "cmplnt_num": "spatial-nypd-out",
+          "addr_pct_cd": "105",
+          "boro_nm": "QUEENS",
+          "cmplnt_fr_dt": "2026-06-30T00:00:00.000",
+          "cmplnt_fr_tm": "19:00:00",
+          "ofns_desc": "OUTSIDE TEST",
+          "pd_desc": "Fixture rejection",
+          "law_cat_cd": "VIOLATION",
+          "crm_atpt_cptd_cd": "COMPLETED",
+          "prem_typ_desc": "STREET",
+          "latitude": "40.70",
+          "longitude": "-73.80"
+        }
+      ]
+    },
+    {
+      "source_id": "nycha_developments_rockaway",
+      "payload": {
+        "type": "FeatureCollection",
+        "features": [
+          {
+            "type": "Feature",
+            "properties": {"developmen": "HAMMEL", "tds_num": "075", "borough": "QUEENS"},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[-73.82, 40.58], [-73.80, 40.58], [-73.80, 40.60], [-73.82, 40.60], [-73.82, 40.58]]]]}
+          },
+          {
+            "type": "Feature",
+            "properties": {"developmen": "OUTSIDE TEST", "tds_num": "999", "borough": "QUEENS"},
+            "geometry": {"type": "MultiPolygon", "coordinates": [[[[-73.98, 40.70], [-73.96, 40.70], [-73.96, 40.72], [-73.98, 40.72], [-73.98, 40.70]]]]}
+          }
+        ]
+      }
+    }
+  ]
+}

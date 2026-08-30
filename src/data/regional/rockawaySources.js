@@ -28,7 +28,11 @@ export function unavailableRockawayResult(source) {
   }
 }
 
-export async function fetchRockawaySource(source, { fetchImpl = fetch, fetchedAt = new Date().toISOString() } = {}) {
+export async function fetchRockawaySource(source, {
+  fetchImpl = fetch,
+  fetchedAt = new Date().toISOString(),
+  geographyRecords = [],
+} = {}) {
   if (!source?.enabled) return unavailableRockawayResult(source)
   if (!source.normalization) return { ...unavailableRockawayResult(source), reason: "source_not_normalizable" }
 
@@ -39,7 +43,7 @@ export async function fetchRockawaySource(source, { fetchImpl = fetch, fetchedAt
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const payload = await response.json()
-    return { ...normalizeRockawayPayload(source, payload, fetchedAt), fetched_at: fetchedAt }
+    return { ...normalizeRockawayPayload(source, payload, fetchedAt, fetchedAt, geographyRecords), fetched_at: fetchedAt }
   } catch (error) {
     return {
       records: [],

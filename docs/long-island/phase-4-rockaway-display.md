@@ -36,7 +36,7 @@ React:
 3. Select the `ROCKAWAY` tab in the right panel.
 4. Confirm all five active cards are present and that only qualified sources attempt a fetch.
 5. Confirm the NYC 311 card also offers explicit `Hide from map` / `Show on map` controls and its popup identifies the source and observation time.
-6. Confirm cooling centers, evacuation centers, NYPD, and NYCHA show their explicit unavailable/gate reason.
+6. Confirm cooling centers and evacuation centers show their explicit unavailable/gate reason; activate and verify the qualified NYPD and NYCHA controls.
 
 Streamlit:
 
@@ -48,7 +48,7 @@ Streamlit:
 
 ## Remaining Phase 4 work
 
-The CB14 boundary/spatial adapter is still required before NYPD and NYCHA can become mappable. Cooling centers require a stable machine-readable activation contract. Hurricane evacuation centers require approved empty-result and activation semantics. Once those Phase 3 gates are resolved, their existing Phase 4 cards and controls can consume the newly normalized records without a separate interface-specific contract.
+The CB14 boundary/spatial adapter and shared NYPD/NYCHA normalization contracts are implemented. Phase 4 must fetch the CB14 mask before those sources, pass the normalized mask into their adapters, and activate equivalent cards and map controls in React and Streamlit. Cooling centers still require a stable machine-readable activation contract. Hurricane evacuation centers still require approved empty-result and activation semantics.
 
 Regional boundary infrastructure also remains incomplete. Phase 3 must activate
 and validate the configured NYS Civil Boundaries adapter for Nassau, Suffolk,

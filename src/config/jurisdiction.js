@@ -251,18 +251,54 @@ export const SOURCE_REGISTRY = [
     "family": "socrata",
     "endpoint": "https://data.cityofnewyork.us/resource/5uac-w243.json",
     "format": "json",
-    "qualification": "gated",
+    "qualification": "qualified",
     "enabled": false,
     "refresh_seconds": 86400,
     "stale_after_seconds": 1209600,
+    "query_select": "cmplnt_num,addr_pct_cd,boro_nm,cmplnt_fr_dt,cmplnt_fr_tm,ofns_desc,pd_desc,law_cat_cd,crm_atpt_cptd_cd,prem_typ_desc,latitude,longitude",
+    "required_filter": "boro_nm = 'QUEENS' AND latitude between 40.548164 and 40.615241 AND longitude between -73.932224 and -73.737991",
+    "query_order": "cmplnt_fr_dt DESC,cmplnt_fr_tm DESC",
+    "query_limit": 500,
+    "source_timestamp_timezone": "America/New_York",
     "attribution": "NYC Open Data / Police Department (NYPD)",
+    "normalization": {
+      "payload_kind": "rows",
+      "scope": {
+        "kind": "geometry_intersects",
+        "mask_source_id": "nyc_cb14_boundary",
+        "mask_scope_key": "rockaway"
+      },
+      "geometry": {
+        "kind": "point_fields",
+        "latitude_field": "latitude",
+        "longitude_field": "longitude"
+      },
+      "id_field": "cmplnt_num",
+      "observed_at_field": "cmplnt_fr_dt",
+      "observed_time_field": "cmplnt_fr_tm",
+      "category_field": "ofns_desc",
+      "severity_field": "law_cat_cd",
+      "status_field": "crm_atpt_cptd_cd",
+      "title_field": "ofns_desc",
+      "description_fields": [
+        "pd_desc",
+        "prem_typ_desc"
+      ],
+      "audit_properties": [
+        "addr_pct_cd",
+        "boro_nm",
+        "cmplnt_fr_tm",
+        "pd_desc",
+        "prem_typ_desc"
+      ]
+    },
     "display": {
       "icon": "🚔",
       "color": "#a78bfa",
       "kind": "historical",
       "map_capable": true
     },
-    "gate": "Authoritative CB14 point-in-polygon filter; precinct-only filtering is not accepted as Rockaway scope",
+    "gate": "Phase 4 display activation; authoritative CB14 point-in-polygon qualification is implemented",
     "failure_state": "unavailable"
   },
   {
@@ -275,18 +311,45 @@ export const SOURCE_REGISTRY = [
     "family": "socrata",
     "endpoint": "https://data.cityofnewyork.us/resource/phvi-damg.geojson",
     "format": "geojson",
-    "qualification": "gated",
+    "qualification": "qualified",
     "enabled": false,
     "refresh_seconds": 86400,
     "stale_after_seconds": 2592000,
+    "query_select": "developmen,tds_num,borough,the_geom",
+    "required_filter": "borough = 'QUEENS'",
+    "query_limit": 100,
+    "source_updated_at": "2026-05-15T15:07:23.000Z",
     "attribution": "NYC Open Data / New York City Housing Authority (NYCHA)",
+    "normalization": {
+      "payload_kind": "feature_collection",
+      "scope": {
+        "kind": "geometry_intersects",
+        "mask_source_id": "nyc_cb14_boundary",
+        "mask_scope_key": "rockaway"
+      },
+      "geometry": {
+        "kind": "feature_geometry"
+      },
+      "id_field": "tds_num",
+      "category_value": "Public housing development",
+      "status_value": "Reference",
+      "title_field": "developmen",
+      "description_fields": [
+        "borough"
+      ],
+      "audit_properties": [
+        "developmen",
+        "tds_num",
+        "borough"
+      ]
+    },
     "display": {
       "icon": "🏢",
       "color": "#fb923c",
       "kind": "reference",
       "map_capable": true
     },
-    "gate": "Authoritative CB14 polygon intersection or a spatially verified stable TDS allowlist",
+    "gate": "Phase 4 display activation; authoritative CB14 polygon-intersection qualification is implemented",
     "failure_state": "unavailable"
   },
   {

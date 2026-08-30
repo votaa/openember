@@ -17,3 +17,9 @@ Dates, identifiers, coordinates, and values in synthetic fixtures are illustrati
 and NYS DPS electric-territory contract tests. Its polygons are deliberately
 simplified test geometry, not cached runtime boundaries. Runtime adapters query
 the configured authoritative sources.
+
+`phase-3-rockaway-spatial-qualification.json` drives the shared NYPD point and
+NYCHA multipolygon qualification tests against a deliberately simplified CB14
+mask. It proves in-scope acceptance, out-of-scope rejection, missing-mask
+failure, and React/Streamlit parity without caching live incidents or housing
+geometry.
