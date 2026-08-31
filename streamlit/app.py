@@ -59,9 +59,14 @@ from map_builder_filters import (
     filter_supported as map_builder_filter_supported,
 )
 from map_interaction import (
+    MAP_RETURNED_OBJECTS,
+    map_component_key,
     map_feature_chat_prompt,
-    map_feature_from_popup,
+    map_feature_from_map_data,
     map_feature_popup_html,
+    map_feature_tooltip_html,
+    leaflet_geometry_parts,
+    reset_map_feature_selection,
 )
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
@@ -569,6 +574,36 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         tiles=basemap_url, name=basemap_name, attr=basemap_attr,
         overlay=False, control=True,
     ).add_to(m)
+
+    def add_vector_parts(
+        feature_group, geometry, color, popup_html, tooltip_html,
+        *, max_width=360, line_weight=3, line_opacity=0.8,
+        fill_opacity=0.14,
+    ):
+        """Render vectors directly so Streamlit-Folium receives click events."""
+        for part in leaflet_geometry_parts(geometry):
+            if part["kind"] == "line":
+                # Keep the visible line crisp while giving it a forgiving,
+                # nearly transparent interaction target for mouse and touch.
+                folium.PolyLine(
+                    locations=part["locations"], color=color,
+                    weight=line_weight, opacity=line_opacity,
+                    interactive=False,
+                ).add_to(feature_group)
+                folium.PolyLine(
+                    locations=part["locations"], color=color,
+                    weight=max(12, line_weight), opacity=0.01,
+                    popup=folium.Popup(popup_html, max_width=max_width),
+                    tooltip=tooltip_html,
+                ).add_to(feature_group)
+            elif part["kind"] == "polygon":
+                folium.Polygon(
+                    locations=part["locations"], color=color,
+                    weight=2, opacity=0.9,
+                    fill=True, fill_color=color, fill_opacity=fill_opacity,
+                    popup=folium.Popup(popup_html, max_width=max_width),
+                    tooltip=tooltip_html,
+                ).add_to(feature_group)
     # NEXRAD radar tiles with 5-min cache buster
     if show_radar:
         epoch_5min = int(_time.time() // 300)
@@ -592,18 +627,34 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
             color   = gauge_marker_color(gd)
             lft     = ld.get("level_ft", 0)
             status  = ld.get("status", "NORMAL")
-            popup_h = build_gauge_popup(gd)
+            station_name = str(ld.get("station_name") or sid or "Tidal gauge")
+            gauge_description = f"Water level: {lft:.2f}ft MLLW · {status}"
+            popup_h = map_feature_popup_html(
+                build_gauge_popup(gd),
+                station_name,
+                "Live Tidal Gauges (CO-OPS)",
+                "Point",
+                gauge_description,
+            )
+            tooltip_h = map_feature_tooltip_html(
+                f"🌊 {station_name} — {lft:.2f}ft MLLW — {status}",
+                station_name,
+                "Live Tidal Gauges (CO-OPS)",
+                "Point",
+                gauge_description,
+            )
 
             # Pulsing circle — outer ring shows flood status, inner solid
             folium.CircleMarker(
                 location=[lat, lng], radius=16,
                 color=color, fill=False, weight=2, opacity=0.5,
+                interactive=False,
             ).add_to(tg_fg)
             folium.CircleMarker(
                 location=[lat, lng], radius=9,
                 color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2,
                 popup=folium.Popup(popup_h, max_width=280),
-                tooltip=f"🌊 {ld.get('station_name','Station')} — {lft:.2f}ft MLLW — {status}",
+                tooltip=tooltip_h,
             ).add_to(tg_fg)
 
             # Level label
@@ -615,7 +666,8 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                          f'border:1px solid {color}55;white-space:nowrap;margin-top:14px;margin-left:12px">'
                          f'{lft:.2f}ft</div>',
                     icon_size=(60, 20), icon_anchor=(0, 0)
-                )
+                ),
+                interactive=False,
             ).add_to(tg_fg)
 
         tg_fg.add_to(m)
@@ -644,11 +696,36 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
             popup_html = (f'<div style="font-family:monospace;font-size:11px">'
                           f'<b style="color:{marker_color}">{f["name"]}</b><br>'
                           f'<span style="color:#778">{f["note"]}</span>{live_html}</div>')
+            description = str(f.get("note") or "")
+            if reading:
+                reading_description = (
+                    f'{reading.get("level", "?")} {reading.get("unit", "")} · '
+                    f'{reading.get("status", "").upper()}'
+                ).strip(" ·")
+                description = " · ".join(filter(None, [description, reading_description]))
+            popup_html = map_feature_popup_html(
+                popup_html,
+                str(f.get("name") or layer["label"]),
+                str(layer["label"]),
+                "Point",
+                description,
+            )
+            tooltip_label = f'{f["name"]}' + (
+                f' — {reading.get("level", "?")} {reading.get("unit", "")}'
+                if reading else ""
+            )
+            tooltip_html = map_feature_tooltip_html(
+                tooltip_label,
+                str(f.get("name") or layer["label"]),
+                str(layer["label"]),
+                "Point",
+                description,
+            )
             folium.CircleMarker(
                 location=[f["lat"], f["lng"]], radius=8,
                 color=marker_color, fill=True, fill_color=marker_color, fill_opacity=0.6,
                 popup=folium.Popup(popup_html, max_width=240),
-                tooltip=f'{f["name"]}' + (f' — {reading.get("level","?")} {reading.get("unit","")}' if reading else "")
+                tooltip=tooltip_html,
             ).add_to(fg)
         fg.add_to(m)
     # Phase 4 normalized source layers. Approved point, line, and polygon
@@ -683,26 +760,30 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 str(geometry_type or "unknown"),
                 str(record.get("description") or record.get("category") or ""),
             )
+            tooltip_h = map_feature_tooltip_html(
+                str(record.get("title", source["name"]))[:80],
+                str(record.get("title") or source["name"]),
+                str(record.get("source_name") or source["name"]),
+                str(geometry_type or "unknown"),
+                str(record.get("description") or record.get("category") or ""),
+            )
             if geometry_type == "Point" and len(geometry.get("coordinates", [])) >= 2:
                 longitude, latitude = geometry["coordinates"][:2]
                 folium.CircleMarker(
                     location=[latitude, longitude], radius=7,
                     color=color, fill=True, fill_color=color, fill_opacity=0.7,
                     popup=folium.Popup(popup_h, max_width=280),
-                    tooltip=str(record.get("title", source["name"]))[:80],
+                    tooltip=tooltip_h,
                 ).add_to(fg)
             elif geometry_type in {"LineString", "MultiLineString", "Polygon", "MultiPolygon"}:
                 is_polygon = "Polygon" in geometry_type
-                folium.GeoJson(
-                    data=geometry,
-                    style_function=lambda _, layer_color=color, polygon=is_polygon: {
-                        "color": layer_color, "weight": 2 if polygon else 3,
-                        "opacity": 0.9, "fillColor": layer_color,
-                        "fillOpacity": 0.14 if polygon else 0,
-                    },
-                    popup=folium.Popup(popup_h, max_width=280),
-                    tooltip=str(record.get("title", source["name"]))[:80],
-                ).add_to(fg)
+                add_vector_parts(
+                    fg, geometry, color, popup_h, tooltip_h,
+                    max_width=280,
+                    line_weight=3,
+                    line_opacity=0.9,
+                    fill_opacity=0.14 if is_polygon else 0,
+                )
         fg.add_to(m)
     # Wind arrows
     if show_wind and wind_obs:
@@ -723,11 +804,33 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                          + (f'<br>Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
                          + (f'<br>Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
                          + (f'<br>{o["desc"]}' if o.get("desc") else ''))
+            title = f'{o["id"]} — {o["name"]}'
+            description = (
+                f'Wind: {spd}mph from {int(o["dir_deg"])}°'
+                + (f' (gusts {gust}mph)' if gust else '')
+                + (f' · Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
+                + (f' · Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
+                + (f' · {o["desc"]}' if o.get("desc") else '')
+            )
+            popup_h = map_feature_popup_html(
+                f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>',
+                title,
+                "Wind Observations",
+                "Point",
+                description,
+            )
+            tooltip_h = map_feature_tooltip_html(
+                f"{title} · {spd}mph",
+                title,
+                "Wind Observations",
+                "Point",
+                description,
+            )
             folium.Marker(
                 location=[o["lat"], o["lng"]],
                 icon=folium.DivIcon(html=html, icon_size=(50, 40), icon_anchor=(25, 10)),
-                popup=folium.Popup(f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>', max_width=220),
-                tooltip=f'{o["id"]}: {spd}mph'
+                popup=folium.Popup(popup_h, max_width=220),
+                tooltip=tooltip_h,
             ).add_to(wfg)
         wfg.add_to(m)
     # ── User-added map layers (NYC Open Data + ESRI Feature Layers) ───────────
@@ -759,37 +862,33 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 str(layer["name"]),
                 str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))),
             )
+            geometry_type = str(
+                feat.get("geometry", {}).get("type", feat.get("type", "unknown"))
+            )
+            tooltip_h = map_feature_tooltip_html(
+                str(label or layer["name"])[:80],
+                str(label or layer["name"]),
+                str(layer["name"]),
+                geometry_type,
+            )
 
             if ftype == "point":
                 folium.CircleMarker(
                     location=[feat["lat"], feat["lng"]], radius=6,
                     color=lcolor, fill=True, fill_color=lcolor, fill_opacity=0.7, weight=1.5,
                     popup=folium.Popup(popup_h, max_width=360),
-                    tooltip=label[:80],
+                    tooltip=tooltip_h,
                 ).add_to(fg)
 
-            elif ftype == "polygon":
+            elif ftype in {"polygon", "line"}:
                 try:
-                    folium.GeoJson(
-                        {"type": "Feature", "geometry": feat["geometry"], "properties": feat["props"]},
-                        style_function=lambda f, c=lcolor: {
-                            "fillColor": c, "color": c, "weight": 2,
-                            "fillOpacity": 0.25, "opacity": 0.8
-                        },
-                        tooltip=label[:80],
-                        popup=folium.Popup(popup_h, max_width=360),
-                    ).add_to(fg)
-                except:
-                    pass
-
-            elif ftype == "line":
-                try:
-                    folium.GeoJson(
-                        {"type": "Feature", "geometry": feat["geometry"], "properties": feat["props"]},
-                        style_function=lambda f, c=lcolor: {"color": c, "weight": 3, "opacity": 0.8},
-                        tooltip=label[:80],
-                        popup=folium.Popup(popup_h, max_width=360),
-                    ).add_to(fg)
+                    add_vector_parts(
+                        fg, feat["geometry"], lcolor, popup_h, tooltip_h,
+                        max_width=360,
+                        line_weight=3,
+                        line_opacity=0.8,
+                        fill_opacity=0.25 if ftype == "polygon" else 0,
+                    )
                 except:
                     pass
 
@@ -1252,7 +1351,7 @@ for k, v in [
     ("active_phase4_layers", ["nyc_311_rockaway"]),
     ("phase4_initialized", False),
     ("selected_map_feature", None),
-    ("last_map_popup", None),
+    ("map_interaction_revision", 0),
     ("chat_response_pending", False),
 ]:
     if k not in st.session_state:
@@ -1621,13 +1720,14 @@ map_data = st_folium(
               map_points=st.session_state.get("_runtime_map_points", MAP_POINTS),
               phase4_results=st.session_state.phase4_results,
               active_phase4_layers=st.session_state.active_phase4_layers),
-    width="100%", height=380, returned_objects=["last_object_clicked_popup"]
+    width="100%", height=380,
+    key=map_component_key(st.session_state.map_interaction_revision),
+    returned_objects=MAP_RETURNED_OBJECTS,
 )
 
-clicked_popup = map_data.get("last_object_clicked_popup") if map_data else None
-if clicked_popup and clicked_popup != st.session_state.get("last_map_popup"):
-    st.session_state.last_map_popup = clicked_popup
-    st.session_state.selected_map_feature = map_feature_from_popup(clicked_popup)
+clicked_feature = map_feature_from_map_data(map_data)
+if clicked_feature:
+    st.session_state.selected_map_feature = clicked_feature
 
 selected_map_feature = st.session_state.get("selected_map_feature")
 if selected_map_feature:
@@ -1644,12 +1744,13 @@ if selected_map_feature:
     select_col, close_col = st.columns([2, 1])
     with select_col:
         if st.button("Send to Chat", key="send_selected_map_feature", use_container_width=True):
-            st.session_state.pending_query = map_feature_chat_prompt(selected_map_feature)
-            st.session_state.selected_map_feature = None
+            prompt = map_feature_chat_prompt(selected_map_feature)
+            reset_map_feature_selection(st.session_state)
+            st.session_state.pending_query = prompt
             st.rerun()
     with close_col:
         if st.button("Close", key="close_selected_map_feature", use_container_width=True):
-            st.session_state.selected_map_feature = None
+            reset_map_feature_selection(st.session_state)
             st.rerun()
 
 st.markdown("---")
