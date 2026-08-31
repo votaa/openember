@@ -1,6 +1,6 @@
 """
 EMBER — Emergency Management Body of Evidence & Resources
-Streamlit version · Ollama Cloud · NYC jurisdiction
+Streamlit version · Ollama Cloud · configurable jurisdiction
 
 Run:
     pip install -r requirements.txt
@@ -41,6 +41,10 @@ from chat_state import (
     finish_chat_response,
     recover_interrupted_responses,
     update_chat_response,
+)
+from copilot_prompt import (
+    build_copilot_system_prompt,
+    build_knowledge_base_context,
 )
 from esri_presentation import (
     build_presentation,
@@ -142,39 +146,7 @@ section[data-testid="stSidebar"] { background: #090c12 !important; border-right:
 # DATA DEFINITIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Knowledge base is now loaded from config/jurisdiction.yaml via CFG.knowledge_base
-# NYC_KB kept as fallback alias
-NYC_KB = {
-    "floodZones": {"label": "Flood Zones (FEMA)", "source": "FEMA NFHL / NYC OEM", "data":
-        "Zone A: High-risk coastal/tidal flood areas — Lower Manhattan, Red Hook, Rockaway Peninsula, Staten Island east shore.\n"
-        "Zone AE: Special Flood Hazard Areas — Coney Island, Howard Beach, Broad Channel, southern Staten Island.\n"
-        "Zone VE: Coastal high-hazard with wave action — Far Rockaway, Breezy Point, Sea Gate.\n"
-        "Zone X (shaded): Moderate flood risk, 0.2% annual chance.\n"
-        "Post-Sandy (2012): ~88,000 buildings damaged; $19B in damage."},
-    "evacZones": {"label": "Evacuation Zones", "source": "NYC OEM", "data":
-        "Zone 1: Mandatory evacuation Cat 1+ hurricanes. Rockaways, Coney Island, South Beach SI, Red Hook waterfront.\n"
-        "Zone 2: Evacuation advised Cat 2+. Zones 3-6: progressively lower risk inland.\n"
-        "Shelters: 30+ hurricane evacuation centers, ~600,000 primary capacity.\n"
-        "Contraflow: FDR Drive, BQE, Staten Island Expressway."},
-    "criticalInfrastructure": {"label": "Critical Infrastructure", "source": "NYC OEM / CISA", "data":
-        "Hospitals: 11 Level 1 Trauma Centers — Bellevue (Manhattan), Kings County (Brooklyn), Lincoln (Bronx), Staten Island University, Jamaica (Queens).\n"
-        "Power: ConEd East River substations critical. Underground feeders in Lower Manhattan flooded during Sandy.\n"
-        "Subway: 245 miles track, 472 stations. 52 stations in flood zones.\n"
-        "Water: DEP 14 reservoirs, 2 city tunnels. Newtown Creek & North River WWTPs flooded in Sandy."},
-    "hazardProfiles": {"label": "Hazard Profiles", "source": "NYC OEM HMP 2023", "data":
-        "HURRICANES: Sandy (2012, Cat 1) — $19B damage. Primary risk: storm surge.\n"
-        "EXTREME HEAT: 115-150 deaths/year. Protocol at Heat Index >= 100F. 500+ cooling centers.\n"
-        "FLOODING: Ida 2021 — 13 deaths in basement apartments. 22,000+ miles combined sewer.\n"
-        "WINTER STORMS: Jonas 2016 — 27 inches, travel ban. 2,300 Sanitation plows.\n"
-        "EARTHQUAKE: Low risk. Historical 1884 M5.5. Unreinforced masonry stock pre-1930.\n"
-        "TERRORISM/HAZMAT: Highest-risk US city (DHS). JTTF, NYPD Intelligence, FDNY HazMat."},
-    "resources": {"label": "Contacts & Resources", "source": "NYC OEM / 311", "data":
-        "NYC OEM: 718-422-8700 | nyc.gov/oem | EOC: 165 Cadman Plaza East, Brooklyn\n"
-        "FDNY: 911 | 718-999-2000 | NYPD: 911 | 646-610-5000\n"
-        "NYC Health: 311 | FEMA Region 2: 212-680-3600\n"
-        "NWS OKX: 631-924-0517 | Con Edison: 1-800-75-CONED\n"
-        "Notify NYC: nyc.gov/notifynyc"},
-}
+KNOWLEDGE_BASE = CFG.knowledge_base
 
 LIVE_ENDPOINTS = [
     {"name": f"NWS Alerts — {CFG.state}",       "url": CFG.nws_alert_url,                                                                                         "type": "weather"},
@@ -899,10 +871,9 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
 
 
 def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None):
-    ctx = "=== NYC EMERGENCY MANAGEMENT KNOWLEDGE BASE ===\n\n"
-    for key, mod in NYC_KB.items():
-        if key in active_modules:
-            ctx += f"--- {mod['label']} [{mod['source']}] ---\n{mod['data']}\n\n"
+    ctx = build_knowledge_base_context(
+        KNOWLEDGE_BASE, active_modules, CFG.name,
+    )
     if gauge_data:
         ctx += "--- LIVE TIDAL GAUGE READINGS (CO-OPS, 6-min updates) ---\n"
         for sid, gd in gauge_data.items():
@@ -936,14 +907,7 @@ def stream_ollama(messages, context):
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
-    system_prompt = (f"You are EMBER — Emergency Management Body of Evidence & Resources — "
-                     f"an AI for NYC emergency managers.\n\nKNOWLEDGE BASE:\n{context}\n\n"
-                     f"RULES:\n1. Lead with operationally critical information first.\n"
-                     f"2. Cite sources: [NYC OEM], [NWS], [FEMA], [USGS], [CO-OPS], [ESRI], etc.\n"
-                     f"3. For location queries, prioritize zone and risk data.\n"
-                     f"4. Flag data gaps. Use headers and bullets for action items.\n"
-                     f"5. For life-safety queries, always include emergency contact numbers.\n"
-                     f"6. Never hallucinate.")
+    system_prompt = build_copilot_system_prompt(CFG.name, context)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
     try:
@@ -1537,7 +1501,10 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**KNOWLEDGE BASE**")
-    active_kb = [k for k, m in NYC_KB.items() if st.checkbox(m["label"], value=True, key=f"kb_{k}")]
+    active_kb = [
+        key for key, module in KNOWLEDGE_BASE.items()
+        if st.checkbox(module["label"], value=True, key=f"kb_{key}")
+    ]
 
     st.divider()
     st.markdown("**MAP LAYERS**")

@@ -181,9 +181,22 @@ class MapInteractionTests(unittest.TestCase):
                 "source_name": "LIRR branches",
                 "geometry_type": "LineString",
             }),
-            "Emergency considerations and risk profile for: Port Jefferson\n"
-            "Source layer: LIRR branches\n"
-            "Feature type: LineString",
+            "Tell me about emergency considerations for Port Jefferson — ",
+        )
+
+    def test_montauk_prompt_matches_react_contract(self):
+        self.assertEqual(
+            MODULE.map_feature_chat_prompt({
+                "title": "Montauk (peninsula tip)",
+                "description": (
+                    "Zone VE — 3-sided water exposure; single road in/out "
+                    "(Route 27)"
+                ),
+                "source_name": "Flood Risk Areas",
+                "geometry_type": "Point",
+            }),
+            "Tell me about emergency considerations for Montauk (peninsula tip) — "
+            "Zone VE — 3-sided water exposure; single road in/out (Route 27)",
         )
 
 

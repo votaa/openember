@@ -40,6 +40,7 @@ import {
   evaluateMapBuilderFilter,
 } from "./data/mapBuilderFilters.js"
 import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
+import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -293,11 +294,11 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName) {
   return ctx
 }
 
-async function* streamOllama(messages, context, signal, apiKey) {
+async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name) {
   const key = apiKey || getRuntimeKey()
 
   // Build the system prompt + message array
-  const system = `You are EMBER — Emergency Management Body of Evidence & Resources — an AI for ${CFG.name} emergency managers.\n\nKNOWLEDGE BASE:\n${context}\n\nRULES: Lead with critical info. Cite sources [NYC OEM] [NWS] [FEMA] [USGS]. Be concise. Never hallucinate.`
+  const system = buildCopilotSystemPrompt(jurisdictionName, context)
   const allMessages = [
     { role: "system", content: system },
     ...messages.slice(-10),
@@ -932,7 +933,9 @@ export default function App() {
     let full = ""
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
     try {
-      for await (const token of streamOllama(msgs, ctx, abortRef.current.signal, runtimeKey)) {
+      for await (const token of streamOllama(
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name,
+      )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])
       }
@@ -941,7 +944,7 @@ export default function App() {
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()

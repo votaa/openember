@@ -211,11 +211,5 @@ def leaflet_geometry_parts(geometry: dict) -> list:
 
 def map_feature_chat_prompt(feature: dict) -> str:
     title = feature.get("title") or feature.get("name") or "Map feature"
-    lines = [f"Emergency considerations and risk profile for: {title}"]
-    source = feature.get("source_name")
-    geometry = feature.get("geometry_type")
-    if source and source != "Map layer":
-        lines.append(f"Source layer: {source}")
-    if geometry and geometry != "unknown":
-        lines.append(f"Feature type: {geometry}")
-    return "\n".join(lines)
+    description = feature.get("description") or feature.get("note") or ""
+    return f"Tell me about emergency considerations for {title} — {description}"
