@@ -1,6 +1,6 @@
 # EMBER — Emergency Management Body of Evidence & Resources
 
-AI-powered situational awareness for NYC emergency managers. Natural language queries across flood zones, evacuation plans, critical infrastructure, live weather/flood feeds, and uploaded documents — with an interactive operational map.
+AI-powered situational awareness for emergency managers across Nassau County, Suffolk County, and the Rockaway / Queens Community Board 14 operating area. EMBER combines configured knowledge-base content, live weather and water data, regional source feeds, ArcGIS/Living Atlas layers, map visualization, and advisory chat.
 
 **Backend:** [Ollama Cloud](https://docs.ollama.com/cloud) — fully hosted, no local GPU needed.
 
@@ -24,14 +24,17 @@ ollama pull gpt-oss:120b-cloud
 
 ### Local dev
 ```bash
-git clone https://github.com/YOUR_USERNAME/ember-nyc.git
-cd ember-nyc
+git clone https://github.com/votaa/openember.git
+cd openember
 npm install
-cp .env.example .env.local
-# Edit .env.local — add your VITE_OLLAMA_API_KEY
 npm run dev
 # → http://localhost:3000
 ```
+
+The React development server runs on port `3000`. The repository does not
+currently include an `.env.example` file; configure deployment secrets through
+the hosting provider or use the in-app session key field for a local chat smoke
+test.
 
 ### Deploy to Vercel
 ```bash
@@ -45,10 +48,15 @@ Or: connect the GitHub repo at **vercel.com** → it auto-detects Vite.
 **Add env vars in Vercel dashboard** (Settings → Environment Variables):
 | Key | Value |
 |-----|-------|
-| `VITE_OLLAMA_API_KEY` | `your_key_here` |
-| `VITE_OLLAMA_HOST` | `https://ollama.com` |
-| `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` |
+| `OLLAMA_API_KEY` | `your_key_here` |
+| `OLLAMA_HOST` | `https://ollama.com` |
+| `OLLAMA_MODEL` | `gpt-oss:120b-cloud` |
 | `VITE_NYC_OPEN_DATA_APP_TOKEN` | `your_socrata_app_token` |
+| `VITE_CARTO_API_KEY` | `your_carto_key_here` |
+
+Keep `OLLAMA_API_KEY` server-side in Vercel. `VITE_*` variables are
+browser-visible build-time values and should not be used for production
+secrets.
 
 ---
 
@@ -85,18 +93,24 @@ CARTO_API_KEY  = "your_carto_key_here"
 ## Architecture
 
 ```
-ember-nyc/
-├── src/                        # React/Vite (→ Vercel)
-│   ├── App.jsx                 # Split-panel: map (left) + chat (right), draggable divider
-│   ├── components/
-│   │   ├── MapPanel.jsx        # Leaflet dark map — 5 togglable marker layers
-│   │   └── ChatPanel.jsx       # Streaming token-by-token chat UI
-│   ├── data/nyc.js             # NYC KB, map points, live API endpoints, context builder
-│   └── hooks/useOllama.js      # Ollama Cloud streaming client
-├── streamlit/
-│   ├── app.py                  # Full Python version (Folium map + streaming chat)
+openember/
+├── api/chat.js                 # Vercel serverless proxy for Ollama
+├── config/
+│   └── jurisdiction.yaml       # Active Long Island and source configuration
+├── scripts/build-config.js     # Generates src/config/jurisdiction.js from YAML
+├── src/                        # React/Vite app (→ Vercel)
+│   ├── App.jsx                 # Map, chat, sources, and settings UI
+│   ├── components/             # Leaflet, chat, NOAA, and ESRI panels
+│   ├── config/jurisdiction.js  # Generated build-time configuration
+│   ├── data/regional/          # Regional source adapters and normalization
+│   ├── data/esriLayers.js      # ArcGIS FeatureServer discovery and loading
+│   └── data/mapBuilderFilters.js # Geography filtering for map layers
+├── streamlit/                  # Python/Streamlit app (→ Streamlit Cloud)
+│   ├── app.py                  # Main map, chat, source, and setup application
+│   ├── phase4_sources.py       # Regional source bundle and display contracts
+│   ├── regional_*.py           # Shared geography and observation logic
 │   └── requirements.txt
-├── .env.example                # Copy to .env.local, add your API key
+├── tests/                      # JavaScript and Python focused tests
 ├── vercel.json
 └── README.md
 ```
@@ -105,23 +119,28 @@ ember-nyc/
 
 ## Features
 
-### Knowledge Base (NYC pre-loaded)
+### Knowledge Base (Long Island regional configuration)
 | Module | Contents |
 |--------|----------|
-| Flood Zones | FEMA Zone A/AE/VE/X with post-Sandy context |
-| Evacuation Zones | All 6 zones, shelter locations, contraflow routes |
-| Critical Infrastructure | Trauma centers, ConEd substations, subway flood exposure, water/wastewater |
-| Hazard Profiles | Hurricanes, heat, flooding, winter storms, earthquake, CBRN, pandemic |
-| Emergency Contacts | NYC OEM, FDNY, NYPD, NWS OKX, ConEd, National Grid, FEMA Region 2 |
+| Flood Zones | FEMA and locally configured coastal flood-zone context |
+| Evacuation Zones | Configured local evacuation zones, shelters, and routes |
+| Critical Infrastructure | Hospitals, utilities, transportation, and other configured assets |
+| Hazard Profiles | Hurricanes, heat, flooding, winter storms, and locally configured hazards |
+| Contacts & Resources | Nassau OEM, Suffolk OEM, Rockaway/NYC OEM, NWS, utilities, and other configured contacts |
 
 ### Live API Feeds (free, no key needed)
 | Feed | Source |
 |------|--------|
-| Active weather alerts | NWS api.weather.gov |
-| 7-day forecast NYC | NWS OKX gridpoint |
-| Stream gauge heights | USGS WaterServices |
+| Weather alerts, forecasts, and observations | NWS api.weather.gov |
+| Water levels and tidal predictions | NOAA CO-OPS |
+| Stream gauge observations | USGS WaterServices |
 | Disaster declarations | FEMA OpenData |
-| Recent 311 reports | NYC Open Data |
+| Rockaway service requests | NYC Open Data / NYC 311 |
+| Regional geography and environmental observations | ArcGIS, NYS DEC, and configured regional sources |
+
+Some configured sources remain prototype-only, access-required, stale, or
+unavailable until their endpoint, ownership, attribution, reuse, and update
+cadence requirements are satisfied. See the regional source catalog for details.
 
 ### Map Layers
 - 🏥 Trauma Centers (Level 1)
@@ -131,22 +150,62 @@ ember-nyc/
 - 💧 High Flood Risk Areas (Zone AE/VE)
 
 ### Document Ingestion
-Drag & drop TXT, CSV, JSON, GeoJSON, MD — ingested immediately into LLM context.
+Drag and drop `.txt`, `.csv`, `.json`, `.geojson`, or `.md` files in either the
+React or Streamlit application. Files are read as text and injected into the
+chat context. JSON and GeoJSON are not automatically validated or rendered as
+map layers. Each file contributes up to 4,000 characters to the model context.
+PDF ingestion and OCR are not currently supported.
+
+### Current limitations
+
+- Uploaded documents are held in the current browser or Streamlit session.
+- The full selected document context is resent with each chat query; there is no
+  retrieval, chunking, or document indexing layer.
+- Larger documents can increase input-token usage, response latency, and the
+  risk of exceeding the model context window.
+- Uploaded content is capped at 4,000 characters per file before it is sent to
+  the model.
+- EMBER is an advisory tool and does not replace official emergency-management
+  procedures, source verification, or operational judgment.
 
 ---
 
 ## Extending EMBER
 
-**New data source** → add to `LIVE_ENDPOINTS` in `src/data/nyc.js` + summarizer case.
+**New regional data source** → add the source contract to `config/jurisdiction.yaml`,
+regenerate the build-time config, and add or update the corresponding regional
+adapter/normalizer in `src/data/regional/` and `streamlit/` when required.
 
-**New map layer** → add to `MAP_LAYERS` in `src/data/nyc.js` with lat/lng/name/note.
+For a simple legacy live endpoint, update `LIVE_ENDPOINTS` in `src/data/nyc.js`
+and add its summarizer case.
 
-**Different model** → change `VITE_OLLAMA_MODEL`. Available cloud models:
+**New configured map layer** → add the layer definition to
+`config/jurisdiction.yaml` and regenerate the build-time config. Simple local
+map-point edits can also be made through the in-app Settings panel.
+
+**Different model** → change `OLLAMA_MODEL` for the server-side deployment, or
+`VITE_OLLAMA_MODEL` for a browser-configured local build. Available cloud models:
 ```
 gpt-oss:120b-cloud
 gpt-oss:70b-cloud
 ```
 See full list: https://ollama.com/search?c=cloud
+
+### Regional implementation notes
+
+- [Phase 1 source catalog](docs/long-island/phase-1-source-catalog.md)
+- [Phase 3–4 approved scope](docs/long-island/phase-3-4-approved-scope.md)
+- [Phase 3 completion](docs/long-island/phase-3-completion.md)
+- [How-to and deployment guide](howto.md)
+
+### Validation
+
+```bash
+npm run build
+npm run test:regional
+npm run test:streamlit
+npm run phase4:gate
+```
 
 ---
 
@@ -155,10 +214,15 @@ See full list: https://ollama.com/search?c=cloud
 ### React/Vite (.env.local)
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `VITE_OLLAMA_API_KEY` | — | **Required.** Ollama Cloud API key |
+| `VITE_OLLAMA_API_KEY` | — | Optional browser-visible Ollama key for local/session use; prefer server-side `OLLAMA_API_KEY` in Vercel |
 | `VITE_OLLAMA_HOST` | `https://ollama.com` | Ollama Cloud base URL |
 | `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` | Model name |
 | `VITE_NYC_OPEN_DATA_APP_TOKEN` | — | Optional browser-visible Socrata app token for Phase 4 NYC Open Data requests |
+| `VITE_CARTO_API_KEY` | — | Optional browser-visible CARTO basemap key; OpenStreetMap fallback is used when absent |
+
+For Vercel deployments, prefer the server-side `OLLAMA_API_KEY`, `OLLAMA_HOST`,
+and `OLLAMA_MODEL` variables used by `api/chat.js`. A `VITE_OLLAMA_API_KEY`
+value is browser-visible and should not be treated as a production secret.
 
 ### Streamlit (secrets or env)
 Use `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`, and `CARTO_API_KEY`. The
