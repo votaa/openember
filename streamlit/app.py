@@ -58,7 +58,11 @@ from map_builder_filters import (
     filter_masks_by_mode,
     filter_supported as map_builder_filter_supported,
 )
-from map_interaction import map_feature_chat_prompt, map_feature_from_popup
+from map_interaction import (
+    map_feature_chat_prompt,
+    map_feature_from_popup,
+    map_feature_popup_html,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -664,16 +668,21 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=True)
         for record in records:
             geometry = record.get("geometry", {})
-            popup_h = (
-                f'<div data-source-name="{_html.escape(str(record.get("source_name", source["name"])), quote=True)}" '
-                f'data-geometry-type="{_html.escape(str(geometry.get("type", "unknown")), quote=True)}" '
-                f'style="font-family:monospace;font-size:11px">'
+            popup_body = (
+                f'<div style="font-family:monospace;font-size:11px">'
                 f'<b style="color:{color}">{_html.escape(icon)} {_html.escape(str(record.get("title", "")))}</b><br>'
                 f'<span style="color:#aac">{_html.escape(str(record.get("description") or record.get("category") or ""))}</span><br><br>'
                 f'<span style="color:#778">{_html.escape(str(record.get("source_name", "")))} · {_html.escape(str(record.get("observed_at", "")))}</span><br>'
                 f'<span style="color:#556">{_html.escape(str(record.get("attribution", "")))}</span></div>'
             )
             geometry_type = geometry.get("type")
+            popup_h = map_feature_popup_html(
+                popup_body,
+                str(record.get("title") or source["name"]),
+                str(record.get("source_name") or source["name"]),
+                str(geometry_type or "unknown"),
+                str(record.get("description") or record.get("category") or ""),
+            )
             if geometry_type == "Point" and len(geometry.get("coordinates", [])) >= 2:
                 longitude, latitude = geometry["coordinates"][:2]
                 folium.CircleMarker(
@@ -736,15 +745,19 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 if layer.get("type") == "esri"
                 else feat.get("label", layer["name"])
             )
-            popup_h = (
-                f'<div data-source-name="{_html.escape(str(layer["name"]), quote=True)}" '
-                f'data-geometry-type="{_html.escape(str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))), quote=True)}">'
-                + esri_feature_popup_html(feat, layer["name"], lcolor, presentation) + "</div>"
+            popup_body = (
+                esri_feature_popup_html(feat, layer["name"], lcolor, presentation)
                 if layer.get("type") == "esri"
                 else layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
                     f'<div style="font-family:monospace;font-size:11px">'
                     f'<b style="color:{lcolor}">{feat.get("label","") or layer["name"]}</b></div>'
                 )
+            )
+            popup_h = map_feature_popup_html(
+                popup_body,
+                str(label or layer["name"]),
+                str(layer["name"]),
+                str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))),
             )
 
             if ftype == "point":
