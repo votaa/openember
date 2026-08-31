@@ -58,6 +58,7 @@ from map_builder_filters import (
     filter_masks_by_mode,
     filter_supported as map_builder_filter_supported,
 )
+from map_interaction import map_feature_chat_prompt, map_feature_from_popup
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
@@ -664,7 +665,9 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         for record in records:
             geometry = record.get("geometry", {})
             popup_h = (
-                f'<div style="font-family:monospace;font-size:11px">'
+                f'<div data-source-name="{_html.escape(str(record.get("source_name", source["name"])), quote=True)}" '
+                f'data-geometry-type="{_html.escape(str(geometry.get("type", "unknown")), quote=True)}" '
+                f'style="font-family:monospace;font-size:11px">'
                 f'<b style="color:{color}">{_html.escape(icon)} {_html.escape(str(record.get("title", "")))}</b><br>'
                 f'<span style="color:#aac">{_html.escape(str(record.get("description") or record.get("category") or ""))}</span><br><br>'
                 f'<span style="color:#778">{_html.escape(str(record.get("source_name", "")))} · {_html.escape(str(record.get("observed_at", "")))}</span><br>'
@@ -734,7 +737,9 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 else feat.get("label", layer["name"])
             )
             popup_h = (
-                esri_feature_popup_html(feat, layer["name"], lcolor, presentation)
+                f'<div data-source-name="{_html.escape(str(layer["name"]), quote=True)}" '
+                f'data-geometry-type="{_html.escape(str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))), quote=True)}">'
+                + esri_feature_popup_html(feat, layer["name"], lcolor, presentation) + "</div>"
                 if layer.get("type") == "esri"
                 else layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
                     f'<div style="font-family:monospace;font-size:11px">'
@@ -779,6 +784,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
 
     folium.LayerControl().add_to(m)
     return m
+
 
 def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None):
     ctx = "=== NYC EMERGENCY MANAGEMENT KNOWLEDGE BASE ===\n\n"
@@ -1232,6 +1238,8 @@ for k, v in [
     ("phase4_cache", {}),
     ("active_phase4_layers", ["nyc_311_rockaway"]),
     ("phase4_initialized", False),
+    ("selected_map_feature", None),
+    ("last_map_popup", None),
     ("chat_response_pending", False),
 ]:
     if k not in st.session_state:
@@ -1603,10 +1611,33 @@ map_data = st_folium(
     width="100%", height=380, returned_objects=["last_object_clicked_popup"]
 )
 
-if map_data and map_data.get("last_object_clicked_popup"):
-    m2 = re.search(r'<b[^>]*>([^<]+)</b>', map_data["last_object_clicked_popup"] or "")
-    if m2 and "pending_query" not in st.session_state:
-        st.session_state.pending_query = f"Emergency considerations and risk profile for: {m2.group(1)}"
+clicked_popup = map_data.get("last_object_clicked_popup") if map_data else None
+if clicked_popup and clicked_popup != st.session_state.get("last_map_popup"):
+    st.session_state.last_map_popup = clicked_popup
+    st.session_state.selected_map_feature = map_feature_from_popup(clicked_popup)
+
+selected_map_feature = st.session_state.get("selected_map_feature")
+if selected_map_feature:
+    selected_title = selected_map_feature.get("title", "Map feature")
+    selected_description = selected_map_feature.get("description", "")
+    st.markdown(
+        f"**Selected map feature:** `{selected_title}`  \n"
+        f"<span style='font-size:11px;color:#667'>{_html.escape(selected_map_feature.get('source_name', 'Map layer'))} · "
+        f"{_html.escape(selected_map_feature.get('geometry_type', 'unknown'))}</span>",
+        unsafe_allow_html=True,
+    )
+    if selected_description:
+        st.caption(selected_description)
+    select_col, close_col = st.columns([2, 1])
+    with select_col:
+        if st.button("Send to Chat", key="send_selected_map_feature", use_container_width=True):
+            st.session_state.pending_query = map_feature_chat_prompt(selected_map_feature)
+            st.session_state.selected_map_feature = None
+            st.rerun()
+    with close_col:
+        if st.button("Close", key="close_selected_map_feature", use_container_width=True):
+            st.session_state.selected_map_feature = None
+            st.rerun()
 
 st.markdown("---")
 

@@ -39,6 +39,7 @@ import {
   arcGISGeometryForMode,
   evaluateMapBuilderFilter,
 } from "./data/mapBuilderFilters.js"
+import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -406,7 +407,7 @@ function escapeMapHtml(value) {
   })[char])
 }
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
@@ -416,6 +417,13 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
   const windRef   = useRef(null)
   const [ready, setReady] = useState(false)
   const [radarTs, setRadarTs] = useState(null)
+  const [selectedFeature, setSelectedFeature] = useState(null)
+
+  const selectFeature = feature => {
+    const normalized = normalizeMapFeature(feature)
+    setSelectedFeature(normalized)
+    onFeatureSelect?.(normalized)
+  }
 
   useEffect(() => {
     if (leafRef.current) return
@@ -458,8 +466,18 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
               html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 0 8px ${color}44">${icon}</div>`
             })
           })
+          mk.bindTooltip(`${icon} ${f.name}`, { sticky:true, direction:"top", opacity:0.95 })
           mk.bindPopup(`<div style="font-family:monospace;font-size:12px"><b style="color:${color}">${icon} ${f.name}</b><br><span style="color:#aac;font-size:11px">${f.note||""}</span></div>`)
-          mk.on("click", () => onMarkerClick?.({...f, layerLabel:label, color}))
+          mk.on("click", () => selectFeature({
+            name:f.name,
+            title:f.name,
+            description:f.note || "",
+            sourceName:label,
+            layerLabel:label,
+            geometryType:"Point",
+            color,
+            attribution:f.attribution || null,
+          }))
           group.addLayer(mk)
         })
         layerRefs.current[key] = group
@@ -513,17 +531,34 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
               html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44">${escapeMapHtml(icon)}</div>`,
             })})
           } else if (["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(geometry.type)) {
-            featureLayer = L.geoJSON(geometry, {style: {
+          const visibleLayer = L.geoJSON(geometry, {style: {
               color,
               weight: geometry.type.includes("Line") ? 3 : 2,
               opacity: 0.9,
               fillColor: color,
               fillOpacity: geometry.type.includes("Polygon") ? 0.14 : 0,
             }})
+            const hitLayer = geometry.type.includes("Line")
+              ? L.geoJSON(geometry, {style:{color:"#000",weight:12,opacity:0,fillOpacity:0}})
+              : null
+            featureLayer = hitLayer ? L.featureGroup([visibleLayer, hitLayer]) : visibleLayer
           }
           if (!featureLayer) continue
+          const featureLabel = record.title || source?.name || sourceId
+          featureLayer.bindTooltip(featureLabel, { sticky:true, direction:"top", opacity:0.95 })
           featureLayer.bindPopup(popup)
-          featureLayer.on("click", () => onMarkerClick?.({name:record.title,note:record.description || record.category || "",sourceId}))
+          featureLayer.on("click", () => selectFeature({
+            name:featureLabel,
+            title:featureLabel,
+            description:record.description || record.category || record.status || "",
+            sourceName:record.source_name || source?.name || sourceId,
+            layerLabel:source?.name || sourceId,
+            geometryType:geometry.type,
+            observedAt:record.observed_at || null,
+            fetchedAt:record.fetched_at || null,
+            attribution:record.attribution || source?.attribution || null,
+            color,
+          }))
           group.addLayer(featureLayer)
         }
         regionalLayerRefs.current[sourceId] = group
@@ -584,7 +619,17 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
             className:"", iconSize:[50,40], iconAnchor:[25,20],
             html:`<div style="display:flex;flex-direction:column;align-items:center;gap:1px"><div style="font-size:20px;transform:rotate(${toDir}deg);filter:drop-shadow(0 0 3px ${color}88)">↑</div><div style="font-size:9px;font-family:monospace;font-weight:700;color:${color};background:#07090dcc;padding:1px 3px;border-radius:2px">${o.speedMph}${o.gustMph?`g${o.gustMph}`:""}mph</div></div>`
           })})
+          mk.bindTooltip(`${o.id} — ${o.name}`, { sticky:true, direction:"top", opacity:0.95 })
           mk.bindPopup(`<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${o.id} — ${o.name}</b><br>Wind: ${o.speedMph}mph from ${o.dirDeg}°${o.gustMph?` (gusts ${o.gustMph}mph)`:""}<br>${o.desc}</div>`)
+          mk.on("click", () => selectFeature({
+            name:`${o.id} — ${o.name}`,
+            title:`${o.id} — ${o.name}`,
+            description:`Wind: ${o.speedMph}mph from ${o.dirDeg}°${o.gustMph?` (gusts ${o.gustMph}mph)`:""}${o.desc ? ` · ${o.desc}` : ""}`,
+            sourceName:"NWS wind observation",
+            layerLabel:"Wind Observations",
+            geometryType:"Point",
+            color,
+          }))
           windRef.current?.addLayer(mk)
         })
       })
@@ -613,6 +658,20 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
   return (
     <div style={{position:"relative",width:"100%",height:"100%"}}>
       <div ref={mapRef} style={{width:"100%",height:"100%"}} />
+      {selectedFeature && (
+        <div role="dialog" aria-label={`Selected map feature: ${selectedFeature.title || selectedFeature.name}`} style={{position:"absolute",left:10,right:10,bottom:10,zIndex:1100,maxWidth:440,padding:"10px 12px",background:"#071018f2",border:"1px solid #22d3ee66",borderRadius:7,boxShadow:"0 4px 18px #0008",fontFamily:"monospace"}}>
+          <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:11,color:selectedFeature.color || "#9de7f3",fontWeight:700}}>{selectedFeature.title || selectedFeature.name}</div>
+              <div style={{fontSize:8.5,color:"#667",marginTop:2}}>{selectedFeature.sourceName || selectedFeature.layerLabel || "Map feature"}{selectedFeature.geometryType ? ` · ${selectedFeature.geometryType}` : ""}</div>
+            </div>
+            <button aria-label="Close selected map feature" onClick={()=>{setSelectedFeature(null);leafRef.current?.closePopup()}} style={{background:"none",border:"none",color:"#778",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button>
+          </div>
+          {selectedFeature.description && <div style={{fontSize:9.5,color:"#aac",lineHeight:1.45,marginTop:7}}>{selectedFeature.description}</div>}
+          {(selectedFeature.observedAt || selectedFeature.fetchedAt || selectedFeature.attribution) && <div style={{fontSize:8,color:"#556",marginTop:6}}>{selectedFeature.observedAt || selectedFeature.fetchedAt || ""}{selectedFeature.attribution ? ` · ${selectedFeature.attribution}` : ""}</div>}
+          <button onClick={()=>onSendFeatureToChat?.(selectedFeature)} style={{marginTop:8,padding:"4px 10px",borderRadius:4,fontSize:9.5,fontWeight:700,border:"1px solid #22d3ee66",background:"#22d3ee12",color:"#9de7f3",cursor:"pointer",fontFamily:"inherit"}}>Send to Chat</button>
+        </div>
+      )}
       {radarTs && showRadar && (
         <div style={{position:"absolute",bottom:28,left:10,zIndex:1000,background:"#07090dcc",color:"#60a5fa",fontFamily:"monospace",fontSize:9,padding:"2px 8px",borderRadius:4,border:"1px solid #60a5fa33",pointerEvents:"none"}}>
           📡 NEXRAD · {radarTs}
@@ -959,7 +1018,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
