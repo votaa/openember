@@ -39,6 +39,7 @@ from chat_state import (
     background_refresh_allowed,
     begin_chat_response,
     finish_chat_response,
+    recover_interrupted_responses,
     update_chat_response,
 )
 from esri_presentation import (
@@ -66,7 +67,6 @@ from map_interaction import (
     map_feature_popup_html,
     map_feature_tooltip_html,
     leaflet_geometry_parts,
-    reset_map_feature_selection,
 )
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
@@ -1357,6 +1357,12 @@ for k, v in [
     if k not in st.session_state:
         st.session_state[k] = v
 
+# A widget-triggered rerun can interrupt the synchronous Ollama generator after
+# its placeholder is persisted. Recover that placeholder before processing the
+# next event so the transcript never appears permanently stuck.
+if recover_interrupted_responses(st.session_state.messages):
+    st.session_state.chat_response_pending = False
+
 
 def refresh_phase4_sources():
     bundle = fetch_phase4_source_bundle(
@@ -1603,7 +1609,7 @@ with st.sidebar:
         st.session_state.files = []
 
     st.divider()
-    if st.button("Clear Chat", use_container_width=True):
+    if st.button("Clear Chat", use_container_width=True, disabled=st.session_state.chat_response_pending):
         st.session_state.messages = []
         st.rerun()
 
@@ -1722,7 +1728,12 @@ map_data = st_folium(
               active_phase4_layers=st.session_state.active_phase4_layers),
     width="100%", height=380,
     key=map_component_key(st.session_state.map_interaction_revision),
-    returned_objects=MAP_RETURNED_OBJECTS,
+    # Map clicks can also trigger a Streamlit rerun. Do not subscribe to map
+    # events while a response is streaming, or the generator can be interrupted
+    # by an otherwise harmless click on a different feature.
+    returned_objects=(
+        () if st.session_state.chat_response_pending else MAP_RETURNED_OBJECTS
+    ),
 )
 
 clicked_feature = map_feature_from_map_data(map_data)
@@ -1743,14 +1754,23 @@ if selected_map_feature:
         st.caption(selected_description)
     select_col, close_col = st.columns([2, 1])
     with select_col:
-        if st.button("Send to Chat", key="send_selected_map_feature", use_container_width=True):
+        if st.button(
+            "Send to Chat", key="send_selected_map_feature",
+            use_container_width=True, disabled=st.session_state.chat_response_pending,
+        ):
             prompt = map_feature_chat_prompt(selected_map_feature)
-            reset_map_feature_selection(st.session_state)
+            # The click-count event contract already permits selecting the same
+            # feature again. Remounting st_folium here can emit a late component
+            # event and interrupt the chat stream that starts on the next run.
+            st.session_state.selected_map_feature = None
             st.session_state.pending_query = prompt
             st.rerun()
     with close_col:
-        if st.button("Close", key="close_selected_map_feature", use_container_width=True):
-            reset_map_feature_selection(st.session_state)
+        if st.button(
+            "Close", key="close_selected_map_feature", use_container_width=True,
+            disabled=st.session_state.chat_response_pending,
+        ):
+            st.session_state.selected_map_feature = None
             st.rerun()
 
 st.markdown("---")
@@ -2341,7 +2361,10 @@ with tab_chat:
                 ]
 
         for i, q in enumerate(quick):
-            if qcols[i % 2].button(q, key=f"quick_{i}", use_container_width=True):
+            if qcols[i % 2].button(
+                q, key=f"quick_{i}", use_container_width=True,
+                disabled=st.session_state.chat_response_pending,
+            ):
                 st.session_state.pending_query = q
 
     def run_query(prompt):
@@ -2381,6 +2404,8 @@ with tab_chat:
         run_query(st.session_state.pop("pending_query"))
 
     def queue_chat_prompt():
+        if st.session_state.chat_response_pending:
+            return
         prompt = st.session_state.get("chat_prompt", "").strip()
         if prompt:
             st.session_state.pending_query = prompt
@@ -2389,6 +2414,7 @@ with tab_chat:
     st.chat_input(
         "Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'",
         key="chat_prompt",
+        disabled=st.session_state.chat_response_pending,
         on_submit=queue_chat_prompt,
     )
 

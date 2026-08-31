@@ -33,6 +33,22 @@ class ChatStateTests(unittest.TestCase):
         self.assertFalse(MODULE.background_refresh_allowed(True))
         self.assertTrue(MODULE.background_refresh_allowed(False))
 
+    def test_interrupted_streaming_placeholder_is_recovered(self):
+        messages = [
+            {"role": "user", "content": "Status?"},
+            {"role": "assistant", "content": "Partial answer▋", "streaming": True},
+            {"role": "assistant", "content": "Complete"},
+        ]
+
+        self.assertEqual(MODULE.recover_interrupted_responses(messages), 1)
+        self.assertEqual(
+            messages[1],
+            {
+                "role": "assistant",
+                "content": "Partial answer\n\n⚠ Chat response interrupted before completion. Please retry.",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
