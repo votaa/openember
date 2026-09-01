@@ -225,10 +225,7 @@ and `OLLAMA_MODEL` variables used by `api/chat.js`. A `VITE_OLLAMA_API_KEY`
 value is browser-visible and should not be treated as a production secret.
 
 ### Streamlit (secrets or env)
-Use `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`, and `CARTO_API_KEY`. The
-Streamlit map falls back to OpenStreetMap when `CARTO_API_KEY` is not set.
-The optional NYC Open Data app token is entered in the NYC Open Data tab and
-is kept only in the current Streamlit session.
+Same keys without the `VITE_` prefix: `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`.
 
 ---
 

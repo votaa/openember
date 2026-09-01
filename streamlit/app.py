@@ -14,6 +14,7 @@ import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
+from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
 from tidal_gauges import (
@@ -1135,6 +1136,26 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     if "arcgis.com/home/item" in base:
         return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
 
+        # Do not assume the first layer is always layer 0. Some ArcGIS
+        # services expose only a different layer ID (for example, LIRR
+        # branches exposes layer 4), while the portal result URL may point to
+        # the service root or an outdated layer path.
+        service_match = re.match(r"^(.*?/(?:FeatureServer|MapServer))(?:/(\d+))?$", base, re.I)
+        if service_match:
+            service_root, requested_id = service_match.groups()
+            try:
+                meta_res = requests.get(f"{service_root}?f=json", timeout=15,
+                                         headers={"User-Agent": "EMBER/1.0"})
+                if meta_res.ok:
+                    meta = meta_res.json()
+                    available = meta.get("layers") or []
+                    available_ids = {str(layer.get("id")) for layer in available}
+                    if available and (requested_id is None or requested_id not in available_ids):
+                        base = f"{service_root}/{available[0]['id']}"
+            except (ValueError, requests.RequestException):
+                # Let the query below return the service's normal error.
+                pass
+
     discovery = discover_esri_feature_layers(base)
     if discovery.get("error"):
         return {"features": [], "total": 0, "error": discovery["error"]}
@@ -1172,8 +1193,32 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
 
         if "error" in payload:
             return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
+        if "error" in payload:
+            return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
 
         features = []
+        for feat in payload.get("features", []):
+            # ArcGIS JSON uses attributes/geometry; GeoJSON uses
+            # properties/geometry. Keep the existing map contract unchanged.
+            props = feat.get("properties") or feat.get("attributes") or {}
+            geom = feat.get("geometry") or {}
+            if "x" in geom and "y" in geom:
+                features.append({"type": "point", "lat": geom["y"], "lng": geom["x"], "props": props})
+                continue
+
+            if "paths" in geom:
+                paths = geom["paths"]
+                coordinates = paths[0] if len(paths) == 1 else paths
+                gtype = "LineString" if len(paths) == 1 else "MultiLineString"
+                features.append({"type": "line", "geometry": {"type": gtype, "coordinates": coordinates}, "props": props})
+                continue
+
+            if "rings" in geom:
+                features.append({"type": "polygon", "geometry": {"type": "Polygon", "coordinates": geom["rings"]}, "props": props})
+                continue
+
+            # Already-normalized GeoJSON geometry, if returned by the service.
+            gtype = geom.get("type", "")
         for feat in payload.get("features", []):
             # ArcGIS JSON uses attributes/geometry; GeoJSON uses
             # properties/geometry. Keep the existing map contract unchanged.
