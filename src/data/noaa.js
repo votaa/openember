@@ -183,6 +183,13 @@ export const NOAA_CATEGORIES = {
         tags: ["water level","kings point","long island sound"],
       },
       {
+        id: "coops_water_montauk",
+        name: "Water Level — Montauk",
+        url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER",
+        desc: "Real-time water level at Montauk — eastern Long Island primary station",
+        tags: ["water level","montauk","east end","long island"],
+      },
+      {
         id: "coops_water_sandy_hook",
         name: "Water Level — Sandy Hook, NJ",
         url: "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER",

@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
 // ── All config and data inline — no module-level imports that can throw ───────
 
 // Static import of jurisdiction config — generated at build time by scripts/build-config.js
 import {
   JURISDICTION  as _J_raw,
+  REGIONS       as _REGIONS_raw,
+  SOURCE_REGISTRY as _SOURCE_REGISTRY_raw,
   NWS           as _NWS_raw,
   KNOWLEDGE_BASE as _KB_raw,
   MAP_LAYERS    as _ML_raw,
@@ -13,8 +15,36 @@ import {
   COOPS_STATIONS as _COOPS_raw,
 } from "./config/jurisdiction.js"
 import { appendCartoApiKey } from "./utils/carto.js"
+import {
+  ROCKAWAY_SOURCE_IDS,
+} from "./data/regional/rockawaySources.js"
+import {
+  PHASE4_GEOGRAPHY_SOURCE_IDS,
+  PHASE4_OBSERVATION_SOURCE_IDS,
+  PHASE4_SOURCE_IDS,
+  clearPhase4SourceCache,
+  fetchPhase4SourceBundle,
+  phase4SourceCard,
+  unavailablePhase4Result,
+} from "./data/regional/phase4Sources.js"
+import {
+  discoverArcGISLayers,
+  fetchArcGISLayer,
+  isQueryableArcGISServiceUrl,
+} from "./data/esriLayers.js"
+import {
+  MAP_BUILDER_FILTER_LABELS,
+  MAP_BUILDER_FILTER_MODES,
+  MAP_BUILDER_PRESETS,
+  arcGISGeometryForMode,
+  evaluateMapBuilderFilter,
+} from "./data/mapBuilderFilters.js"
+import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
+import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
 
 const _J     = _J_raw     || {}
+const _REGIONS = _REGIONS_raw || {}
+const _SOURCE_REGISTRY = _SOURCE_REGISTRY_raw || []
 const _NWS   = _NWS_raw   || {}
 const _KB    = _KB_raw    || {}
 const _ML    = _ML_raw    || {}
@@ -42,6 +72,8 @@ const CFG = {
   center:     _J.center     || [40.7128, -74.006],
   zoom:       _J.zoom       || 10,
   bbox:       _J.bbox       || null,
+  regions:    _REGIONS,
+  sources:    _SOURCE_REGISTRY,
 }
 const NWS_ALERT_URL    = _NWS.alert_url    || `https://api.weather.gov/alerts/active?area=${CFG.state}`
 const NWS_FORECAST_URL = _NWS.forecast_url || `https://api.weather.gov/gridpoints/OKX/33,37/forecast`
@@ -49,6 +81,7 @@ const SOCRATA_DOMAIN   = _SOC.domain       || "data.cityofnewyork.us"
 const OLLAMA_HOST        = import.meta.env?.VITE_OLLAMA_HOST  || "https://ollama.com"
 const OLLAMA_MODEL       = import.meta.env?.VITE_OLLAMA_MODEL || "gpt-oss:120b-cloud"
 const OLLAMA_KEY_ENV     = import.meta.env?.VITE_OLLAMA_API_KEY || ""
+const NYC_OPEN_DATA_TOKEN_ENV = import.meta.env?.VITE_NYC_OPEN_DATA_APP_TOKEN || ""
 const CARTO_TILE_URL     = appendCartoApiKey(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   import.meta.env.VITE_CARTO_API_KEY,
@@ -128,6 +161,16 @@ function setRuntimeKey(k) {
   try { sessionStorage.setItem("ember_ollama_key", k) } catch {}
 }
 
+function getNycOpenDataToken() {
+  try { return sessionStorage.getItem("ember_nyc_open_data_token") || NYC_OPEN_DATA_TOKEN_ENV } catch { return NYC_OPEN_DATA_TOKEN_ENV }
+}
+function setNycOpenDataToken(k) {
+  try {
+    if (k) sessionStorage.setItem("ember_nyc_open_data_token", k)
+    else sessionStorage.removeItem("ember_nyc_open_data_token")
+  } catch {}
+}
+
 // Default map layers (NYC hardcoded fallback if config not loaded)
 const DEFAULT_MAP_LAYERS = {
   hospitals: { label:"Trauma Centers", color:"#f87171", icon:"🏥", features:[
@@ -176,13 +219,6 @@ const BRANDING = {
   jurisdictionLine: _BR.jurisdictionLine || `${CFG.shortName} EMERGENCY MANAGEMENT`,
   primaryColor: _BR.primaryColor || "#e8372c",
 }
-
-const LIVE_ENDPOINTS = [
-  {name:`NWS Alerts — ${CFG.state}`,url:NWS_ALERT_URL,type:"weather"},
-  {name:`NWS Forecast — ${CFG.shortName}`,url:NWS_FORECAST_URL,type:"forecast"},
-  {name:"USGS Stream Gauges",url:`https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=${CFG.state.toLowerCase()}&parameterCd=00065&siteStatus=active`,type:"flood"},
-  {name:"FEMA Disasters",url:`https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state=${CFG.state}&$top=10&$orderby=declarationDate%20desc`,type:"fema"},
-]
 
 const KB_MODULES = [
   {id:"floodZones",label:"FLOOD ZONES"},
@@ -258,11 +294,11 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName) {
   return ctx
 }
 
-async function* streamOllama(messages, context, signal, apiKey) {
+async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name) {
   const key = apiKey || getRuntimeKey()
 
   // Build the system prompt + message array
-  const system = `You are EMBER — Emergency Management Body of Evidence & Resources — an AI for ${CFG.name} emergency managers.\n\nKNOWLEDGE BASE:\n${context}\n\nRULES: Lead with critical info. Cite sources [NYC OEM] [NWS] [FEMA] [USGS]. Be concise. Never hallucinate.`
+  const system = buildCopilotSystemPrompt(jurisdictionName, context)
   const allMessages = [
     { role: "system", content: system },
     ...messages.slice(-10),
@@ -332,6 +368,7 @@ const NOAA_ENDPOINTS = [
   {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_preds",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Tidal Predictions — Battery 48h",       url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER"},
   {id:"coops_kings",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Kings Point",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_montauk", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Montauk",                 url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_sandy",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Sandy Hook",              url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_wind",    cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Wind — The Battery",                    url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER"},
   // SPC / SWPC
@@ -365,15 +402,29 @@ function summarizeNOAA(result) {
 
 // ── Map component ─────────────────────────────────────────────────────────────
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarkerClick, mapWidth, mapLayers }) {
+function escapeMapHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[char])
+}
+
+function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
   const layerRefs = useRef({})
+  const regionalLayerRefs = useRef({})
   const radarRef  = useRef(null)
   const windRef   = useRef(null)
   const [ready, setReady] = useState(false)
   const [radarTs, setRadarTs] = useState(null)
+  const [selectedFeature, setSelectedFeature] = useState(null)
+
+  const selectFeature = feature => {
+    const normalized = normalizeMapFeature(feature)
+    setSelectedFeature(normalized)
+    onFeatureSelect?.(normalized)
+  }
 
   useEffect(() => {
     if (leafRef.current) return
@@ -416,8 +467,18 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
               html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 0 8px ${color}44">${icon}</div>`
             })
           })
+          mk.bindTooltip(`${icon} ${f.name}`, { sticky:true, direction:"top", opacity:0.95 })
           mk.bindPopup(`<div style="font-family:monospace;font-size:12px"><b style="color:${color}">${icon} ${f.name}</b><br><span style="color:#aac;font-size:11px">${f.note||""}</span></div>`)
-          mk.on("click", () => onMarkerClick?.({...f, layerLabel:label, color}))
+          mk.on("click", () => selectFeature({
+            name:f.name,
+            title:f.name,
+            description:f.note || "",
+            sourceName:label,
+            layerLabel:label,
+            geometryType:"Point",
+            color,
+            attribution:f.attribution || null,
+          }))
           group.addLayer(mk)
         })
         layerRefs.current[key] = group
@@ -441,6 +502,81 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
       activeLayers.includes(key) ? map.hasLayer(group)||group.addTo(map) : map.hasLayer(group)&&map.removeLayer(group)
     }
   }, [activeLayers, ready])
+
+  // Phase 4 normalized source layers. Point, line, and polygon records use the
+  // same approved geometry contract; records without geometry remain card-only.
+  useEffect(() => {
+    if (!ready || !leafRef.current) return
+    const map = leafRef.current
+    import("leaflet").then(({default:L}) => {
+      for (const group of Object.values(regionalLayerRefs.current)) {
+        if (map.hasLayer(group)) map.removeLayer(group)
+      }
+      regionalLayerRefs.current = {}
+
+      for (const [sourceId, records] of Object.entries(regionalRecords)) {
+        const source = regionalLayerMetadata[sourceId] || CFG.sources.find(item => item.id === sourceId)
+        const color = source?.display?.color || "#60a5fa"
+        const icon = source?.display?.icon || "📍"
+        const group = L.layerGroup()
+        for (const record of records || []) {
+          const geometry = record.geometry
+          if (!geometry?.type) continue
+          const popup = `<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${escapeMapHtml(icon)} ${escapeMapHtml(record.title)}</b><br><span style="color:#aac">${escapeMapHtml(record.description || record.category || record.status || "")}</span><br><br><span style="color:#778">${escapeMapHtml(record.source_name)} · ${escapeMapHtml(record.observed_at || record.fetched_at || "Timestamp unavailable")}</span><br><span style="color:#556">${escapeMapHtml(record.attribution)}</span></div>`
+          let featureLayer = null
+          if (geometry.type === "Point" && Array.isArray(geometry.coordinates)) {
+            const [longitude, latitude] = geometry.coordinates.map(Number)
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue
+            featureLayer = L.marker([latitude, longitude], {icon:L.divIcon({
+              className:"", iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-16],
+              html:`<div style="width:28px;height:28px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 0 8px ${color}44">${escapeMapHtml(icon)}</div>`,
+            })})
+          } else if (["LineString", "MultiLineString", "Polygon", "MultiPolygon"].includes(geometry.type)) {
+          const visibleLayer = L.geoJSON(geometry, {style: {
+              color,
+              weight: geometry.type.includes("Line") ? 3 : 2,
+              opacity: 0.9,
+              fillColor: color,
+              fillOpacity: geometry.type.includes("Polygon") ? 0.14 : 0,
+            }})
+            const hitLayer = geometry.type.includes("Line")
+              ? L.geoJSON(geometry, {style:{color:"#000",weight:12,opacity:0,fillOpacity:0}})
+              : null
+            featureLayer = hitLayer ? L.featureGroup([visibleLayer, hitLayer]) : visibleLayer
+          }
+          if (!featureLayer) continue
+          const featureLabel = record.title || source?.name || sourceId
+          featureLayer.bindTooltip(featureLabel, { sticky:true, direction:"top", opacity:0.95 })
+          featureLayer.bindPopup(popup)
+          featureLayer.on("click", () => selectFeature({
+            name:featureLabel,
+            title:featureLabel,
+            description:record.description || record.category || record.status || "",
+            sourceName:record.source_name || source?.name || sourceId,
+            layerLabel:source?.name || sourceId,
+            geometryType:geometry.type,
+            observedAt:record.observed_at || null,
+            fetchedAt:record.fetched_at || null,
+            attribution:record.attribution || source?.attribution || null,
+            color,
+          }))
+          group.addLayer(featureLayer)
+        }
+        regionalLayerRefs.current[sourceId] = group
+        if (activeRegionalLayers.includes(sourceId)) group.addTo(map)
+      }
+    })
+  }, [regionalRecords, regionalLayerMetadata, ready])
+
+  useEffect(() => {
+    if (!ready || !leafRef.current) return
+    const map = leafRef.current
+    for (const [sourceId, group] of Object.entries(regionalLayerRefs.current)) {
+      activeRegionalLayers.includes(sourceId)
+        ? map.hasLayer(group) || group.addTo(map)
+        : map.hasLayer(group) && map.removeLayer(group)
+    }
+  }, [activeRegionalLayers, ready])
 
   // Radar
   useEffect(() => {
@@ -484,7 +620,17 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
             className:"", iconSize:[50,40], iconAnchor:[25,20],
             html:`<div style="display:flex;flex-direction:column;align-items:center;gap:1px"><div style="font-size:20px;transform:rotate(${toDir}deg);filter:drop-shadow(0 0 3px ${color}88)">↑</div><div style="font-size:9px;font-family:monospace;font-weight:700;color:${color};background:#07090dcc;padding:1px 3px;border-radius:2px">${o.speedMph}${o.gustMph?`g${o.gustMph}`:""}mph</div></div>`
           })})
+          mk.bindTooltip(`${o.id} — ${o.name}`, { sticky:true, direction:"top", opacity:0.95 })
           mk.bindPopup(`<div style="font-family:monospace;font-size:11px"><b style="color:${color}">${o.id} — ${o.name}</b><br>Wind: ${o.speedMph}mph from ${o.dirDeg}°${o.gustMph?` (gusts ${o.gustMph}mph)`:""}<br>${o.desc}</div>`)
+          mk.on("click", () => selectFeature({
+            name:`${o.id} — ${o.name}`,
+            title:`${o.id} — ${o.name}`,
+            description:`Wind: ${o.speedMph}mph from ${o.dirDeg}°${o.gustMph?` (gusts ${o.gustMph}mph)`:""}${o.desc ? ` · ${o.desc}` : ""}`,
+            sourceName:"NWS wind observation",
+            layerLabel:"Wind Observations",
+            geometryType:"Point",
+            color,
+          }))
           windRef.current?.addLayer(mk)
         })
       })
@@ -513,6 +659,20 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
   return (
     <div style={{position:"relative",width:"100%",height:"100%"}}>
       <div ref={mapRef} style={{width:"100%",height:"100%"}} />
+      {selectedFeature && (
+        <div role="dialog" aria-label={`Selected map feature: ${selectedFeature.title || selectedFeature.name}`} style={{position:"absolute",left:10,right:10,bottom:10,zIndex:1100,maxWidth:440,padding:"10px 12px",background:"#071018f2",border:"1px solid #22d3ee66",borderRadius:7,boxShadow:"0 4px 18px #0008",fontFamily:"monospace"}}>
+          <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
+            <div style={{minWidth:0}}>
+              <div style={{fontSize:11,color:selectedFeature.color || "#9de7f3",fontWeight:700}}>{selectedFeature.title || selectedFeature.name}</div>
+              <div style={{fontSize:8.5,color:"#667",marginTop:2}}>{selectedFeature.sourceName || selectedFeature.layerLabel || "Map feature"}{selectedFeature.geometryType ? ` · ${selectedFeature.geometryType}` : ""}</div>
+            </div>
+            <button aria-label="Close selected map feature" onClick={()=>{setSelectedFeature(null);leafRef.current?.closePopup()}} style={{background:"none",border:"none",color:"#778",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button>
+          </div>
+          {selectedFeature.description && <div style={{fontSize:9.5,color:"#aac",lineHeight:1.45,marginTop:7}}>{selectedFeature.description}</div>}
+          {(selectedFeature.observedAt || selectedFeature.fetchedAt || selectedFeature.attribution) && <div style={{fontSize:8,color:"#556",marginTop:6}}>{selectedFeature.observedAt || selectedFeature.fetchedAt || ""}{selectedFeature.attribution ? ` · ${selectedFeature.attribution}` : ""}</div>}
+          <button onClick={()=>onSendFeatureToChat?.(selectedFeature)} style={{marginTop:8,padding:"4px 10px",borderRadius:4,fontSize:9.5,fontWeight:700,border:"1px solid #22d3ee66",background:"#22d3ee12",color:"#9de7f3",cursor:"pointer",fontFamily:"inherit"}}>Send to Chat</button>
+        </div>
+      )}
       {radarTs && showRadar && (
         <div style={{position:"absolute",bottom:28,left:10,zIndex:1000,background:"#07090dcc",color:"#60a5fa",fontFamily:"monospace",fontSize:9,padding:"2px 8px",borderRadius:4,border:"1px solid #60a5fa33",pointerEvents:"none"}}>
           📡 NEXRAD · {radarTs}
@@ -524,6 +684,87 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onMarker
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 
+const SOURCE_STATE_COLORS = {
+  current: "#4ade80",
+  stale: "#facc15",
+  partial: "#fb923c",
+  unavailable: "#f87171",
+  access_required: "#a78bfa",
+}
+
+const PHASE4_SOURCE_GROUPS = [
+  { id:"rockaway", label:"Rockaway / Queens CB14", detail:"Operational and reference sources scoped through the approved CB14 contract", sourceIds:ROCKAWAY_SOURCE_IDS },
+  { id:"observations", label:"Regional observations and inventories", detail:"NOAA water levels, USGS gauge height, and NYS DEC Active Sites", sourceIds:PHASE4_OBSERVATION_SOURCE_IDS },
+  { id:"boundaries", label:"Operational boundaries", detail:"CB14, county, and electric-utility responsibility overlays", sourceIds:PHASE4_GEOGRAPHY_SOURCE_IDS },
+]
+
+function compactTimestamp(value) {
+  if (!value) return "Not available"
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString()
+}
+
+function Phase4SourcesPanel({ sources, results, loading, onRefresh, activeLayers, onToggleLayer }) {
+  const sourcesById = new Map(sources.map(source => [source.id, source]))
+  return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
+      <div style={{flexShrink:0,padding:"12px 18px 9px",borderBottom:"1px solid #111820"}}>
+        <div style={{display:"flex",justifyContent:"space-between",gap:10,alignItems:"center"}}>
+          <div>
+            <div style={{color:"#60a5fa",fontWeight:700,marginBottom:3}}>🗂 Phase 4 Sources</div>
+            <div style={{fontSize:9.5,color:"#556"}}>Shared normalized records · visible freshness and failure states · approved geometry only</div>
+          </div>
+          <button onClick={onRefresh} disabled={loading} style={{padding:"4px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit",opacity:loading?0.5:1}}>
+            {loading?"↺ Fetching…":"↺ Refresh"}
+          </button>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"10px 14px"}}>
+        {PHASE4_SOURCE_GROUPS.map(group => (
+          <section key={group.id} style={{marginBottom:14}}>
+            <div style={{fontSize:10,color:"#aac",fontWeight:700,margin:"3px 2px"}}>{group.label}</div>
+            <div style={{fontSize:8.5,color:"#445",margin:"0 2px 7px"}}>{group.detail}</div>
+            {group.sourceIds.map(sourceId => {
+              const source = sourcesById.get(sourceId)
+              if (!source) return null
+              const result = results[source.id] || unavailablePhase4Result(source)
+              const card = phase4SourceCard(source, result)
+              const stateColor = SOURCE_STATE_COLORS[card.data_state] || "#778"
+              const isActive = activeLayers.includes(source.id)
+              return (
+                <div key={source.id} style={{marginBottom:9,padding:"9px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderLeft:`3px solid ${card.color}`,borderRadius:6}}>
+                  <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"flex-start"}}>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:10.5,color:"#dde",fontWeight:700}}>{card.icon} {card.name}</div>
+                      <div style={{fontSize:8.5,color:"#556",marginTop:2}}>{card.owner} · {card.geography}</div>
+                    </div>
+                    <span style={{fontSize:8,fontWeight:700,color:stateColor,border:`1px solid ${stateColor}55`,background:stateColor+"12",borderRadius:8,padding:"1px 6px",whiteSpace:"nowrap"}}>{card.data_state.replaceAll("_"," ").toUpperCase()}</span>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(4,minmax(0,1fr))",gap:5,marginTop:7,fontSize:8.5}}>
+                    <div><span style={{color:"#334"}}>RECORDS</span><br/><span style={{color:"#aac"}}>{card.record_count}</span></div>
+                    <div><span style={{color:"#334"}}>MAPPED</span><br/><span style={{color:"#aac"}}>{card.map_count}</span></div>
+                    <div><span style={{color:"#334"}}>OBSERVED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.observed_at)}</span></div>
+                    <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
+                  </div>
+                  {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
+                  {card.activation_state && <div style={{fontSize:8.5,color:"#facc15",marginTop:5}}>Activation: {card.activation_state.replaceAll("_", " ")}{card.confirmation_phone?` · verify via ${card.confirmation_phone}`:""}{card.confirmation_url?<>{" · "}<a href={card.confirmation_url} target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>official finder</a></>:null}</div>}
+                  {card.disclaimer && <div style={{fontSize:8,color:"#445",marginTop:5}}>{card.disclaimer}</div>}
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
+                    <span style={{fontSize:8,color:"#445"}}>{card.kind.replaceAll("_"," ")} · {card.attribution}{card.rejected_count?` · ${card.rejected_count} rejected`:""}</span>
+                    <button onClick={()=>onToggleLayer(source.id)} disabled={!card.map_capable} style={{padding:"2px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${card.map_capable?card.color+"55":"#1a1e28"}`,background:isActive?card.color+"18":"transparent",color:card.map_capable?card.color:"#334",cursor:card.map_capable?"pointer":"not-allowed",fontFamily:"inherit"}}>
+                      {card.map_capable ? (isActive?"Hide from map":"Show on map") : "Not map-ready"}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </section>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   // ── Runtime config (localStorage overrides build-time defaults) ───────────
   const [localConfig, setLocalConfig] = useState(loadLocalConfig)
@@ -533,7 +774,6 @@ export default function App() {
   const LIVE_ENDPOINTS_RT = [
     {name:`NWS Alerts — ${CFG_RT.state}`,      url:`https://api.weather.gov/alerts/active?area=${CFG_RT.state}`,                                                               type:"weather"},
     {name:`NWS Forecast — ${CFG_RT.shortName}`, url:`https://api.weather.gov/gridpoints/${CFG_RT.nwsOffice}/${CFG_RT.nwsGridX},${CFG_RT.nwsGridY}/forecast`,                  type:"forecast"},
-    {name:"USGS Stream Gauges",                  url:`https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd=${CFG_RT.state.toLowerCase()}&parameterCd=00065&siteStatus=active`, type:"flood"},
     {name:"FEMA Disasters",                      url:`https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state=${CFG_RT.state}&$top=10&$orderby=declarationDate%20desc`, type:"fema"},
   ]
 
@@ -546,6 +786,7 @@ export default function App() {
   const [input, setInput]               = useState("")
   const [keyInput, setKeyInput]         = useState("")
   const [runtimeKey, setRuntimeKeyState]= useState(getRuntimeKey)
+  const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
@@ -553,6 +794,7 @@ export default function App() {
   const [showWind, setShowWind]         = useState(true)
   const [files, setFiles]               = useState([])
   const [esriItems, setEsriItems]       = useState([])
+  const [esriMapLayers, setEsriMapLayers] = useState({})
   const [noaaItems, setNoaaItems]       = useState([])
   const [apiResults, setApiResults]     = useState([])
   const [apiStatus, setApiStatus]       = useState("idle")
@@ -567,14 +809,70 @@ export default function App() {
   const clampMapWidth = width => Math.max(MAP_WIDTH_MIN, Math.min(MAP_WIDTH_MAX, width))
   const [mapWidth, setMapWidth]         = useState(() => loadMapWidth(MAP_WIDTH_DEFAULT))
   const [liveReadings, setLiveReadings] = useState({})
+  const phase4Sources = useMemo(
+    () => PHASE4_SOURCE_IDS.map(id => CFG.sources.find(source => source.id === id)).filter(Boolean),
+    [],
+  )
+  const [phase4Results, setPhase4Results] = useState(() => Object.fromEntries(
+    phase4Sources.map(source => [source.id, unavailablePhase4Result(source)]),
+  ))
+  const phase4ResultsRef = useRef(phase4Results)
+  const [phase4Loading, setPhase4Loading] = useState(false)
+  const [activePhase4Layers, setActivePhase4Layers] = useState(["nyc_311_rockaway"])
+  const togglePhase4Layer = useCallback(sourceId => {
+    setActivePhase4Layers(previous => previous.includes(sourceId)
+      ? previous.filter(id => id !== sourceId)
+      : [...previous, sourceId])
+  }, [])
+  const phase4Records = useMemo(
+    () => Object.fromEntries(phase4Sources.map(source => [source.id, phase4Results[source.id]?.records || []])),
+    [phase4Results, phase4Sources],
+  )
+  const geographyFilterRecords = useMemo(
+    () => PHASE4_GEOGRAPHY_SOURCE_IDS.flatMap(sourceId => phase4Results[sourceId]?.records || []),
+    [phase4Results],
+  )
+  const evaluatedEsriMapLayers = useMemo(
+    () => Object.fromEntries(Object.values(esriMapLayers).map(layer => [
+      layer.id,
+      { ...layer, filter:evaluateMapBuilderFilter(layer, geographyFilterRecords) },
+    ])),
+    [esriMapLayers, geographyFilterRecords],
+  )
+  const esriMapRecords = useMemo(
+    () => Object.fromEntries(Object.values(evaluatedEsriMapLayers).map(layer => [layer.id, layer.filter.records])),
+    [evaluatedEsriMapLayers],
+  )
+  const esriMapMetadata = useMemo(
+    () => Object.fromEntries(Object.values(evaluatedEsriMapLayers).map(layer => [layer.id, {
+      name: layer.name,
+      display: { color: layer.color, icon: layer.icon },
+    }])),
+    [evaluatedEsriMapLayers],
+  )
+  const regionalMapRecords = useMemo(
+    () => ({ ...phase4Records, ...esriMapRecords }),
+    [phase4Records, esriMapRecords],
+  )
+  const activeRegionalMapLayers = useMemo(
+    () => [...activePhase4Layers, ...Object.keys(evaluatedEsriMapLayers)],
+    [activePhase4Layers, evaluatedEsriMapLayers],
+  )
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
+  const setNycOpenDataToken_ = (token) => {
+    const nextToken = token.trim()
+    clearPhase4SourceCache()
+    setNycOpenDataToken(nextToken)
+    setNycOpenDataTokenState(nextToken)
+  }
   const abortRef   = useRef(null)
   const fileInputRef = useRef(null)
   const endRef     = useRef(null)
 
   useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}) }, [messages])
   useEffect(() => { saveMapWidth(mapWidth) }, [mapWidth])
+  useEffect(() => { phase4ResultsRef.current = phase4Results }, [phase4Results])
   useEffect(() => {
     const onStorage = e => {
       if (e.key === LS_KEY) setLocalConfig(loadLocalConfig())
@@ -582,6 +880,21 @@ export default function App() {
     window.addEventListener("storage", onStorage)
     return () => window.removeEventListener("storage", onStorage)
   }, [])
+
+  const refreshPhase4Sources = useCallback(async () => {
+    setPhase4Loading(true)
+    try {
+      const bundle = await fetchPhase4SourceBundle(CFG.sources, {
+        appToken: nycOpenDataToken,
+        previousResults: phase4ResultsRef.current,
+      })
+      setPhase4Results(bundle.results)
+    } finally {
+      setPhase4Loading(false)
+    }
+  }, [nycOpenDataToken])
+
+  useEffect(() => { refreshPhase4Sources() }, [refreshPhase4Sources])
 
   const fetchAPIs = async () => {
     setFetching(true)
@@ -620,7 +933,9 @@ export default function App() {
     let full = ""
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
     try {
-      for await (const token of streamOllama(msgs, ctx, abortRef.current.signal, runtimeKey)) {
+      for await (const token of streamOllama(
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name,
+      )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])
       }
@@ -629,7 +944,7 @@ export default function App() {
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()
@@ -639,7 +954,7 @@ export default function App() {
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const pill = (label, active, onClick, color="#4ade80") => (
-    <button key={label} onClick={onClick} style={{padding:"2px 9px",borderRadius:10,fontSize:9,fontWeight:700,border:`1px solid ${active?color+"66":"#1a1e28"}`,background:active?color+"15":"transparent",color:active?color:"#334",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",transition:"all 0.1s"}}>
+    <button key={label} onClick={onClick} aria-pressed={active} style={{padding:"2px 9px",borderRadius:10,fontSize:9,fontWeight:700,border:`1px solid ${active?color+"66":"#1a1e28"}`,background:active?color+"15":"transparent",color:active?color:"#334",cursor:"pointer",fontFamily:"inherit",letterSpacing:"0.05em",transition:"all 0.1s"}}>
       {label}
     </button>
   )
@@ -687,6 +1002,7 @@ export default function App() {
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>MAP</span>
         {MAP_LAYER_TOGGLES.map(m => pill(m.label, activeMapLayers.includes(m.id), ()=>setActiveLayers(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id]), m.color))}
+        {pill("311 ROCKAWAY", activePhase4Layers.includes("nyc_311_rockaway"), ()=>togglePhase4Layer("nyc_311_rockaway"), "#f59e0b")}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>WX</span>
         {pill("NEXRAD RADAR", showRadar, ()=>setShowRadar(p=>!p), "#3b82f6")}
@@ -705,7 +1021,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onMarkerClick={m=>{setRightTab("chat");sendQuery(`Tell me about emergency considerations for ${m.name} — ${m.note}`)}} mapLayers={ML_RT} mapWidth={mapWidth} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -738,9 +1054,9 @@ export default function App() {
         <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,minHeight:0}}>
 
           {/* Tab bar */}
-          <div style={{flexShrink:0,display:"flex",borderBottom:"1px solid #111820",background:"#090c12"}}>
-            {[{id:"chat",label:"💬 CHAT"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
-              <button key={t.id} onClick={()=>setRightTab(t.id)} style={{padding:"8px 18px",background:rightTab===t.id?"#0d1117":"transparent",color:rightTab===t.id?"#e0e0e8":"#334",border:"none",borderBottom:rightTab===t.id?"2px solid #4ade80":"2px solid transparent",fontFamily:"inherit",fontSize:10,fontWeight:700,cursor:"pointer",letterSpacing:"0.06em"}}>
+          <div style={{flexShrink:0,display:"flex",borderBottom:"1px solid #111820",background:"#090c12",overflowX:"auto"}}>
+            {[{id:"chat",label:"💬 CHAT"},{id:"sources",label:"🗂 SOURCES"},{id:"noaa",label:"📡 NOAA"},{id:"esri",label:"⊕ ESRI"},{id:"settings",label:"⚙️ SETTINGS"}].map(t=>(
+              <button key={t.id} onClick={()=>setRightTab(t.id)} style={{padding:"8px 12px",flexShrink:0,background:rightTab===t.id?"#0d1117":"transparent",color:rightTab===t.id?"#e0e0e8":"#334",border:"none",borderBottom:rightTab===t.id?"2px solid #4ade80":"2px solid transparent",fontFamily:"inherit",fontSize:9.5,fontWeight:700,cursor:"pointer",letterSpacing:"0.04em"}}>
                 {t.label}
               </button>
             ))}
@@ -787,6 +1103,17 @@ export default function App() {
                 </button>
               </div>
             </div>
+          )}
+
+          {rightTab==="sources" && (
+            <Phase4SourcesPanel
+              sources={phase4Sources}
+              results={phase4Results}
+              loading={phase4Loading}
+              onRefresh={refreshPhase4Sources}
+              activeLayers={activePhase4Layers}
+              onToggleLayer={togglePhase4Layer}
+            />
           )}
 
           {/* NOAA tab — full endpoint list */}
@@ -836,19 +1163,58 @@ export default function App() {
 
           {/* ESRI tab — simplified inline */}
           {rightTab==="esri" && (
-            <ESRIPanel onInject={item=>{
+          <ESRIPanel onInject={item=>{
               setEsriItems(p=>p.find(x=>x.itemId===item.itemId)?p:[...p,item])
               setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI layer added: ${item.name}. Try: "What does this layer cover?"`}])
               setRightTab("chat")
-            }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}/>
+            }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}
+              esriMapLayers={evaluatedEsriMapLayers}
+              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:{...layer,baseRecords:layer.records}})}
+              onMapLayerFilterChange={async (layerId,filterMode)=>{
+                const layer = esriMapLayers[layerId]
+                if (!layer) return
+                if (filterMode === MAP_BUILDER_FILTER_MODES.UNFILTERED) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{
+                    ...previous[layerId], records:previous[layerId].baseRecords || previous[layerId].records,
+                    filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
+                  }}))
+                  return
+                }
+                const geometry = arcGISGeometryForMode(geographyFilterRecords, filterMode)
+                if (!geometry) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:false,filterError:"missing_geography_masks"}}))
+                  return
+                }
+                setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:true,filterError:""}}))
+                try {
+                  const refreshed = await fetchArcGISLayer(
+                    {id:layer.ownerItemId,title:layer.name,owner:layer.owner,type:layer.sourceType,url:layer.originalUrl,color:layer.color},
+                    {id:layer.sublayerId,name:layer.name,url:layer.url},
+                    {entryPath:layer.entryPath,color:layer.color,geometry},
+                  )
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{
+                    ...previous[layerId], records:refreshed.records, count:refreshed.records.length,
+                    filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
+                  }}))
+                } catch (error) {
+                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterLoading:false,filterError:error.message || "filtered_query_failed"}}))
+                }
+              }}
+              onMapLayerRemove={layerId=>setEsriMapLayers(previous=>{
+                const next = {...previous}
+                delete next[layerId]
+                return next
+              })}/>
           )}
 
           {/* Settings tab */}
           {rightTab==="settings" && (
             <SettingsPanel
               localConfig={localConfig}
+              nycOpenDataToken={nycOpenDataToken}
               onSave={saveConfig}
-              onReset={()=>{ clearLocalConfig(); setLocalConfig({}); window.location.reload() }}
+              onSaveNycToken={setNycOpenDataToken_}
+              onReset={()=>{ clearLocalConfig(); setNycOpenDataToken_(""); setLocalConfig({}); window.location.reload() }}
             />
           )}
 
@@ -903,11 +1269,20 @@ function NOAAEndpointRow({ep, cached, onFetch}) {
 }
 
 // ── ESRI panel component ──────────────────────────────────────────────────────
-function ESRIPanel({onInject, esriItems, onRemove}) {
+function manualArcGISItemId(url) {
+  let hash = 0
+  for (const char of String(url)) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0
+  return `manual_${Math.abs(hash)}`
+}
+
+function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove}) {
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
   const [total, setTotal]     = useState(0)
+  const [mapState, setMapState] = useState({})
+  const [manualUrl, setManualUrl] = useState("")
+  const [manualName, setManualName] = useState("")
 
   const search = async () => {
     if (!query.trim()) return
@@ -923,6 +1298,44 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
   }
 
   const injectedIds = new Set(esriItems.map(i=>i.itemId))
+  const mappedLayers = Object.values(esriMapLayers)
+
+  const updateMapState = (itemId, updates) => setMapState(previous => ({
+    ...previous,
+    [itemId]: { ...previous[itemId], ...updates },
+  }))
+
+  const addItemToMap = async (item, entryPath="search") => {
+    const current = mapState[item.id] || {}
+    updateMapState(item.id, {loading:true,error:""})
+    try {
+      let layers = current.layers
+      if (!layers) {
+        layers = await discoverArcGISLayers(item.url)
+        if (layers.length > 1) {
+          updateMapState(item.id, {loading:false,layers,selectedUrl:layers[0].url})
+          return
+        }
+      }
+      const selected = layers.find(layer => layer.url === current.selectedUrl) || layers[0]
+      const layer = await fetchArcGISLayer(item, selected, {entryPath,color:item.color})
+      updateMapState(item.id, {loading:false,layers,selectedUrl:selected.url,error:""})
+      onMapLayerAdd(layer)
+    } catch (error) {
+      updateMapState(item.id, {loading:false,error:error.message || "Unable to load this ArcGIS layer"})
+    }
+  }
+
+  const manualItem = manualUrl.trim() ? {
+    id:manualArcGISItemId(manualUrl.trim()),
+    title:manualName.trim() || "Pasted ArcGIS Feature Service",
+    owner:"User-provided ArcGIS service",
+    type:/\/MapServer(?:\/\d+)?\/?$/i.test(manualUrl.trim()) ? "Map Service" : "Feature Service",
+    url:manualUrl.trim(),
+    color:"#60a5fa",
+  } : null
+  const manualMapState = manualItem ? mapState[manualItem.id] || {} : {}
+  const manualSelectedLayer = manualMapState.layers?.find(layer=>layer.url===manualMapState.selectedUrl) || manualMapState.layers?.[0]
 
   return (
     <div style={{flex:1,overflowY:"auto",padding:"16px 18px"}}>
@@ -933,17 +1346,52 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
           {loading?"…":"🔍 Search"}
         </button>
       </div>
+      <div style={{marginBottom:12,padding:"9px 10px",border:"1px solid #1a1e28",borderRadius:6,background:"#090d14"}}>
+        <div style={{fontSize:9.5,color:"#60a5fa",fontWeight:700,marginBottom:6}}>MAP BUILDER · PASTE FEATURE SERVICE</div>
+        <input value={manualUrl} onChange={event=>setManualUrl(event.target.value)} placeholder="https://…/FeatureServer or /FeatureServer/0" style={{width:"100%",boxSizing:"border-box",background:"#0d1117",border:"1px solid #1a1e28",borderRadius:4,padding:"5px 8px",color:"#e0e0e8",fontFamily:"inherit",fontSize:9.5,outline:"none",marginBottom:5}}/>
+        <div style={{display:"flex",gap:5}}>
+          <input value={manualName} onChange={event=>setManualName(event.target.value)} placeholder="Layer name (optional)" style={{flex:1,minWidth:0,background:"#0d1117",border:"1px solid #1a1e28",borderRadius:4,padding:"5px 8px",color:"#e0e0e8",fontFamily:"inherit",fontSize:9.5,outline:"none"}}/>
+          <button onClick={()=>manualItem&&addItemToMap(manualItem,"pasted_url")} disabled={!manualItem||manualMapState.loading} style={{padding:"3px 9px",borderRadius:4,fontSize:9,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:manualMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:!manualItem||manualMapState.loading?0.5:1}}>{manualMapState.loading?"Loading…":"+ Add URL"}</button>
+        </div>
+        {manualMapState.layers?.length>1 && <select aria-label="Pasted service sublayer" value={manualSelectedLayer?.url||""} onChange={event=>updateMapState(manualItem.id,{selectedUrl:event.target.value,error:""})} style={{width:"100%",marginTop:6,background:"#0d1117",border:"1px solid #60a5fa44",borderRadius:4,padding:"4px 6px",color:"#9dc7f3",fontFamily:"inherit",fontSize:9}}>{manualMapState.layers.map(layer=><option key={layer.url} value={layer.url}>{layer.id}: {layer.name}</option>)}</select>}
+        {manualMapState.layers?.length>1 && <button onClick={()=>addItemToMap(manualItem,"pasted_url")} style={{marginTop:5,padding:"2px 9px",borderRadius:4,fontSize:9,border:"1px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit"}}>+ Add selected sublayer</button>}
+        {manualMapState.error && <div role="alert" style={{marginTop:5,fontSize:9,color:"#f87171"}}>{manualMapState.error}</div>}
+      </div>
+      <div style={{marginBottom:12}}>
+        <div style={{fontSize:9.5,color:"#facc15",fontWeight:700,marginBottom:6}}>LIVING ATLAS QUICK-ADDS</div>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+          {MAP_BUILDER_PRESETS.map(preset=>{
+            const mapped = mappedLayers.some(layer=>layer.ownerItemId===preset.id)
+            const supported = preset.type === "Feature Layer" && isQueryableArcGISServiceUrl(preset.url)
+            return <button key={preset.id} onClick={()=>supported&&!mapped&&addItemToMap({...preset,title:preset.name},"quick_add")} disabled={!supported||mapped} title={!supported?"Map Services, imagery, and vector tiles cannot be added as queryable features":preset.owner} style={{padding:"3px 7px",borderRadius:4,fontSize:8.5,border:`1px solid ${preset.color}44`,background:mapped?`${preset.color}12`:"transparent",color:supported?preset.color:"#445",cursor:supported&&!mapped?"pointer":"default",fontFamily:"inherit"}}>{mapped?"✓ ":supported?"+ ":"Unavailable · "}{preset.name}</button>
+          })}
+        </div>
+        <div style={{marginTop:5,fontSize:8.5,color:"#556"}}>Map Services, imagery, and vector tiles remain unfiltered; non-queryable quick-adds are disabled.</div>
+      </div>
       {total>0 && <div style={{fontSize:9,color:"#334",marginBottom:8}}>{total.toLocaleString()} results</div>}
-      {results.map(item=>(
+      {results.map(item=>{
+        const itemMapState = mapState[item.id] || {}
+        const selectedLayer = itemMapState.layers?.find(layer => layer.url === itemMapState.selectedUrl) || itemMapState.layers?.[0]
+        const selectedMapId = selectedLayer ? `esri_${item.id}_${selectedLayer.id}` : null
+        const selectedIsMapped = Boolean(selectedMapId && esriMapLayers[selectedMapId])
+        const itemMappedLayers = mappedLayers.filter(layer => layer.ownerItemId === item.id)
+        const canMap = isQueryableArcGISServiceUrl(item.url)
+        return (
         <div key={item.id} style={{marginBottom:8,padding:"8px 10px",background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6}}>
           <div style={{display:"flex",gap:4,marginBottom:4,flexWrap:"wrap"}}>
             <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#60a5fa12",color:"#60a5fa",border:"1px solid #60a5fa22"}}>{item.type}</span>
-            {"esri" in (item.owner||"").toLowerCase() && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#a78bfa12",color:"#a78bfa",border:"1px solid #a78bfa22"}}>Living Atlas</span>}
+            {String(item.owner || "").toLowerCase().includes("esri") && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#a78bfa12",color:"#a78bfa",border:"1px solid #a78bfa22"}}>Living Atlas</span>}
             {injectedIds.has(item.id) && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#4ade8012",color:"#4ade80",border:"1px solid #4ade8022"}}>✓ In KB</span>}
+            {itemMappedLayers.length>0 && <span style={{fontSize:9,padding:"1px 6px",borderRadius:8,background:"#22d3ee12",color:"#22d3ee",border:"1px solid #22d3ee22"}}>✓ On Map</span>}
           </div>
           <div style={{fontSize:10.5,color:"#dde",fontWeight:700,marginBottom:2}}>{item.title}</div>
           <div style={{fontSize:9.5,color:"#556",marginBottom:6}}>{(item.snippet||"").substring(0,120)}</div>
-          <div style={{display:"flex",gap:5}}>
+          {itemMapState.layers?.length>1 && (
+            <select aria-label={`Map layer for ${item.title}`} value={selectedLayer?.url || ""} onChange={event=>updateMapState(item.id,{selectedUrl:event.target.value,error:""})} style={{width:"100%",marginBottom:6,background:"#090d14",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:"#9de7f3",fontFamily:"inherit",fontSize:9.5}}>
+              {itemMapState.layers.map(layer=><option key={layer.url} value={layer.url}>{layer.id}: {layer.name}</option>)}
+            </select>
+          )}
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
             {!injectedIds.has(item.id) ? (
               <button onClick={()=>{
                 const tags = (item.tags||[]).join(", ")
@@ -955,11 +1403,41 @@ function ESRIPanel({onInject, esriItems, onRemove}) {
             ) : (
               <button disabled style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",background:"transparent",color:"#334",fontFamily:"inherit"}}>✓ In KB</button>
             )}
+            {canMap && (selectedIsMapped ? (
+              <button onClick={()=>onMapLayerRemove(selectedMapId)} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee55",background:"#22d3ee12",color:"#22d3ee",cursor:"pointer",fontFamily:"inherit"}}>− Remove from Map</button>
+            ) : (
+              <button onClick={()=>addItemToMap(item,"search")} disabled={itemMapState.loading} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #22d3ee44",background:"transparent",color:"#22d3ee",cursor:itemMapState.loading?"wait":"pointer",fontFamily:"inherit",opacity:itemMapState.loading?0.55:1}}>
+                {itemMapState.loading?"Loading…":itemMapState.layers?.length>1?"+ Add Selected to Map":"+ Add to Map"}
+              </button>
+            ))}
             <a href={`https://www.arcgis.com/home/item.html?id=${item.id}`} target="_blank" rel="noopener noreferrer" style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",color:"#556",textDecoration:"none"}}>↗ AGOL</a>
             {item.url && <a href={item.url} target="_blank" rel="noopener noreferrer" style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",color:"#556",textDecoration:"none"}}>↗ Service</a>}
           </div>
+          {itemMappedLayers.length>0 && <div style={{marginTop:5,fontSize:9,color:"#22d3ee88"}}>{itemMappedLayers.map(layer=>`${layer.name} (${layer.count.toLocaleString()} features)`).join(" · ")}</div>}
+          {itemMapState.error && <div role="alert" style={{marginTop:5,fontSize:9,color:"#f87171"}}>{itemMapState.error}</div>}
+          {!canMap && <div style={{marginTop:5,fontSize:9,color:"#667"}}>Map and geography filtering unavailable for this item type.</div>}
         </div>
-      ))}
+      )})}
+      {mappedLayers.length>0 && (
+        <div style={{marginTop:16,borderTop:"1px solid #15303a",paddingTop:12}}>
+          <div style={{fontSize:9.5,color:"#22d3ee",fontWeight:700,marginBottom:7}}>MAP BUILDER LAYERS ({mappedLayers.length})</div>
+          {mappedLayers.map(layer=>{
+            const filter = layer.filter
+            const fallback = filter.requestedMode!==filter.effectiveMode
+            return <div key={layer.id} style={{marginBottom:8,padding:"7px 8px",border:"1px solid #16313a",borderRadius:5,background:"#071018"}}>
+              <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"center"}}>
+                <span style={{fontSize:9.5,color:layer.color,fontWeight:700}}>{layer.name}</span>
+                <button aria-label={`Remove ${layer.name} from map`} onClick={()=>onMapLayerRemove(layer.id)} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
+              </div>
+              <div style={{fontSize:8.5,color:"#557",margin:"3px 0 5px"}}>{layer.entryPath.replaceAll("_"," ")} · <a href={layer.originalUrl||layer.url} target="_blank" rel="noopener noreferrer" style={{color:"#668"}}>original service</a></div>
+              <select aria-label={`Geography filter for ${layer.name}`} value={layer.filterMode||MAP_BUILDER_FILTER_MODES.UNFILTERED} onChange={event=>onMapLayerFilterChange(layer.id,event.target.value)} disabled={!filter.supported} title={!filter.supported?"Geography filtering is available only for queryable Feature Layers":"Applied after Add to Map"} style={{width:"100%",background:"#0d1117",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:filter.supported?"#9de7f3":"#445",fontFamily:"inherit",fontSize:9}}>
+                {Object.entries(MAP_BUILDER_FILTER_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
+              </select>
+              <div style={{marginTop:4,fontSize:8.5,color:layer.filterLoading||fallback?"#facc15":"#667"}}>{layer.filterLoading?`Loading up to 500 features in ${MAP_BUILDER_FILTER_LABELS[layer.filterMode]}…`:layer.filterError?`Filtered query failed (${layer.filterError.replaceAll("_"," ")}); showing last successful result.`:fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); displaying unfiltered.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
+            </div>
+          })}
+        </div>
+      )}
       {esriItems.length>0 && (
         <div style={{marginTop:16,borderTop:"1px solid #111820",paddingTop:12}}>
           <div style={{fontSize:9.5,color:"#a78bfa",fontWeight:700,marginBottom:6}}>{esriItems.length} layer(s) in KB:</div>
@@ -1000,7 +1478,7 @@ function FeatureTable({ rows, setRows, color }) {
   )
 }
 
-function SettingsPanel({ localConfig, onSave, onReset }) {
+function SettingsPanel({ localConfig, nycOpenDataToken, onSave, onSaveNycToken, onReset }) {
   const lc = localConfig || {}
   const lj = lc.jurisdiction || {}
   const lkb = lc.kb || {}
@@ -1020,6 +1498,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
   const [jGX,       setJGX]       = useState(lj.nwsGridX  ?? (_NWS.grid_x ?? 33))
   const [jGY,       setJGY]       = useState(lj.nwsGridY  ?? (_NWS.grid_y ?? 37))
   const [jSocrata,  setJSocrata]  = useState(lj.socrataDomain || _SOC.domain || "data.cityofnewyork.us")
+  const [jSocrataToken, setJSocrataToken] = useState(nycOpenDataToken || "")
   const [discovering, setDiscovering] = useState(false)
   const [discoverMsg, setDiscoverMsg] = useState("")
 
@@ -1052,6 +1531,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
         floodRisk: { label:"Flood Risk",      color:"#fb923c", icon:"💧", features:mpFlood     },
       }
     })
+    onSaveNycToken(jSocrataToken)
     setSaved(true)
     setTimeout(() => setSaved(false), 1200)
   }
@@ -1114,6 +1594,9 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
             {label("SOCRATA OPEN DATA DOMAIN")}
             {inp(jSocrata, setJSocrata, "text", "e.g. data.virginiabeach.gov")}
             <div style={{fontSize:9,color:"#446",marginTop:3}}>Find your city's domain at <a href="https://opendatanetwork.com" target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>opendatanetwork.com</a></div>
+            {label("NYC OPEN DATA APP TOKEN (OPTIONAL)")}
+            {inp(jSocrataToken, setJSocrataToken, "password", "Used for Phase 4 Socrata requests")}
+            <div style={{fontSize:9,color:"#446",marginTop:3}}>Stored only for this browser session and sent as the Socrata X-App-Token header.</div>
           </div>
         )}
 
@@ -1196,7 +1679,7 @@ function SettingsPanel({ localConfig, onSave, onReset }) {
           style={{padding:"7px 14px",borderRadius:5,background:"transparent",border:"1px solid #1a1e28",color:"#556",fontFamily:"monospace",fontSize:10,cursor:"pointer"}}>
           Reset to defaults
         </button>
-        <span style={{fontSize:9,color:"#334",marginLeft:4}}>Saved to browser localStorage · No redeploy needed</span>
+        <span style={{fontSize:9,color:"#334",marginLeft:4}}>Configuration saved locally · App token stays in session storage</span>
       </div>
     </div>
   )

@@ -288,6 +288,10 @@ def render_wizard():
                     "obs_stations": obs_stations,
                 },
                 "coops_stations": coops_stations,
+                # Preserve the Phase 2 regional contract. The setup wizard does
+                # not edit these operational definitions yet.
+                "regions":        copy.deepcopy(existing.get("regions", {})),
+                "source_registry": copy.deepcopy(existing.get("source_registry", [])),
                 "knowledge_base": kb_values,
                 "map_points":     map_points_out,
                 "socrata": {

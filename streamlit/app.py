@@ -1,6 +1,6 @@
 """
 EMBER — Emergency Management Body of Evidence & Resources
-Streamlit version · Ollama Cloud · NYC jurisdiction
+Streamlit version · Ollama Cloud · configurable jurisdiction
 
 Run:
     pip install -r requirements.txt
@@ -9,9 +9,11 @@ Run:
 """
 
 # ── Imports (all at module level) ─────────────────────────────────────────────
+import html as _html
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 import folium, requests, streamlit as st
+from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
@@ -23,18 +25,86 @@ from tidal_gauges import (
 from config_loader import load_config, config_exists
 from setup_wizard import render_wizard
 from carto_tiles import basemap_config
+from regional_normalization import (
+    ROCKAWAY_SOURCE_IDS,
+)
+from phase4_sources import (
+    PHASE4_GEOGRAPHY_SOURCE_IDS,
+    PHASE4_OBSERVATION_SOURCE_IDS,
+    PHASE4_SOURCE_IDS,
+    fetch_phase4_source_bundle,
+    phase4_source_card,
+    unavailable_phase4_result,
+)
+from chat_state import (
+    background_refresh_allowed,
+    begin_chat_response,
+    finish_chat_response,
+    recover_interrupted_responses,
+    update_chat_response,
+)
+from copilot_prompt import (
+    build_copilot_system_prompt,
+    build_knowledge_base_context,
+)
+from esri_presentation import (
+    build_presentation,
+    discover_feature_layers,
+    feature_label as esri_feature_label,
+    feature_popup_html,
+)
+from map_builder_state import initialize_map_builder_layers
+from map_builder_presets import LIVING_ATLAS_PRESETS
+from map_builder_filters import (
+    FILTER_LABELS as MAP_BUILDER_FILTER_LABELS,
+    FILTER_MODES as MAP_BUILDER_FILTER_MODES,
+    OPERATIONAL as MAP_BUILDER_OPERATIONAL,
+    PSEG_LONG_ISLAND as MAP_BUILDER_PSEG,
+    UNFILTERED as MAP_BUILDER_UNFILTERED,
+    filter_masks_by_mode,
+    filter_supported as map_builder_filter_supported,
+)
+from map_interaction import (
+    MAP_RETURNED_OBJECTS,
+    map_component_key,
+    map_feature_chat_prompt,
+    map_feature_from_map_data,
+    map_feature_popup_html,
+    map_feature_tooltip_html,
+    leaflet_geometry_parts,
+)
 
 # ── Load jurisdiction config ──────────────────────────────────────────────────
 CFG = load_config()
+ROCKAWAY_SOURCES = [
+    source for source_id in ROCKAWAY_SOURCE_IDS
+    if (source := CFG.source(source_id)) is not None
+]
+PHASE4_SOURCES = [
+    source for source_id in PHASE4_SOURCE_IDS
+    if (source := CFG.source(source_id)) is not None
+]
+PHASE4_SOURCES_BY_ID = {source["id"]: source for source in PHASE4_SOURCES}
 
 # ── Config ────────────────────────────────────────────────────────────────────
-OLLAMA_API_KEY = st.secrets.get("OLLAMA_API_KEY", os.environ.get("OLLAMA_API_KEY", ""))
-OLLAMA_HOST    = st.secrets.get("OLLAMA_HOST",    os.environ.get("OLLAMA_HOST",    "https://ollama.com"))
-OLLAMA_MODEL   = st.secrets.get("OLLAMA_MODEL",   os.environ.get("OLLAMA_MODEL",   "gpt-oss:120b-cloud"))
-try:
-    CARTO_API_KEY = st.secrets.get("CARTO_API_KEY", os.environ.get("CARTO_API_KEY", ""))
-except StreamlitSecretNotFoundError:
-    CARTO_API_KEY = os.environ.get("CARTO_API_KEY", "")
+def _setting(name: str, default: str = "") -> str:
+    """Read Streamlit secrets when available, then fall back to environment vars.
+
+    Streamlit raises StreamlitSecretNotFoundError when no secrets.toml exists;
+    that is a normal local-development state and should not prevent the app
+    from launching without optional Ollama credentials.
+    """
+    try:
+        value = st.secrets.get(name)
+    except (KeyError, StreamlitSecretNotFoundError):
+        value = None
+    return str(value) if value not in (None, "") else os.environ.get(name, default)
+
+
+OLLAMA_API_KEY = _setting("OLLAMA_API_KEY")
+OLLAMA_HOST    = _setting("OLLAMA_HOST", "https://ollama.com")
+OLLAMA_MODEL   = _setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")
+CARTO_API_KEY  = _setting("CARTO_API_KEY")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
 OLLAMA_HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {OLLAMA_API_KEY}"}
 GAUGE_STATION_IDS = tuple(CFG.flood_thresholds_dict.keys()) or tuple(FLOOD_THRESHOLDS.keys())
@@ -77,46 +147,13 @@ section[data-testid="stSidebar"] { background: #090c12 !important; border-right:
 # DATA DEFINITIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Knowledge base is now loaded from config/jurisdiction.yaml via CFG.knowledge_base
-# NYC_KB kept as fallback alias
-NYC_KB = {
-    "floodZones": {"label": "Flood Zones (FEMA)", "source": "FEMA NFHL / NYC OEM", "data":
-        "Zone A: High-risk coastal/tidal flood areas — Lower Manhattan, Red Hook, Rockaway Peninsula, Staten Island east shore.\n"
-        "Zone AE: Special Flood Hazard Areas — Coney Island, Howard Beach, Broad Channel, southern Staten Island.\n"
-        "Zone VE: Coastal high-hazard with wave action — Far Rockaway, Breezy Point, Sea Gate.\n"
-        "Zone X (shaded): Moderate flood risk, 0.2% annual chance.\n"
-        "Post-Sandy (2012): ~88,000 buildings damaged; $19B in damage."},
-    "evacZones": {"label": "Evacuation Zones", "source": "NYC OEM", "data":
-        "Zone 1: Mandatory evacuation Cat 1+ hurricanes. Rockaways, Coney Island, South Beach SI, Red Hook waterfront.\n"
-        "Zone 2: Evacuation advised Cat 2+. Zones 3-6: progressively lower risk inland.\n"
-        "Shelters: 30+ hurricane evacuation centers, ~600,000 primary capacity.\n"
-        "Contraflow: FDR Drive, BQE, Staten Island Expressway."},
-    "criticalInfrastructure": {"label": "Critical Infrastructure", "source": "NYC OEM / CISA", "data":
-        "Hospitals: 11 Level 1 Trauma Centers — Bellevue (Manhattan), Kings County (Brooklyn), Lincoln (Bronx), Staten Island University, Jamaica (Queens).\n"
-        "Power: ConEd East River substations critical. Underground feeders in Lower Manhattan flooded during Sandy.\n"
-        "Subway: 245 miles track, 472 stations. 52 stations in flood zones.\n"
-        "Water: DEP 14 reservoirs, 2 city tunnels. Newtown Creek & North River WWTPs flooded in Sandy."},
-    "hazardProfiles": {"label": "Hazard Profiles", "source": "NYC OEM HMP 2023", "data":
-        "HURRICANES: Sandy (2012, Cat 1) — $19B damage. Primary risk: storm surge.\n"
-        "EXTREME HEAT: 115-150 deaths/year. Protocol at Heat Index >= 100F. 500+ cooling centers.\n"
-        "FLOODING: Ida 2021 — 13 deaths in basement apartments. 22,000+ miles combined sewer.\n"
-        "WINTER STORMS: Jonas 2016 — 27 inches, travel ban. 2,300 Sanitation plows.\n"
-        "EARTHQUAKE: Low risk. Historical 1884 M5.5. Unreinforced masonry stock pre-1930.\n"
-        "TERRORISM/HAZMAT: Highest-risk US city (DHS). JTTF, NYPD Intelligence, FDNY HazMat."},
-    "resources": {"label": "Contacts & Resources", "source": "NYC OEM / 311", "data":
-        "NYC OEM: 718-422-8700 | nyc.gov/oem | EOC: 165 Cadman Plaza East, Brooklyn\n"
-        "FDNY: 911 | 718-999-2000 | NYPD: 911 | 646-610-5000\n"
-        "NYC Health: 311 | FEMA Region 2: 212-680-3600\n"
-        "NWS OKX: 631-924-0517 | Con Edison: 1-800-75-CONED\n"
-        "Notify NYC: nyc.gov/notifynyc"},
-}
+KNOWLEDGE_BASE = CFG.knowledge_base
 
 LIVE_ENDPOINTS = [
     {"name": f"NWS Alerts — {CFG.state}",       "url": CFG.nws_alert_url,                                                                                         "type": "weather"},
     {"name": f"NWS Forecast — {CFG.short_name}", "url": CFG.nws_forecast_url,                                                                                      "type": "forecast"},
-    {"name": "USGS Stream Gauges",               "url": f"https://waterservices.usgs.gov/nwis/iv/?format=json&stateCd={CFG.noaa_usgs_state.lower()}&parameterCd=00065&siteStatus=active", "type": "flood"},
     {"name": "FEMA Disasters",                   "url": f"https://www.fema.gov/api/open/v2/disasterDeclarationsSummaries?state={CFG.noaa_fema_state}&$top=10&$orderby=declarationDate%20desc", "type": "fema"},
-    {"name": f"{CFG.short_name} Open Data 311",  "url": f"https://{CFG.socrata_domain}/resource/fhrw-4uyv.json?$limit=5&$order=created_date%20DESC",               "type": "civic"},
+    {"name": "NYC 311 — Rockaway / Queens CB14", "url": f"https://{CFG.socrata_domain}/resource/erm2-nwe9.json?$limit=50&$order=created_date%20DESC&$where=borough%3D%27QUEENS%27%20AND%20community_board%3D%2714%20QUEENS%27%20AND%20latitude%20IS%20NOT%20NULL%20AND%20longitude%20IS%20NOT%20NULL", "type": "civic"},
 ]
 
 MAP_POINTS = {
@@ -184,8 +221,8 @@ NOAA_ENDPOINTS = [
     ],
     {"id": "nws_products_okx",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Text Products — NWS {CFG.nws_office}", "url": f"https://api.weather.gov/products?office={CFG.nws_products_office}&limit=10", "desc": "Latest NWS text products: AFD, Coastal Hazards, etc.", "tags": ["AFD","forecast discussion","text products"]},
     {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",          "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
-    {"id": "coops_fire_island", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Fire Island USCG",     "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515186&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level near Fire Island inlet",             "tags": ["water level","fire island","great south bay"]},
-    {"id": "coops_bay_shore",   "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Bay Shore",           "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8515102&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Great South Bay",                  "tags": ["water level","bay shore","great south bay"]},
+    {"id": "coops_montauk",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Montauk",              "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — eastern Long Island",              "tags": ["water level","montauk","east end"]},
+    {"id": "coops_sandy_hook",  "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Sandy Hook Reference", "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Outer-harbor water-level reference",                       "tags": ["water level","sandy hook","reference"]},
     {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery Reference","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "NY Harbor surge reference used for regional comparison",   "tags": ["water level","surge","battery","reference"]},
     {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Kings Point 48h","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8516945&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
     {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — Kings Point Station",        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at Kings Point",        "tags": ["wind","meteorological","long island sound"]},
@@ -494,12 +531,15 @@ def fetch_wind_obs():
     return results
 
 def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
-              live_readings=None, gauge_data=None, map_layers=None, map_points=None):
+              live_readings=None, gauge_data=None, map_layers=None, map_points=None,
+              phase4_results=None, active_phase4_layers=None):
     live_readings = live_readings or {}
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
     map_layers    = map_layers or []
     map_points    = map_points or MAP_POINTS
+    phase4_results = phase4_results or {}
+    active_phase4_layers = active_phase4_layers or []
     basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY)
     m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
                    tiles=None, prefer_canvas=True)
@@ -507,6 +547,36 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         tiles=basemap_url, name=basemap_name, attr=basemap_attr,
         overlay=False, control=True,
     ).add_to(m)
+
+    def add_vector_parts(
+        feature_group, geometry, color, popup_html, tooltip_html,
+        *, max_width=360, line_weight=3, line_opacity=0.8,
+        fill_opacity=0.14,
+    ):
+        """Render vectors directly so Streamlit-Folium receives click events."""
+        for part in leaflet_geometry_parts(geometry):
+            if part["kind"] == "line":
+                # Keep the visible line crisp while giving it a forgiving,
+                # nearly transparent interaction target for mouse and touch.
+                folium.PolyLine(
+                    locations=part["locations"], color=color,
+                    weight=line_weight, opacity=line_opacity,
+                    interactive=False,
+                ).add_to(feature_group)
+                folium.PolyLine(
+                    locations=part["locations"], color=color,
+                    weight=max(12, line_weight), opacity=0.01,
+                    popup=folium.Popup(popup_html, max_width=max_width),
+                    tooltip=tooltip_html,
+                ).add_to(feature_group)
+            elif part["kind"] == "polygon":
+                folium.Polygon(
+                    locations=part["locations"], color=color,
+                    weight=2, opacity=0.9,
+                    fill=True, fill_color=color, fill_opacity=fill_opacity,
+                    popup=folium.Popup(popup_html, max_width=max_width),
+                    tooltip=tooltip_html,
+                ).add_to(feature_group)
     # NEXRAD radar tiles with 5-min cache buster
     if show_radar:
         epoch_5min = int(_time.time() // 300)
@@ -530,18 +600,34 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
             color   = gauge_marker_color(gd)
             lft     = ld.get("level_ft", 0)
             status  = ld.get("status", "NORMAL")
-            popup_h = build_gauge_popup(gd)
+            station_name = str(ld.get("station_name") or sid or "Tidal gauge")
+            gauge_description = f"Water level: {lft:.2f}ft MLLW · {status}"
+            popup_h = map_feature_popup_html(
+                build_gauge_popup(gd),
+                station_name,
+                "Live Tidal Gauges (CO-OPS)",
+                "Point",
+                gauge_description,
+            )
+            tooltip_h = map_feature_tooltip_html(
+                f"🌊 {station_name} — {lft:.2f}ft MLLW — {status}",
+                station_name,
+                "Live Tidal Gauges (CO-OPS)",
+                "Point",
+                gauge_description,
+            )
 
             # Pulsing circle — outer ring shows flood status, inner solid
             folium.CircleMarker(
                 location=[lat, lng], radius=16,
                 color=color, fill=False, weight=2, opacity=0.5,
+                interactive=False,
             ).add_to(tg_fg)
             folium.CircleMarker(
                 location=[lat, lng], radius=9,
                 color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2,
                 popup=folium.Popup(popup_h, max_width=280),
-                tooltip=f"🌊 {ld.get('station_name','Station')} — {lft:.2f}ft MLLW — {status}",
+                tooltip=tooltip_h,
             ).add_to(tg_fg)
 
             # Level label
@@ -553,7 +639,8 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                          f'border:1px solid {color}55;white-space:nowrap;margin-top:14px;margin-left:12px">'
                          f'{lft:.2f}ft</div>',
                     icon_size=(60, 20), icon_anchor=(0, 0)
-                )
+                ),
+                interactive=False,
             ).add_to(tg_fg)
 
         tg_fg.add_to(m)
@@ -582,12 +669,94 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
             popup_html = (f'<div style="font-family:monospace;font-size:11px">'
                           f'<b style="color:{marker_color}">{f["name"]}</b><br>'
                           f'<span style="color:#778">{f["note"]}</span>{live_html}</div>')
+            description = str(f.get("note") or "")
+            if reading:
+                reading_description = (
+                    f'{reading.get("level", "?")} {reading.get("unit", "")} · '
+                    f'{reading.get("status", "").upper()}'
+                ).strip(" ·")
+                description = " · ".join(filter(None, [description, reading_description]))
+            popup_html = map_feature_popup_html(
+                popup_html,
+                str(f.get("name") or layer["label"]),
+                str(layer["label"]),
+                "Point",
+                description,
+            )
+            tooltip_label = f'{f["name"]}' + (
+                f' — {reading.get("level", "?")} {reading.get("unit", "")}'
+                if reading else ""
+            )
+            tooltip_html = map_feature_tooltip_html(
+                tooltip_label,
+                str(f.get("name") or layer["label"]),
+                str(layer["label"]),
+                "Point",
+                description,
+            )
             folium.CircleMarker(
                 location=[f["lat"], f["lng"]], radius=8,
                 color=marker_color, fill=True, fill_color=marker_color, fill_opacity=0.6,
                 popup=folium.Popup(popup_html, max_width=240),
-                tooltip=f'{f["name"]}' + (f' — {reading.get("level","?")} {reading.get("unit","")}' if reading else "")
+                tooltip=tooltip_html,
             ).add_to(fg)
+        fg.add_to(m)
+    # Phase 4 normalized source layers. Approved point, line, and polygon
+    # geometry is rendered directly; card-only sources never receive synthetic
+    # map locations.
+    for source in PHASE4_SOURCES:
+        source_id = source["id"]
+        if source_id not in active_phase4_layers:
+            continue
+        result = phase4_results.get(source_id, {})
+        records = [record for record in result.get("records", []) if record.get("geometry")]
+        if not records:
+            continue
+        display = source.get("display", {})
+        color = display.get("color", "#60a5fa")
+        icon = display.get("icon", "📍")
+        fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=True)
+        for record in records:
+            geometry = record.get("geometry", {})
+            popup_body = (
+                f'<div style="font-family:monospace;font-size:11px">'
+                f'<b style="color:{color}">{_html.escape(icon)} {_html.escape(str(record.get("title", "")))}</b><br>'
+                f'<span style="color:#aac">{_html.escape(str(record.get("description") or record.get("category") or ""))}</span><br><br>'
+                f'<span style="color:#778">{_html.escape(str(record.get("source_name", "")))} · {_html.escape(str(record.get("observed_at", "")))}</span><br>'
+                f'<span style="color:#556">{_html.escape(str(record.get("attribution", "")))}</span></div>'
+            )
+            geometry_type = geometry.get("type")
+            popup_h = map_feature_popup_html(
+                popup_body,
+                str(record.get("title") or source["name"]),
+                str(record.get("source_name") or source["name"]),
+                str(geometry_type or "unknown"),
+                str(record.get("description") or record.get("category") or ""),
+            )
+            tooltip_h = map_feature_tooltip_html(
+                str(record.get("title", source["name"]))[:80],
+                str(record.get("title") or source["name"]),
+                str(record.get("source_name") or source["name"]),
+                str(geometry_type or "unknown"),
+                str(record.get("description") or record.get("category") or ""),
+            )
+            if geometry_type == "Point" and len(geometry.get("coordinates", [])) >= 2:
+                longitude, latitude = geometry["coordinates"][:2]
+                folium.CircleMarker(
+                    location=[latitude, longitude], radius=7,
+                    color=color, fill=True, fill_color=color, fill_opacity=0.7,
+                    popup=folium.Popup(popup_h, max_width=280),
+                    tooltip=tooltip_h,
+                ).add_to(fg)
+            elif geometry_type in {"LineString", "MultiLineString", "Polygon", "MultiPolygon"}:
+                is_polygon = "Polygon" in geometry_type
+                add_vector_parts(
+                    fg, geometry, color, popup_h, tooltip_h,
+                    max_width=280,
+                    line_weight=3,
+                    line_opacity=0.9,
+                    fill_opacity=0.14 if is_polygon else 0,
+                )
         fg.add_to(m)
     # Wind arrows
     if show_wind and wind_obs:
@@ -608,11 +777,33 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                          + (f'<br>Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
                          + (f'<br>Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
                          + (f'<br>{o["desc"]}' if o.get("desc") else ''))
+            title = f'{o["id"]} — {o["name"]}'
+            description = (
+                f'Wind: {spd}mph from {int(o["dir_deg"])}°'
+                + (f' (gusts {gust}mph)' if gust else '')
+                + (f' · Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
+                + (f' · Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
+                + (f' · {o["desc"]}' if o.get("desc") else '')
+            )
+            popup_h = map_feature_popup_html(
+                f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>',
+                title,
+                "Wind Observations",
+                "Point",
+                description,
+            )
+            tooltip_h = map_feature_tooltip_html(
+                f"{title} · {spd}mph",
+                title,
+                "Wind Observations",
+                "Point",
+                description,
+            )
             folium.Marker(
                 location=[o["lat"], o["lng"]],
                 icon=folium.DivIcon(html=html, icon_size=(50, 40), icon_anchor=(25, 10)),
-                popup=folium.Popup(f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>', max_width=220),
-                tooltip=f'{o["id"]}: {spd}mph'
+                popup=folium.Popup(popup_h, max_width=220),
+                tooltip=tooltip_h,
             ).add_to(wfg)
         wfg.add_to(m)
     # ── User-added map layers (NYC Open Data + ESRI Feature Layers) ───────────
@@ -624,39 +815,53 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
 
         for feat in layer.get("features", []):
             ftype = feat.get("type", "point")
-
-            if ftype == "point":
-                popup_h = layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
+            presentation = layer.get("presentation")
+            label = (
+                esri_feature_label(feat, presentation, layer["name"])
+                if layer.get("type") == "esri"
+                else feat.get("label", layer["name"])
+            )
+            popup_body = (
+                esri_feature_popup_html(feat, layer["name"], lcolor, presentation)
+                if layer.get("type") == "esri"
+                else layer.get("popup_fn")(feat) if layer.get("popup_fn") else (
                     f'<div style="font-family:monospace;font-size:11px">'
                     f'<b style="color:{lcolor}">{feat.get("label","") or layer["name"]}</b></div>'
                 )
+            )
+            popup_h = map_feature_popup_html(
+                popup_body,
+                str(label or layer["name"]),
+                str(layer["name"]),
+                str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))),
+            )
+            geometry_type = str(
+                feat.get("geometry", {}).get("type", feat.get("type", "unknown"))
+            )
+            tooltip_h = map_feature_tooltip_html(
+                str(label or layer["name"])[:80],
+                str(label or layer["name"]),
+                str(layer["name"]),
+                geometry_type,
+            )
+
+            if ftype == "point":
                 folium.CircleMarker(
                     location=[feat["lat"], feat["lng"]], radius=6,
                     color=lcolor, fill=True, fill_color=lcolor, fill_opacity=0.7, weight=1.5,
-                    popup=folium.Popup(popup_h, max_width=260),
-                    tooltip=feat.get("label", layer["name"])[:60],
+                    popup=folium.Popup(popup_h, max_width=360),
+                    tooltip=tooltip_h,
                 ).add_to(fg)
 
-            elif ftype == "polygon":
+            elif ftype in {"polygon", "line"}:
                 try:
-                    folium.GeoJson(
-                        {"type": "Feature", "geometry": feat["geometry"], "properties": feat["props"]},
-                        style_function=lambda f, c=lcolor: {
-                            "fillColor": c, "color": c, "weight": 2,
-                            "fillOpacity": 0.25, "opacity": 0.8
-                        },
-                        tooltip=str(list(feat["props"].values())[0])[:60] if feat["props"] else layer["name"],
-                    ).add_to(fg)
-                except:
-                    pass
-
-            elif ftype == "line":
-                try:
-                    folium.GeoJson(
-                        {"type": "Feature", "geometry": feat["geometry"], "properties": feat["props"]},
-                        style_function=lambda f, c=lcolor: {"color": c, "weight": 3, "opacity": 0.8},
-                        tooltip=str(list(feat["props"].values())[0])[:60] if feat["props"] else layer["name"],
-                    ).add_to(fg)
+                    add_vector_parts(
+                        fg, feat["geometry"], lcolor, popup_h, tooltip_h,
+                        max_width=360,
+                        line_weight=3,
+                        line_opacity=0.8,
+                        fill_opacity=0.25 if ftype == "polygon" else 0,
+                    )
                 except:
                     pass
 
@@ -665,11 +870,11 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     folium.LayerControl().add_to(m)
     return m
 
+
 def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None):
-    ctx = "=== NYC EMERGENCY MANAGEMENT KNOWLEDGE BASE ===\n\n"
-    for key, mod in NYC_KB.items():
-        if key in active_modules:
-            ctx += f"--- {mod['label']} [{mod['source']}] ---\n{mod['data']}\n\n"
+    ctx = build_knowledge_base_context(
+        KNOWLEDGE_BASE, active_modules, CFG.name,
+    )
     if gauge_data:
         ctx += "--- LIVE TIDAL GAUGE READINGS (CO-OPS, 6-min updates) ---\n"
         for sid, gd in gauge_data.items():
@@ -703,14 +908,7 @@ def stream_ollama(messages, context):
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
-    system_prompt = (f"You are EMBER — Emergency Management Body of Evidence & Resources — "
-                     f"an AI for NYC emergency managers.\n\nKNOWLEDGE BASE:\n{context}\n\n"
-                     f"RULES:\n1. Lead with operationally critical information first.\n"
-                     f"2. Cite sources: [NYC OEM], [NWS], [FEMA], [USGS], [CO-OPS], [ESRI], etc.\n"
-                     f"3. For location queries, prioritize zone and risk data.\n"
-                     f"4. Flag data gaps. Use headers and bullets for action items.\n"
-                     f"5. For life-safety queries, always include emergency contact numbers.\n"
-                     f"6. Never hallucinate.")
+    system_prompt = build_copilot_system_prompt(CFG.name, context)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
     try:
@@ -779,81 +977,8 @@ def format_item_for_context(item, data=None):
 # NYC OPEN DATA (SOCRATA) HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Curated emergency-relevant NYC Open Data datasets with known geometry columns
-NYC_OPEN_DATA_PRESETS = [
-    {
-        "id":       "fhrw-4uyv",
-        "name":     "311 Service Requests (live)",
-        "agency":   "311",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"complaint_type",
-        "desc":     "Real-time 311 complaints — filterable by type, borough, date",
-        "color":    "#60a5fa",
-        "icon":     "📞",
-        "filter":   None,
-    },
-    {
-        "id":       "nuhi-jiwk",
-        "name":     "FDNY Incidents (fire/EMS)",
-        "agency":   "FDNY",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"incident_type_desc",
-        "desc":     "FDNY incident data — fire, EMS, hazmat",
-        "color":    "#f87171",
-        "icon":     "🚒",
-        "filter":   None,
-    },
-    {
-        "id":       "2bnn-yakx",
-        "name":     "NYC Cooling Centers",
-        "agency":   "DOHMH",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"site_name",
-        "desc":     "Active cooling center locations during heat emergencies",
-        "color":    "#34d399",
-        "icon":     "❄️",
-        "filter":   None,
-    },
-    {
-        "id":       "uqnk-2pcv",
-        "name":     "Hurricane Evacuation Centers",
-        "agency":   "OEM",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"facility_name",
-        "desc":     "Designated hurricane evacuation shelter locations",
-        "color":    "#facc15",
-        "icon":     "🏫",
-        "filter":   None,
-    },
-    {
-        "id":       "43nn-pn8y",
-        "name":     "NYPD Incidents",
-        "agency":   "NYPD",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"ofns_desc",
-        "desc":     "NYPD incident reports — filterable by type and date",
-        "color":    "#a78bfa",
-        "icon":     "🚔",
-        "filter":   None,
-    },
-    {
-        "id":       "5uac-w243",
-        "name":     "NYCHA Developments",
-        "agency":   "NYCHA",
-        "lat_col":  "latitude",
-        "lng_col":  "longitude",
-        "label_col":"development",
-        "desc":     "NYCHA public housing developments — vulnerable population locations",
-        "color":    "#fb923c",
-        "icon":     "🏢",
-        "filter":   None,
-    },
-]
+# Only presets approved in the jurisdiction configuration are one-click sources.
+NYC_OPEN_DATA_PRESETS = CFG.socrata_presets
 
 def search_nyc_open_data(query: str, app_token: str = "", limit: int = 20) -> list[dict]:
     """Search the NYC Open Data catalog using the Socrata catalog API."""
@@ -980,6 +1105,25 @@ def socrata_popup_html(feature: dict, label_col: str, dataset_name: str, color: 
 # ESRI FEATURE SERVICE → MAP HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def discover_esri_feature_layers(service_url: str) -> dict:
+    """Cache ArcGIS service discovery so reruns do not repeatedly fetch metadata."""
+    return discover_feature_layers(service_url, requests.get)
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def fetch_esri_layer_metadata(layer_url: str) -> dict:
+    discovery = discover_esri_feature_layers(layer_url)
+    if discovery.get("error"):
+        return {"metadata": None, "error": discovery["error"]}
+    layers = discovery.get("layers", [])
+    if len(layers) != 1:
+        return {"metadata": None, "error": "Select one Feature Layer sublayer"}
+    if layers[0].get("metadata") is not None:
+        return {"metadata": layers[0]["metadata"], "error": None}
+    return {"metadata": None, "error": "Feature Layer metadata was unavailable"}
+
+
 def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     """
     Query an ArcGIS REST layer endpoint and return GeoJSON-like features.
@@ -988,12 +1132,9 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
     services reject ``f=geojson``, so fall back to ArcGIS JSON and normalize
     its native geometry format.
     """
-    # Normalize URL — ensure we hit the /query endpoint
     base = service_url.rstrip("/")
-    if not base.endswith("/query"):
-        # If it's an item URL (arcgis.com/home/item.html?id=...), can't query directly
-        if "arcgis.com/home/item" in base:
-            return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
+    if "arcgis.com/home/item" in base:
+        return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
 
         # Do not assume the first layer is always layer 0. Some ArcGIS
         # services expose only a different layer ID (for example, LIRR
@@ -1014,9 +1155,23 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
             except (ValueError, requests.RequestException):
                 # Let the query below return the service's normal error.
                 pass
-        query_url = base + "/query"
-    else:
-        query_url = base
+
+    discovery = discover_esri_feature_layers(base)
+    if discovery.get("error"):
+        return {"features": [], "total": 0, "error": discovery["error"]}
+    layers = discovery.get("layers", [])
+    if len(layers) != 1:
+        return {
+            "features": [], "total": 0,
+            "error": "This service contains multiple Feature Layers. Select one or more sublayers first.",
+        }
+    base = layers[0]["url"]
+    metadata = layers[0].get("metadata")
+    if metadata is None:
+        layer_discovery = discover_esri_feature_layers(base)
+        if layer_discovery.get("layers"):
+            metadata = layer_discovery["layers"][0].get("metadata")
+    query_url = base + "/query"
 
     params = {
         "where":        "1=1",
@@ -1038,8 +1193,32 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
 
         if "error" in payload:
             return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
+        if "error" in payload:
+            return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
 
         features = []
+        for feat in payload.get("features", []):
+            # ArcGIS JSON uses attributes/geometry; GeoJSON uses
+            # properties/geometry. Keep the existing map contract unchanged.
+            props = feat.get("properties") or feat.get("attributes") or {}
+            geom = feat.get("geometry") or {}
+            if "x" in geom and "y" in geom:
+                features.append({"type": "point", "lat": geom["y"], "lng": geom["x"], "props": props})
+                continue
+
+            if "paths" in geom:
+                paths = geom["paths"]
+                coordinates = paths[0] if len(paths) == 1 else paths
+                gtype = "LineString" if len(paths) == 1 else "MultiLineString"
+                features.append({"type": "line", "geometry": {"type": gtype, "coordinates": coordinates}, "props": props})
+                continue
+
+            if "rings" in geom:
+                features.append({"type": "polygon", "geometry": {"type": "Polygon", "coordinates": geom["rings"]}, "props": props})
+                continue
+
+            # Already-normalized GeoJSON geometry, if returned by the service.
+            gtype = geom.get("type", "")
         for feat in payload.get("features", []):
             # ArcGIS JSON uses attributes/geometry; GeoJSON uses
             # properties/geometry. Keep the existing map contract unchanged.
@@ -1071,26 +1250,79 @@ def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
             elif gtype in ("LineString", "MultiLineString"):
                 features.append({"type": "line", "geometry": geom, "props": props})
 
-        return {"features": features, "total": len(features), "error": None}
+        return {
+            "features": features,
+            "total": len(features),
+            "error": None,
+            "resolved_url": base,
+            "metadata": metadata,
+            "presentation": build_presentation(metadata, features),
+        }
     except Exception as e:
         return {"features": [], "total": 0, "error": str(e)}
 
-def esri_feature_popup_html(feature: dict, layer_name: str, color: str) -> str:
-    """Build a Folium popup for an ESRI feature."""
-    props = feature["props"]
-    skip  = {"OBJECTID", "ObjectID", "FID", "Shape_Area", "Shape_Length", "GlobalID"}
-    show  = {k: v for k, v in props.items() if k not in skip and v not in (None, "")}
-    rows  = "".join(
-        f'<div><span style="color:#556">{k}:</span> <span style="color:#aab">{str(v)[:80]}</span></div>'
-        for k, v in list(show.items())[:8]
-    )
-    name = next((str(v) for k, v in show.items() if any(x in k.upper() for x in ("NAME","TITLE","LABEL","DESC","SITE"))), layer_name)
-    return (f'<div style="font-family:monospace;font-size:10px;max-width:240px">'
-            f'<div style="font-weight:700;color:{color};margin-bottom:4px;font-size:11px">{name[:60]}</div>'
-            f'{rows}'
-            f'<div style="color:#446;font-size:9px;margin-top:4px;border-top:1px solid #1e2a40;padding-top:3px">'
-            f'ESRI Feature Layer · {layer_name}</div>'
-            f'</div>')
+def esri_feature_popup_html(feature: dict, layer_name: str, color: str,
+                            presentation: dict | None = None) -> str:
+    """Build a metadata-aware Folium popup for any ESRI geometry type."""
+    return feature_popup_html(feature, presentation, layer_name, color)
+
+
+def add_operational_esri_layer(item_id: str, item_title: str, layer_choice: dict,
+                               color: str = "#a78bfa") -> dict:
+    """Fetch one selected sublayer and add it to the operational Folium map."""
+    result = fetch_esri_feature_layer(layer_choice["url"], max_features=500)
+    if result.get("error") or not result.get("features"):
+        return result
+    layer_name = item_title
+    if layer_choice.get("name") and layer_choice["name"] != item_title:
+        layer_name = f"{item_title} — {layer_choice['name']}"
+    st.session_state.map_layers.append({
+        "id": f"esri_{item_id}_{layer_choice['id']}",
+        "owner_item_id": item_id,
+        "sublayer_id": layer_choice["id"],
+        "name": layer_name,
+        "type": "esri",
+        "color": color,
+        "icon": "⊕",
+        "features": result["features"],
+        "visible": True,
+        "count": result["total"],
+        "source": f"ESRI · {result.get('resolved_url', layer_choice['url'])}",
+        "url": result.get("resolved_url", layer_choice["url"]),
+        "metadata": result.get("metadata"),
+        "presentation": result.get("presentation"),
+    })
+    return result
+
+
+def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: dict,
+                                  color: str = "#a78bfa", source_type: str = "Feature Layer",
+                                  entry_path: str = "search") -> dict:
+    """Add one selected ArcGIS Feature Layer with its presentation metadata."""
+    metadata_result = fetch_esri_layer_metadata(layer_choice["url"])
+    metadata = metadata_result.get("metadata")
+    layer_name = item_title
+    if layer_choice.get("name") and layer_choice["name"] != item_title:
+        layer_name = f"{item_title} — {layer_choice['name']}"
+    st.session_state.mb_layers.append({
+        "id": f"{item_id}_{layer_choice['id']}",
+        "owner_item_id": item_id,
+        "sublayer_id": layer_choice["id"],
+        "name": layer_name[:80],
+        "url": layer_choice["url"],
+        "item_id": "",
+        "type": "Feature Layer",
+        "source_type": source_type,
+        "entry_path": entry_path,
+        "filter_mode": MAP_BUILDER_UNFILTERED,
+        "opacity": 1.0,
+        "visible": True,
+        "color": color,
+        "metadata": metadata,
+        "presentation": build_presentation(metadata) if metadata else None,
+        "metadata_error": metadata_result.get("error"),
+    })
+    return metadata_result
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SESSION STATE INIT
@@ -1117,37 +1349,161 @@ for k, v in [
     ("gauge_stations", []),     # CO-OPS station list for NY (dynamic)
     ("gauge_fetched_at", _dt.datetime.min), # last fetch timestamp
     ("map_layers",  []),        # user-added map layers: [{id, name, type, color, icon, features, ...}]
+    ("esri_pending_adds", {}),  # FeatureServer roots awaiting sublayer selection
     ("_runtime_map_points", MAP_POINTS), # setup wizard edits before/reload after save
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
+    ("mb_layers_initialized", False), # distinguish intentional empty state from first load
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
+    ("phase4_results", {source["id"]: unavailable_phase4_result(source) for source in PHASE4_SOURCES}),
+    ("phase4_cache", {}),
+    ("active_phase4_layers", ["nyc_311_rockaway"]),
+    ("phase4_initialized", False),
+    ("selected_map_feature", None),
+    ("map_interaction_revision", 0),
+    ("chat_response_pending", False),
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
+
+# A widget-triggered rerun can interrupt the synchronous Ollama generator after
+# its placeholder is persisted. Recover that placeholder before processing the
+# next event so the transcript never appears permanently stuck.
+if recover_interrupted_responses(st.session_state.messages):
+    st.session_state.chat_response_pending = False
+
+
+def refresh_phase4_sources():
+    bundle = fetch_phase4_source_bundle(
+        CFG.source_registry,
+        requests.get,
+        app_token=st.session_state.nyc_token,
+        previous_results=st.session_state.phase4_results,
+        cache=st.session_state.phase4_cache,
+    )
+    st.session_state.phase4_results = bundle["results"]
+    st.session_state.phase4_initialized = True
+
+
+def render_phase4_source_cards(source_ids, key_prefix):
+    state_colors = {
+        "current": "#4ade80", "stale": "#facc15", "partial": "#fb923c",
+        "unavailable": "#f87171", "access_required": "#a78bfa",
+    }
+    columns = st.columns(3)
+    for index, source_id in enumerate(source_ids):
+        source = PHASE4_SOURCES_BY_ID.get(source_id)
+        if not source:
+            continue
+        card = phase4_source_card(source, st.session_state.phase4_results.get(source_id))
+        state_color = state_colors.get(card["data_state"], "#778")
+        note = _html.escape(str(card.get("note") or ""))
+        observed = _html.escape(str(card.get("observed_at") or "Not available"))
+        fetched = _html.escape(str(card.get("fetched_at") or "Not available"))
+        is_active = source_id in st.session_state.active_phase4_layers
+        activation = ""
+        if card.get("activation_state"):
+            verification = f' · verify via {_html.escape(card["confirmation_phone"])}' if card.get("confirmation_phone") else ""
+            official_link = (
+                f' · <a href="{_html.escape(card["confirmation_url"])}" target="_blank" style="color:#60a5fa">official finder</a>'
+                if card.get("confirmation_url") else ""
+            )
+            activation = (
+                f'<div style="font-size:8px;color:#facc15;margin-top:5px">Activation: '
+                f'{_html.escape(card["activation_state"].replace("_", " "))}{verification}{official_link}</div>'
+            )
+        disclaimer = (
+            f'<div style="font-size:8px;color:#445;margin-top:5px">{_html.escape(card["disclaimer"])}</div>'
+            if card.get("disclaimer") else ""
+        )
+        rejected = f' · {card["rejected_count"]} rejected' if card.get("rejected_count") else ""
+        with columns[index % 3]:
+            st.markdown(
+                f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {card["color"]};'
+                f'border-radius:6px;padding:9px 10px;margin-bottom:9px;min-height:198px;font-family:monospace">'
+                f'<div style="display:flex;justify-content:space-between;gap:6px">'
+                f'<b style="font-size:10px;color:#dde">{_html.escape(card["icon"])} {_html.escape(card["name"])}</b>'
+                f'<span style="font-size:8px;color:{state_color};white-space:nowrap">{_html.escape(card["data_state"].replace("_", " ").upper())}</span></div>'
+                f'<div style="font-size:8px;color:#556;margin-top:3px">{_html.escape(card["owner"])} · {_html.escape(card["geography"])}</div>'
+                f'<div style="font-size:8px;color:#334;margin-top:8px">RECORDS <span style="color:#aac">{card["record_count"]}</span> · MAPPED <span style="color:#aac">{card["map_count"]}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{observed}</span></div>'
+                f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{fetched}</span></div>'
+                f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{note}</div>'
+                f'{activation}{disclaimer}'
+                f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(card["kind"].replace("_", " "))} · {_html.escape(card["attribution"])}{rejected}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            if card["map_capable"]:
+                if st.button(
+                    "Remove from Map" if is_active else "Add to Map",
+                    key=f"{key_prefix}_map_{source_id}",
+                    use_container_width=True,
+                ):
+                    if is_active:
+                        st.session_state.active_phase4_layers = [
+                            active_id for active_id in st.session_state.active_phase4_layers
+                            if active_id != source_id
+                        ]
+                    else:
+                        st.session_state.active_phase4_layers = [*st.session_state.active_phase4_layers, source_id]
+                    st.rerun()
+            else:
+                st.button(
+                    "Not map-ready",
+                    key=f"{key_prefix}_map_{source_id}",
+                    use_container_width=True,
+                    disabled=True,
+                    help=card.get("note") or "No approved map geometry",
+                )
+
+
+if not st.session_state.phase4_initialized:
+    refresh_phase4_sources()
 
 # Fetch wind obs on first load
 if "wind_obs" not in st.session_state:
     st.session_state.wind_obs            = fetch_wind_obs()
     st.session_state.wind_obs_fetched_at = _dt.datetime.now()
 
-# Load saved Map Builder layers from jurisdiction.yaml if mb_layers is empty
-if not st.session_state.mb_layers:
+# Load configured Map Builder layers once per session. An intentionally empty
+# list must remain empty after the user removes the final layer.
+if not st.session_state.mb_layers_initialized:
     _saved_mb = CFG.raw().get("map_builder_layers", [])
-    if _saved_mb:
-        st.session_state.mb_layers = [
-            {"id": l.get("url",""), "name": l.get("name","Layer"),
-             "url": l.get("url",""), "item_id": "",
-             "type": l.get("type","Feature Layer"),
-             "opacity": float(l.get("opacity",1.0)),
-             "visible": True, "color": "#a78bfa"}
-            for l in _saved_mb
-        ]
+    st.session_state.mb_layers, st.session_state.mb_layers_initialized = (
+        initialize_map_builder_layers(
+            st.session_state.mb_layers, _saved_mb, st.session_state.mb_layers_initialized
+        )
+    )
+
+# Hydrate older/saved Feature Layer entries once so they receive the same
+# aliases, domains, popup fields, and label behavior as newly added layers.
+for _mb_layer in st.session_state.mb_layers:
+    if "/FeatureServer" not in _mb_layer.get("url", "") or _mb_layer.get("_presentation_attempted"):
+        continue
+    _mb_layer["_presentation_attempted"] = True
+    _mb_discovery = discover_esri_feature_layers(_mb_layer["url"])
+    if len(_mb_discovery.get("layers", [])) == 1:
+        _mb_choice = _mb_discovery["layers"][0]
+        _mb_metadata_result = fetch_esri_layer_metadata(_mb_choice["url"])
+        _mb_layer["url"] = _mb_choice["url"]
+        _mb_layer["metadata"] = _mb_metadata_result.get("metadata")
+        _mb_layer["presentation"] = (
+            build_presentation(_mb_layer.get("metadata")) if _mb_layer.get("metadata") else None
+        )
+        _mb_layer["metadata_error"] = _mb_metadata_result.get("error")
+    else:
+        _mb_layer["metadata_error"] = (
+            _mb_discovery.get("error")
+            or "Saved Feature Service roots must be removed and re-added so sublayers can be selected."
+        )
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # GLOBAL AUTO-REFRESH (60s tick)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-st_autorefresh(interval=60_000, key="global_autorefresh")
+if background_refresh_allowed(st.session_state.chat_response_pending):
+    st_autorefresh(interval=60_000, key="global_autorefresh")
 
 # Refresh wind obs if stale (>5 min)
 _wind_fetched = st.session_state.get("wind_obs_fetched_at") or _dt.datetime.min
@@ -1190,7 +1546,10 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**KNOWLEDGE BASE**")
-    active_kb = [k for k, m in NYC_KB.items() if st.checkbox(m["label"], value=True, key=f"kb_{k}")]
+    active_kb = [
+        key for key, module in KNOWLEDGE_BASE.items()
+        if st.checkbox(module["label"], value=True, key=f"kb_{key}")
+    ]
 
     st.divider()
     st.markdown("**MAP LAYERS**")
@@ -1262,7 +1621,7 @@ with st.sidebar:
         st.session_state.files = []
 
     st.divider()
-    if st.button("Clear Chat", use_container_width=True):
+    if st.button("Clear Chat", use_container_width=True, disabled=st.session_state.chat_response_pending):
         st.session_state.messages = []
         st.rerun()
 
@@ -1376,14 +1735,55 @@ map_data = st_folium(
               wind_obs=wind_obs, live_readings=live_rdgs,
               gauge_data=st.session_state.gauge_data,
               map_layers=st.session_state.map_layers,
-              map_points=st.session_state.get("_runtime_map_points", MAP_POINTS)),
-    width="100%", height=380, returned_objects=["last_object_clicked_popup"]
+              map_points=st.session_state.get("_runtime_map_points", MAP_POINTS),
+              phase4_results=st.session_state.phase4_results,
+              active_phase4_layers=st.session_state.active_phase4_layers),
+    width="100%", height=380,
+    key=map_component_key(st.session_state.map_interaction_revision),
+    # Map clicks can also trigger a Streamlit rerun. Do not subscribe to map
+    # events while a response is streaming, or the generator can be interrupted
+    # by an otherwise harmless click on a different feature.
+    returned_objects=(
+        () if st.session_state.chat_response_pending else MAP_RETURNED_OBJECTS
+    ),
 )
 
-if map_data and map_data.get("last_object_clicked_popup"):
-    m2 = re.search(r'<b[^>]*>([^<]+)</b>', map_data["last_object_clicked_popup"] or "")
-    if m2 and "pending_query" not in st.session_state:
-        st.session_state.pending_query = f"Emergency considerations and risk profile for: {m2.group(1)}"
+clicked_feature = map_feature_from_map_data(map_data)
+if clicked_feature:
+    st.session_state.selected_map_feature = clicked_feature
+
+selected_map_feature = st.session_state.get("selected_map_feature")
+if selected_map_feature:
+    selected_title = selected_map_feature.get("title", "Map feature")
+    selected_description = selected_map_feature.get("description", "")
+    st.markdown(
+        f"**Selected map feature:** `{selected_title}`  \n"
+        f"<span style='font-size:11px;color:#667'>{_html.escape(selected_map_feature.get('source_name', 'Map layer'))} · "
+        f"{_html.escape(selected_map_feature.get('geometry_type', 'unknown'))}</span>",
+        unsafe_allow_html=True,
+    )
+    if selected_description:
+        st.caption(selected_description)
+    select_col, close_col = st.columns([2, 1])
+    with select_col:
+        if st.button(
+            "Send to Chat", key="send_selected_map_feature",
+            use_container_width=True, disabled=st.session_state.chat_response_pending,
+        ):
+            prompt = map_feature_chat_prompt(selected_map_feature)
+            # The click-count event contract already permits selecting the same
+            # feature again. Remounting st_folium here can emit a late component
+            # event and interrupt the chat stream that starts on the next run.
+            st.session_state.selected_map_feature = None
+            st.session_state.pending_query = prompt
+            st.rerun()
+    with close_col:
+        if st.button(
+            "Close", key="close_selected_map_feature", use_container_width=True,
+            disabled=st.session_state.chat_response_pending,
+        ):
+            st.session_state.selected_map_feature = None
+            st.rerun()
 
 st.markdown("---")
 
@@ -1391,9 +1791,10 @@ st.markdown("---")
 # TABS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-tab_chat, tab_noaa, tab_nyc, tab_esri, tab_mapbuilder, tab_setup = st.tabs([
+tab_chat, tab_noaa, tab_regional, tab_nyc, tab_esri, tab_mapbuilder, tab_setup = st.tabs([
     "💬 EMBER Chat",
     "📡 NOAA Data Stack",
+    "🗂 Regional Sources",
     "🗽 NYC Open Data",
     "⊕ ESRI / Living Atlas",
     "🗺 Map Builder",
@@ -1487,6 +1888,26 @@ with tab_noaa:
                     st.session_state.noaa_items.pop(i)
                     st.rerun()
 
+# ── Phase 4 Regional Sources Tab ──────────────────────────────────────────────
+with tab_regional:
+    title_col, refresh_col = st.columns([4, 1])
+    with title_col:
+        st.markdown("#### 🗂 Regional Sources")
+        st.caption("Shared NOAA, USGS, DEC, county, CB14, and electric-responsibility records with explicit data states")
+    with refresh_col:
+        if st.button("↺ Refresh", key="refresh_phase4_regional", use_container_width=True):
+            with st.spinner("Fetching bounded regional sources and authoritative masks…"):
+                refresh_phase4_sources()
+            st.rerun()
+
+    st.markdown("**Observations and inventories**")
+    render_phase4_source_cards(PHASE4_OBSERVATION_SOURCE_IDS, "regional_observation")
+    st.divider()
+    st.markdown("**Operational boundaries**")
+    st.caption("Optional overlays used by the shared operational and PSEG geography contracts")
+    render_phase4_source_cards(PHASE4_GEOGRAPHY_SOURCE_IDS, "regional_boundary")
+
+
 # ── NYC Open Data Tab ─────────────────────────────────────────────────────────
 with tab_nyc:
     st.markdown("#### 🗽 NYC Open Data")
@@ -1502,10 +1923,28 @@ with tab_nyc:
                                      type="password", key="nyc_token_input",
                                      placeholder="e.g. aBcDeFgHiJkLmNoP123456789")
         if st.button("Save Token", key="save_nyc_token"):
+            if token_input != st.session_state.nyc_token:
+                st.session_state.phase4_cache.clear()
             st.session_state.nyc_token = token_input
+            refresh_phase4_sources()
             st.success("Token saved for this session.")
 
     nyc_token = st.session_state.nyc_token
+
+    st.divider()
+
+    # ── Qualified Rockaway sources ────────────────────────────────────────────
+    _rockaway_title_col, _rockaway_refresh_col = st.columns([4, 1])
+    with _rockaway_title_col:
+        st.markdown("**🌊 Rockaway Sources**")
+        st.caption("Queens Community Board 14 · includes Broad Channel · normalized Phase 3 records")
+    with _rockaway_refresh_col:
+        if st.button("↺ Refresh", key="refresh_rockaway_sources", use_container_width=True):
+            with st.spinner("Fetching bounded Rockaway records…"):
+                refresh_phase4_sources()
+            st.rerun()
+
+    render_phase4_source_cards(ROCKAWAY_SOURCE_IDS, "rockaway")
 
     st.divider()
 
@@ -1535,7 +1974,8 @@ with tab_nyc:
                         result = fetch_socrata_dataset(
                             preset["id"], nyc_token,
                             lat_col=preset["lat_col"], lng_col=preset["lng_col"],
-                            label_col=preset["label_col"], limit=500
+                            label_col=preset["label_col"],
+                            where_clause=preset.get("required_filter", ""), limit=500
                         )
                     if result["error"]:
                         st.error(f"Error: {result['error']}")
@@ -1805,43 +2245,69 @@ with tab_esri:
 
                 # Add to Map button — only for Feature Layers / Map Services with a URL
                 if item.get("url") and item.get("type") in ("Feature Layer", "Feature Service", "Map Service"):
-                    esri_on_map = any(l["id"] == f"esri_{item['id']}" for l in st.session_state.map_layers)
+                    esri_on_map = any(
+                        l.get("owner_item_id") == item["id"]
+                        for l in st.session_state.map_layers if l.get("type") == "esri"
+                    )
                     if esri_on_map:
                         if st.button(f"✕ Remove from Map", key=f"esri_rm_map_{item['id']}", use_container_width=True):
-                            st.session_state.map_layers = [l for l in st.session_state.map_layers if l["id"] != f"esri_{item['id']}"]
+                            st.session_state.map_layers = [
+                                l for l in st.session_state.map_layers
+                                if l.get("owner_item_id") != item["id"]
+                            ]
                             st.rerun()
                     else:
                         if st.button(f"🗺 Add to Map", key=f"esri_map_{item['id']}", use_container_width=True):
-                            service_url = item["url"]
-                            # Append /0 if it's a service root, not a layer
-                            if "/FeatureServer" in service_url and not service_url.split("/FeatureServer")[-1].strip("/").isdigit():
-                                service_url = service_url.rstrip("/") + "/0"
-                            with st.spinner(f"Fetching {item.get('title','')} layer…"):
-                                result = fetch_esri_feature_layer(service_url, max_features=500)
-                            if result["error"]:
-                                st.error(f"Error fetching layer: {result['error']}")
-                            elif not result["features"]:
-                                st.warning("No features returned — layer may be empty or require authentication")
-                            else:
-                                color  = "#a78bfa"
-                                iname  = item.get("title", item["id"])
-                                def make_esri_popup(nm, clr):
-                                    def fn(feat): return esri_feature_popup_html(feat, nm, clr)
-                                    return fn
-                                st.session_state.map_layers.append({
-                                    "id":        f"esri_{item['id']}",
-                                    "name":      iname,
-                                    "type":      "esri",
-                                    "color":     color,
-                                    "icon":      "⊕",
-                                    "features":  result["features"],
-                                    "visible":   True,
-                                    "popup_fn":  make_esri_popup(iname, color),
-                                    "count":     result["total"],
-                                    "source":    f"ESRI · {service_url}",
-                                })
-                                st.success(f"✓ Added {result['total']} features to map")
+                            with st.spinner("Inspecting Feature Service layers…"):
+                                discovery = discover_esri_feature_layers(item["url"])
+                            if discovery.get("error"):
+                                st.error(f"Error inspecting service: {discovery['error']}")
+                            elif len(discovery.get("layers", [])) == 1:
+                                result = add_operational_esri_layer(
+                                    item["id"], item.get("title", item["id"]), discovery["layers"][0]
+                                )
+                                if result.get("error"):
+                                    st.error(f"Error fetching layer: {result['error']}")
+                                elif not result.get("features"):
+                                    st.warning("No features returned — layer may be empty or require authentication")
+                                else:
+                                    st.success(f"✓ Added {result['total']} features to map")
+                                    st.rerun()
+                            elif discovery.get("layers"):
+                                st.session_state.esri_pending_adds[f"operational:{item['id']}"] = {
+                                    "item": item, "layers": discovery.get("layers", [])
+                                }
                                 st.rerun()
+                            else:
+                                st.warning("No Feature Layer sublayers were found in this service")
+
+                        pending_key = f"operational:{item['id']}"
+                        pending = st.session_state.esri_pending_adds.get(pending_key)
+                        if pending:
+                            choices = pending["layers"]
+                            selected_urls = st.multiselect(
+                                "Choose Feature Layer sublayers",
+                                [choice["url"] for choice in choices],
+                                format_func=lambda url, cs=choices: next(
+                                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                                ),
+                                key=f"esri_sub_{item['id']}",
+                            )
+                            if st.button("Add selected sublayers", key=f"esri_sub_add_{item['id']}",
+                                         disabled=not selected_urls, use_container_width=True):
+                                failures = []
+                                for choice in choices:
+                                    if choice["url"] in selected_urls:
+                                        result = add_operational_esri_layer(
+                                            item["id"], item.get("title", item["id"]), choice
+                                        )
+                                        if result.get("error") or not result.get("features"):
+                                            failures.append(f"{choice['name']}: {result.get('error') or 'no features'}")
+                                st.session_state.esri_pending_adds.pop(pending_key, None)
+                                if failures:
+                                    st.error("; ".join(failures))
+                                else:
+                                    st.rerun()
 
     if st.session_state.esri_items:
         st.divider()
@@ -1867,6 +2333,25 @@ with tab_esri:
                 if st.button("✕", key=f"rm_esri_map_{i}"):
                     st.session_state.map_layers = [l for l in st.session_state.map_layers if l["id"] != layer["id"]]
                     st.rerun()
+            presentation = layer.get("presentation") or build_presentation(
+                layer.get("metadata"), layer.get("features", [])
+            )
+            options = ["__auto__"] + presentation.get("fields", [])
+            current = presentation.get("label_field_override") or "__auto__"
+            selected = st.selectbox(
+                "Hover label",
+                options,
+                index=options.index(current) if current in options else 0,
+                format_func=lambda field, p=presentation: (
+                    f"Automatic ({p.get('aliases', {}).get(p.get('label_field_auto'), p.get('label_field_auto') or 'layer name')})"
+                    if field == "__auto__" else p.get("aliases", {}).get(field, field)
+                ),
+                key=f"esri_label_{layer['id']}",
+            )
+            layer["presentation"] = build_presentation(
+                layer.get("metadata"), layer.get("features", []),
+                None if selected == "__auto__" else selected,
+            )
 
 # ── Chat Tab ──────────────────────────────────────────────────────────────────
 with tab_chat:
@@ -1888,11 +2373,14 @@ with tab_chat:
                 ]
 
         for i, q in enumerate(quick):
-            if qcols[i % 2].button(q, key=f"quick_{i}", use_container_width=True):
+            if qcols[i % 2].button(
+                q, key=f"quick_{i}", use_container_width=True,
+                disabled=st.session_state.chat_response_pending,
+            ):
                 st.session_state.pending_query = q
 
     def run_query(prompt):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         ctx  = build_context(
@@ -1901,26 +2389,68 @@ with tab_chat:
             st.session_state.get("noaa_items", []),
             st.session_state.get("gauge_data", {}),
         )
-        msgs = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages[-10:]]
+        msgs = [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
+        ]
         with st.chat_message("assistant"):
             placeholder = st.empty()
             full = ""
-            for token in stream_ollama(msgs, ctx):
-                full += token
-                placeholder.markdown(full + "▋")
+            try:
+                for token in stream_ollama(msgs, ctx):
+                    full += token
+                    update_chat_response(st.session_state.messages, assistant_index, full)
+                    placeholder.markdown(full + "▋")
+            except Exception as exc:
+                full += f"\n\n⚠ Chat response interrupted: {exc}"
+            finally:
+                finish_chat_response(st.session_state.messages, assistant_index, full)
+                st.session_state.chat_response_pending = False
             placeholder.markdown(full)
-        st.session_state.messages.append({"role": "assistant", "content": full})
+        st.rerun()
 
     if "pending_query" in st.session_state:
+        if not st.session_state.chat_response_pending:
+            st.session_state.chat_response_pending = True
+            st.rerun()
         run_query(st.session_state.pop("pending_query"))
 
-    if prompt := st.chat_input("Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'"):
-        run_query(prompt)
+    def queue_chat_prompt():
+        if st.session_state.chat_response_pending:
+            return
+        prompt = st.session_state.get("chat_prompt", "").strip()
+        if prompt:
+            st.session_state.pending_query = prompt
+            st.session_state.chat_response_pending = True
+
+    st.chat_input(
+        "Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'",
+        key="chat_prompt",
+        disabled=st.session_state.chat_response_pending,
+        on_submit=queue_chat_prompt,
+    )
 
 # ── Map Builder Tab ────────────────────────────────────────────────────────────
 with tab_mapbuilder:
     st.markdown("#### 🗺 ESRI ArcGIS Map Builder")
     st.caption("Build an interactive map with ArcGIS Online layers — powered by the ArcGIS Maps SDK for JavaScript (CDN, no install)")
+
+    geography_filter_records = [
+        record
+        for source_id in PHASE4_GEOGRAPHY_SOURCE_IDS
+        for record in st.session_state.phase4_results.get(source_id, {}).get("records", [])
+    ]
+    filter_masks = {}
+    filter_mask_errors = {}
+    for filter_mode in (MAP_BUILDER_OPERATIONAL, MAP_BUILDER_PSEG):
+        try:
+            mode_masks = filter_masks_by_mode(geography_filter_records, filter_mode)
+            if not mode_masks:
+                raise ValueError("missing_geography_masks")
+            filter_masks[filter_mode] = mode_masks
+        except ValueError as exc:
+            filter_masks[filter_mode] = []
+            filter_mask_errors[filter_mode] = str(exc) or "geography_filter_unavailable"
 
     # ── Layer management sidebar within tab ────────────────────────────────────
     mb_col_left, mb_col_right = st.columns([1, 2])
@@ -1936,24 +2466,59 @@ with tab_mapbuilder:
                     "Feature Layer", "Feature Service", "Map Service",
                     "Image Service", "Vector Tile Layer"
                 ):
-                    already = any(l["id"] == item["id"] for l in st.session_state.mb_layers)
+                    already = any(
+                        l.get("owner_item_id") == item["id"] or l["id"] == item["id"]
+                        for l in st.session_state.mb_layers
+                    )
                     btn_label = "✓ Added" if already else f"+ {item.get('title','')[:30]}"
                     if not already:
                         if st.button(btn_label, key=f"mb_add_{item['id']}", use_container_width=True):
                             surl = item["url"]
-                            if "/FeatureServer" in surl and not surl.split("/FeatureServer")[-1].strip("/").isdigit():
-                                surl = surl.rstrip("/") + "/0"
-                            st.session_state.mb_layers.append({
-                                "id":      item["id"],
-                                "name":    item.get("title", item["id"])[:40],
-                                "url":     surl,
-                                "item_id": item["id"],
-                                "type":    item.get("type","Feature Layer"),
-                                "opacity": 1.0,
-                                "visible": True,
-                                "color":   "#a78bfa",
-                            })
+                            if "/FeatureServer" in surl:
+                                discovery = discover_esri_feature_layers(surl)
+                                if discovery.get("error"):
+                                    st.error(discovery["error"])
+                                elif len(discovery.get("layers", [])) == 1:
+                                    add_map_builder_feature_layer(
+                                        item["id"], item.get("title", item["id"]), discovery["layers"][0],
+                                        source_type=item.get("type", "Feature Service"), entry_path="search"
+                                    )
+                                elif discovery.get("layers"):
+                                    st.session_state.esri_pending_adds[f"builder:{item['id']}"] = {
+                                        "item": item, "layers": discovery.get("layers", [])
+                                    }
+                                else:
+                                    st.warning("No Feature Layer sublayers were found")
+                            else:
+                                st.session_state.mb_layers.append({
+                                    "id": item["id"], "name": item.get("title", item["id"])[:40],
+                                    "url": surl, "item_id": item["id"],
+                                    "type": item.get("type", "Feature Layer"), "opacity": 1.0,
+                                    "visible": True, "color": "#a78bfa",
+                                    "source_type": item.get("type", "Map Service"),
+                                    "entry_path": "search", "filter_mode": MAP_BUILDER_UNFILTERED,
+                                })
                             st.rerun()
+
+                        pending = st.session_state.esri_pending_adds.get(f"builder:{item['id']}")
+                        if pending:
+                            choices = pending["layers"]
+                            selected_urls = st.multiselect(
+                                "Choose sublayers", [choice["url"] for choice in choices],
+                                format_func=lambda url, cs=choices: next(
+                                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                                ), key=f"mb_sub_{item['id']}",
+                            )
+                            if st.button("Add selected", key=f"mb_sub_add_{item['id']}",
+                                         disabled=not selected_urls, use_container_width=True):
+                                for choice in choices:
+                                    if choice["url"] in selected_urls:
+                                        add_map_builder_feature_layer(
+                                            item["id"], item.get("title", item["id"]), choice,
+                                            source_type=item.get("type", "Feature Service"), entry_path="search"
+                                        )
+                                st.session_state.esri_pending_adds.pop(f"builder:{item['id']}", None)
+                                st.rerun()
                     else:
                         st.markdown(f'<span class="pill p-purple">✓ {item.get("title","")[:28]}</span>', unsafe_allow_html=True)
         else:
@@ -1973,46 +2538,82 @@ with tab_mapbuilder:
             # If it's a bare AGOL item ID (8–16 alphanumeric chars), load as portalItem
             is_item_id = re.match(r'^[a-f0-9]{16,32}$', entry_id, re.I)
             surl = entry_id
-            if "/FeatureServer" in surl and not surl.split("/FeatureServer")[-1].strip("/").isdigit():
-                surl = surl.rstrip("/") + "/0"
-            st.session_state.mb_layers.append({
-                "id":      entry_id,
-                "name":    mb_name_in or entry_id[:30],
-                "url":     surl,
-                "item_id": entry_id if is_item_id else "",
-                "type":    mb_type_sel,
-                "opacity": 1.0,
-                "visible": True,
-                "color":   "#60a5fa",
-            })
+            if "/FeatureServer" in surl:
+                discovery = discover_esri_feature_layers(surl)
+                if discovery.get("error"):
+                    st.error(discovery["error"])
+                elif len(discovery.get("layers", [])) == 1:
+                    add_map_builder_feature_layer(
+                        entry_id, mb_name_in or discovery["layers"][0]["name"], discovery["layers"][0], "#60a5fa",
+                        source_type=mb_type_sel, entry_path="pasted_url"
+                    )
+                elif discovery.get("layers"):
+                    st.session_state.esri_pending_adds["builder:manual"] = {
+                        "item": {
+                            "id": entry_id,
+                            "title": mb_name_in or "Feature Service",
+                            "source_type": mb_type_sel,
+                        },
+                        "layers": discovery.get("layers", []),
+                    }
+                else:
+                    st.warning("No Feature Layer sublayers were found")
+            else:
+                st.session_state.mb_layers.append({
+                    "id": entry_id, "name": mb_name_in or entry_id[:30], "url": surl,
+                    "item_id": entry_id if is_item_id else "", "type": mb_type_sel,
+                    "opacity": 1.0, "visible": True, "color": "#60a5fa",
+                    "source_type": mb_type_sel, "entry_path": "pasted_url",
+                    "filter_mode": MAP_BUILDER_UNFILTERED,
+                })
             st.rerun()
+
+        manual_pending = st.session_state.esri_pending_adds.get("builder:manual")
+        if manual_pending:
+            choices = manual_pending["layers"]
+            selected_urls = st.multiselect(
+                "Choose URL sublayers", [choice["url"] for choice in choices],
+                format_func=lambda url, cs=choices: next(
+                    f"{c['id']}: {c['name']}" for c in cs if c["url"] == url
+                ), key="mb_manual_sublayers",
+            )
+            if st.button("Add selected URL sublayers", disabled=not selected_urls,
+                         key="mb_manual_sublayers_add", use_container_width=True):
+                item = manual_pending["item"]
+                for choice in choices:
+                    if choice["url"] in selected_urls:
+                        add_map_builder_feature_layer(
+                            item["id"], item["title"], choice, "#60a5fa",
+                            source_type=item.get("source_type", "Feature Layer"), entry_path="pasted_url"
+                        )
+                st.session_state.esri_pending_adds.pop("builder:manual", None)
+                st.rerun()
 
         st.divider()
 
         # Living Atlas quick-adds — curated emergency-relevant public layers
         st.markdown("**Living Atlas Quick-Add**")
-        LIVING_ATLAS_PRESETS = [
-            {"name": "USA Flood Hazard Areas (FEMA)",    "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0", "color": "#60a5fa"},
-            {"name": "USA Hurricane Tracks",              "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/Historical_Hurricane_Tracks/FeatureServer/1",        "color": "#f87171"},
-            {"name": "USA Hospitals",                     "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Hospitals/FeatureServer/0",                      "color": "#34d399"},
-            {"name": "USA Fire Stations",                 "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Fire_Stations/FeatureServer/0",                  "color": "#fb923c"},
-            {"name": "FEMA Disaster Declarations",        "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/FEMA_Disaster_Declaration_Areas/FeatureServer/0",    "color": "#facc15"},
-            {"name": "World Imagery (basemap tile)",      "url": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",                                          "color": "#a78bfa"},
-        ]
         for preset in LIVING_ATLAS_PRESETS:
             already = any(l["url"] == preset["url"] for l in st.session_state.mb_layers)
             if not already:
                 if st.button(f"+ {preset['name']}", key=f"mb_preset_{preset['name'][:20]}", use_container_width=True):
-                    st.session_state.mb_layers.append({
-                        "id":      preset["url"],
-                        "name":    preset["name"],
-                        "url":     preset["url"],
-                        "item_id": "",
-                        "type":    "Feature Layer",
-                        "opacity": 1.0,
-                        "visible": True,
-                        "color":   preset["color"],
-                    })
+                    if "/FeatureServer" in preset["url"]:
+                        discovery = discover_esri_feature_layers(preset["url"])
+                        if discovery.get("layers"):
+                            add_map_builder_feature_layer(
+                                preset["url"], preset["name"], discovery["layers"][0], preset["color"],
+                                source_type=preset["type"], entry_path="quick_add"
+                            )
+                        else:
+                            st.error(discovery.get("error") or "No Feature Layers found")
+                    else:
+                        st.session_state.mb_layers.append({
+                            "id": preset["url"], "name": preset["name"], "url": preset["url"],
+                            "item_id": "", "type": preset["type"], "opacity": 1.0,
+                            "visible": True, "color": preset["color"],
+                            "source_type": preset["type"], "entry_path": "quick_add",
+                            "filter_mode": MAP_BUILDER_UNFILTERED,
+                        })
                     st.rerun()
             else:
                 st.markdown(f'<span class="pill p-purple">✓ {preset["name"][:28]}</span>', unsafe_allow_html=True)
@@ -2021,7 +2622,17 @@ with tab_mapbuilder:
 
         # Layer list with controls
         if st.session_state.mb_layers:
-            st.markdown(f"**Active Layers ({len(st.session_state.mb_layers)})**")
+            layer_heading, clear_layers = st.columns([3, 2])
+            with layer_heading:
+                st.markdown(f"**Active Layers ({len(st.session_state.mb_layers)})**")
+            with clear_layers:
+                if st.button("Clear all", key="mb_clear_all", use_container_width=True):
+                    st.session_state.mb_layers = []
+                    st.session_state.esri_pending_adds = {
+                        key: value for key, value in st.session_state.esri_pending_adds.items()
+                        if not key.startswith("builder:")
+                    }
+                    st.rerun()
             for li, layer in enumerate(st.session_state.mb_layers):
                 with st.container():
                     lc1, lc2 = st.columns([4, 1])
@@ -2038,6 +2649,41 @@ with tab_mapbuilder:
                             st.session_state.mb_layers.pop(li)
                             st.rerun()
 
+                    if layer.get("metadata_error"):
+                        st.caption(f"Metadata fallback: {layer['metadata_error']}")
+
+                    st.caption(
+                        f"Added through {layer.get('entry_path', 'configured').replace('_', ' ')} · "
+                        f"Original service: {layer.get('url', '')}"
+                    )
+                    filter_is_supported = map_builder_filter_supported(layer)
+                    current_filter_mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
+                    if current_filter_mode not in MAP_BUILDER_FILTER_MODES:
+                        current_filter_mode = MAP_BUILDER_UNFILTERED
+                    selected_filter_mode = st.selectbox(
+                        "Geography display filter",
+                        MAP_BUILDER_FILTER_MODES,
+                        index=MAP_BUILDER_FILTER_MODES.index(current_filter_mode),
+                        format_func=lambda mode: MAP_BUILDER_FILTER_LABELS[mode],
+                        key=f"mb_filter_{li}_{layer['id'][:8]}",
+                        disabled=not filter_is_supported,
+                        help=(
+                            "Applied after Add to Map using the authoritative operational or PSEG polygons."
+                            if filter_is_supported else
+                            "Geography filtering is unavailable for Map Services, imagery, vector tiles, and other non-Feature Layer types."
+                        ),
+                    )
+                    st.session_state.mb_layers[li]["filter_mode"] = (
+                        selected_filter_mode if filter_is_supported else MAP_BUILDER_UNFILTERED
+                    )
+                    if not filter_is_supported:
+                        st.caption("Unfiltered · this layer type cannot honor the shared Feature Layer geography contract.")
+                    elif filter_mask_errors.get(selected_filter_mode):
+                        st.warning(
+                            "Geography filter unavailable; this layer is currently displayed unfiltered. "
+                            f"{filter_mask_errors[selected_filter_mode].replace('_', ' ')}"
+                        )
+
                     new_opacity = st.slider("Opacity", 0.0, 1.0,
                                             value=float(layer.get("opacity", 1.0)),
                                             step=0.05, key=f"mb_op_{li}_{layer['id'][:8]}")
@@ -2045,6 +2691,21 @@ with tab_mapbuilder:
                                               key=f"mb_vis_{li}_{layer['id'][:8]}")
                     st.session_state.mb_layers[li]["opacity"] = new_opacity
                     st.session_state.mb_layers[li]["visible"] = new_visible
+                    presentation = layer.get("presentation")
+                    if presentation and presentation.get("fields"):
+                        options = ["__auto__"] + presentation["fields"]
+                        current = presentation.get("label_field_override") or "__auto__"
+                        selected = st.selectbox(
+                            "Hover / popup title",
+                            options, index=options.index(current) if current in options else 0,
+                            format_func=lambda field, p=presentation: (
+                                f"Automatic ({p.get('aliases', {}).get(p.get('label_field_auto'), p.get('label_field_auto') or 'layer name')})"
+                                if field == "__auto__" else p.get("aliases", {}).get(field, field)
+                            ), key=f"mb_label_{li}_{layer['id'][:8]}",
+                        )
+                        st.session_state.mb_layers[li]["presentation"] = build_presentation(
+                            layer.get("metadata"), label_override=None if selected == "__auto__" else selected
+                        )
                     st.markdown("---")
 
         # Basemap picker
@@ -2074,11 +2735,26 @@ with tab_mapbuilder:
                 "url":     l["url"],
                 "item_id": l.get("item_id",""),
                 "type":    l.get("type","Feature Layer"),
+                "source_type": l.get("source_type", l.get("type", "Feature Layer")),
+                "entry_path": l.get("entry_path", "configured"),
+                "filter_mode": (
+                    l.get("filter_mode", MAP_BUILDER_UNFILTERED)
+                    if map_builder_filter_supported(l)
+                    and not filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
+                    else MAP_BUILDER_UNFILTERED
+                ),
+                "filter_error": (
+                    "unsupported_layer_type" if not map_builder_filter_supported(l)
+                    else filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
+                ),
                 "opacity": l.get("opacity", 1.0),
                 "visible": l.get("visible", True),
+                "color": l.get("color", "#a78bfa"),
+                "presentation": l.get("presentation"),
             }
             for l in st.session_state.mb_layers
         ])
+        filter_masks_json = json.dumps(filter_masks)
         center = CFG.center
         basemap = st.session_state.get("mb_basemap","dark-gray-vector")
 
@@ -2098,16 +2774,21 @@ with tab_mapbuilder:
                z-index:999; pointer-events:none; }}
     #noLayers {{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
                  color:#334; font-family:monospace; font-size:13px; text-align:center; }}
+    #featureTooltip {{ position:absolute; display:none; z-index:1000; pointer-events:none;
+                       max-width:260px; background:#07090dee; color:#e5e7eb; border:1px solid #818cf877;
+                       border-radius:4px; padding:5px 8px; font:11px monospace; box-shadow:0 3px 12px #0008; }}
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
   <div id="status">EMBER Map Builder · ArcGIS Maps SDK 4.32</div>
+  <div id="featureTooltip"></div>
   {"<div id='noLayers'>← Add layers from the left panel<br><span style='font-size:10px;color:#223'>Search ESRI tab or use Living Atlas quick-adds</span></div>" if not st.session_state.mb_layers else ""}
   <script>
     const LAYERS   = {layers_json};
     const CENTER   = [{center[0]}, {center[1]}];
     const BASEMAP  = "{basemap}";
+    const FILTER_MASKS = {filter_masks_json};
 
     require([
       "esri/Map",
@@ -2116,6 +2797,7 @@ with tab_mapbuilder:
       "esri/layers/MapImageLayer",
       "esri/layers/ImageryLayer",
       "esri/layers/VectorTileLayer",
+      "esri/geometry/Polygon",
       "esri/widgets/LayerList",
       "esri/widgets/Legend",
       "esri/widgets/Search",
@@ -2125,10 +2807,57 @@ with tab_mapbuilder:
       "esri/widgets/BasemapGallery",
       "esri/widgets/Expand",
     ], function(Map, MapView, FeatureLayer, MapImageLayer, ImageryLayer,
-                VectorTileLayer, LayerList, Legend, Search, ScaleBar,
+                VectorTileLayer, Polygon, LayerList, Legend, Search, ScaleBar,
                 Fullscreen, Home, BasemapGallery, Expand) {{
 
       const map = new Map({{ basemap: BASEMAP }});
+
+      function escapeHtml(value) {{
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function(ch) {{
+          return ({{"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"}})[ch];
+        }});
+      }}
+
+      function displayValue(field, value, attributes, presentation) {{
+        if (value == null) return "";
+        const domains = (presentation.domains || {{}})[field] || {{}};
+        const typeField = presentation.type_id_field;
+        const subtype = typeField && attributes[typeField] != null ? String(attributes[typeField]) : null;
+        const subtypeDomains = subtype
+          ? (((presentation.subtype_domains || {{}})[subtype] || {{}})[field] || {{}})
+          : {{}};
+        return String(subtypeDomains[String(value)] ?? domains[String(value)] ?? value);
+      }}
+
+      function presentationLabel(attributes, presentation, fallback) {{
+        if (!presentation) return fallback;
+        const field = presentation.label_field;
+        const value = field ? displayValue(field, attributes[field], attributes, presentation) : "";
+        return value.trim() ? value.slice(0, 80) : fallback;
+      }}
+
+      function presentationPopup(graphic, cfg) {{
+        const attributes = graphic.attributes || {{}};
+        const p = cfg.presentation;
+        if (!p) return escapeHtml(cfg.name);
+        const rows = (p.field_order || []).filter(function(field) {{
+          const value = attributes[field];
+          return value !== null && value !== undefined && value !== "";
+        }}).map(function(field) {{
+          return '<div style="margin-bottom:3px"><span style="color:#667">' +
+            escapeHtml((p.aliases || {{}})[field] || field) + ':</span> <span>' +
+            escapeHtml(displayValue(field, attributes[field], attributes, p).slice(0, 500)) + '</span></div>';
+        }});
+        const primary = rows.slice(0, 8).join("");
+        const more = rows.length > 8
+          ? '<details style="margin-top:6px"><summary style="cursor:pointer;color:#818cf8">' +
+            (rows.length - 8) + ' more attribute(s)</summary><div style="margin-top:5px">' +
+            rows.slice(8).join("") + '</div></details>'
+          : "";
+        return '<div style="font:11px monospace;max-width:340px;max-height:320px;overflow:auto">' +
+          primary + more + '<div style="color:#667;font-size:9px;margin-top:7px;border-top:1px solid #334">' +
+          'ESRI Feature Layer · ' + escapeHtml(cfg.name) + '</div></div>';
+      }}
 
       const view = new MapView({{
         container: "viewDiv",
@@ -2139,6 +2868,18 @@ with tab_mapbuilder:
       }});
 
       // ── Add layers ────────────────────────────────────────────────────────
+      function filterPolygon(mode) {{
+        const geometries = FILTER_MASKS[mode] || [];
+        const rings = [];
+        geometries.forEach(function(geometry) {{
+          if (geometry.type === "Polygon") geometry.coordinates.forEach(function(ring) {{ rings.push(ring.slice().reverse()); }});
+          if (geometry.type === "MultiPolygon") geometry.coordinates.forEach(function(polygon) {{
+            polygon.forEach(function(ring) {{ rings.push(ring.slice().reverse()); }});
+          }});
+        }});
+        return rings.length ? new Polygon({{ rings:rings, spatialReference:{{wkid:4326}} }}) : null;
+      }}
+
       LAYERS.forEach(function(layerCfg) {{
         var lyr;
         var opts = {{
@@ -2146,6 +2887,17 @@ with tab_mapbuilder:
           opacity: layerCfg.opacity,
           visible: layerCfg.visible,
         }};
+
+        if (layerCfg.presentation) {{
+          opts.outFields = ["*"];
+          opts.popupTemplate = {{
+            title: layerCfg.presentation.label_field
+              ? "{" + layerCfg.presentation.label_field + "}"
+              : layerCfg.name,
+            outFields: ["*"],
+            content: function(event) {{ return presentationPopup(event.graphic, layerCfg); }},
+          }};
+        }}
 
         if (layerCfg.item_id && layerCfg.item_id.length > 10 && !layerCfg.url.startsWith("http")) {{
           // Portal item ID
@@ -2165,6 +2917,8 @@ with tab_mapbuilder:
           }}
         }}
 
+        lyr.__emberConfig = layerCfg;
+
         lyr.when(function() {{
           document.getElementById("status").textContent =
             "✓ " + lyr.title + " loaded";
@@ -2179,7 +2933,44 @@ with tab_mapbuilder:
         }});
 
         map.add(lyr);
+
+        if (layerCfg.filter_mode && layerCfg.filter_mode !== "unfiltered") {{
+          const geometry = filterPolygon(layerCfg.filter_mode);
+          if (geometry) {{
+            view.whenLayerView(lyr).then(function(layerView) {{
+              layerView.filter = {{ geometry:geometry, spatialRelationship:"intersects" }};
+              return lyr.queryFeatureCount({{ geometry:geometry, spatialRelationship:"intersects" }});
+            }}).then(function(count) {{
+              document.getElementById("status").textContent =
+                "✓ " + layerCfg.name + " · " + count + " filtered feature(s)";
+            }}).catch(function(err) {{
+              document.getElementById("status").textContent =
+                "⚠ " + layerCfg.name + " filter: " + (err.message || "filter error");
+            }});
+          }}
+        }}
       }});
+
+      // Metadata-aware hover labels for points, lines, and polygons.
+      const tooltip = document.getElementById("featureTooltip");
+      let hoverRequest = 0;
+      view.on("pointer-move", function(event) {{
+        const requestId = ++hoverRequest;
+        view.hitTest(event).then(function(response) {{
+          if (requestId !== hoverRequest) return;
+          const hit = response.results.find(function(result) {{
+            return result.graphic && result.graphic.layer && result.graphic.layer.__emberConfig &&
+              result.graphic.layer.__emberConfig.presentation;
+          }});
+          if (!hit) {{ tooltip.style.display = "none"; return; }}
+          const cfg = hit.graphic.layer.__emberConfig;
+          tooltip.textContent = presentationLabel(hit.graphic.attributes || {{}}, cfg.presentation, cfg.name);
+          tooltip.style.left = (event.x + 14) + "px";
+          tooltip.style.top = (event.y + 14) + "px";
+          tooltip.style.display = "block";
+        }}).catch(function() {{ tooltip.style.display = "none"; }});
+      }});
+      view.on("pointer-leave", function() {{ tooltip.style.display = "none"; }});
 
       // ── Widgets ────────────────────────────────────────────────────────────
       view.when(function() {{

@@ -1,0 +1,31 @@
+{
+  "service": {
+    "layers": [
+      {"id": 4, "name": "LIRR branches", "type": "Feature Layer", "geometryType": "esriGeometryPolyline"}
+    ]
+  },
+  "layer": {
+    "id": 4,
+    "name": "LIRR branches",
+    "geometryType": "esriGeometryPolyline",
+    "displayField": "route_id",
+    "objectIdField": "OBJECTID",
+    "drawingInfo": {"renderer": {"type": "uniqueValue", "field1": "route_long"}},
+    "fields": [
+      {"name": "OBJECTID", "alias": "OBJECTID", "type": "esriFieldTypeOID"},
+      {"name": "route_id", "alias": "Route ID", "type": "esriFieldTypeInteger"},
+      {"name": "route_long", "alias": "Rail Line Name", "type": "esriFieldTypeString"},
+      {"name": "service", "alias": "Service Status", "type": "esriFieldTypeInteger", "domain": {"type": "codedValue", "codedValues": [{"name": "Active", "code": 1}, {"name": "Inactive", "code": 0}]}},
+      {"name": "notes", "alias": "Notes", "type": "esriFieldTypeString"},
+      {"name": "Shape__Length", "alias": "Shape Length", "type": "esriFieldTypeDouble"},
+      {"name": "GlobalID", "alias": "GlobalID", "type": "esriFieldTypeGlobalID"}
+    ]
+  },
+  "features": [
+    {
+      "type": "line",
+      "geometry": {"type": "LineString", "coordinates": [[-73.8, 40.7], [-73.75, 40.72]]},
+      "props": {"OBJECTID": 17, "route_id": 11, "route_long": "Far Rockaway", "service": 1, "notes": "Queens & Nassau", "Shape__Length": 123.4, "GlobalID": "ignored"}
+    }
+  ]
+}

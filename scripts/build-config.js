@@ -42,6 +42,8 @@ function generateJS(cfg) {
   const j     = cfg.jurisdiction    || {}
   const nws   = cfg.nws             || {}
   const coops = cfg.coops_stations  || []
+  const regions = cfg.regions       || {}
+  const sources = cfg.source_registry || []
   const kb    = cfg.knowledge_base  || {}
   const mp    = cfg.map_points      || {}
   const soc   = cfg.socrata         || {}
@@ -125,6 +127,8 @@ function generateJS(cfg) {
     "// Run: node scripts/build-config.js to regenerate",
     "",
     "export const JURISDICTION = "     + s(JURISDICTION)     + ";",
+    "export const REGIONS = "          + s(regions)          + ";",
+    "export const SOURCE_REGISTRY = "  + s(sources)          + ";",
     "export const NWS = "              + s(NWS)              + ";",
     "export const COOPS_STATIONS = "   + s(coops)            + ";",
     "export const FLOOD_THRESHOLDS = " + s(FLOOD_THRESHOLDS) + ";",
@@ -141,6 +145,8 @@ function defaultJS() {
   return [
     "// Auto-generated — no jurisdiction.yaml found, using NYC defaults",
     "export const JURISDICTION = " + JSON.stringify({ name:"New York City", short_name:"NYC", state:"NY", center:[40.7128,-74.006], zoom:10 }) + ";",
+    "export const REGIONS = {};",
+    "export const SOURCE_REGISTRY = [];",
     "export const NWS = {};",
     "export const COOPS_STATIONS = [];",
     "export const FLOOD_THRESHOLDS = {};",
@@ -157,6 +163,7 @@ function defaultJS() {
 
 const yamlPath = process.argv[2] || path.join(ROOT, "config", "jurisdiction.yaml")
 const outPath  = path.join(ROOT, "src", "config", "jurisdiction.js")
+const jsonOutPath = path.join(ROOT, "config", "jurisdiction.generated.json")
 
 fs.mkdirSync(path.dirname(outPath), { recursive: true })
 
@@ -175,6 +182,8 @@ try {
   fs.writeFileSync(outPath, defaultJS())
   process.exit(0)
 }
+
+fs.writeFileSync(jsonOutPath, JSON.stringify(cfg, null, 2) + "\n")
 
 fs.writeFileSync(outPath, generateJS(cfg))
 console.log("✓ src/config/jurisdiction.js written from", path.relative(ROOT, yamlPath))

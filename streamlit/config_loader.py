@@ -10,6 +10,9 @@ Usage:
     cfg = load_config("config/my_city.yaml")  # loads a specific file
 """
 
+from __future__ import annotations
+
+import copy
 import os
 import yaml
 import datetime as _dt
@@ -51,6 +54,8 @@ _DEFAULTS = {
         "obs_stations": [],
     },
     "coops_stations": [],
+    "regions": {},
+    "source_registry": [],
     "knowledge_base": {
         "flood_zones":             "No flood zone information configured.",
         "evac_zones":              "No evacuation zone information configured.",
@@ -77,6 +82,72 @@ _DEFAULTS = {
     },
 }
 
+_LONG_ISLAND_FALLBACK = {
+    "jurisdiction": {
+        "name": "Long Island",
+        "short_name": "LI",
+        "state": "NY",
+        "state_full": "New York",
+        "county": "Nassau / Suffolk",
+        "center_lat": 40.7891,
+        "center_lng": -73.1350,
+        "bbox_north": 41.32,
+        "bbox_south": 40.4,
+        "bbox_east": -71.8,
+        "bbox_west": -74.3,
+        "timezone": "America/New_York",
+        "zoom_default": 10,
+    },
+    "knowledge_base": {
+        "flood_zones": (
+            "Zone VE coastal high-hazard areas include Montauk Point, Fire Island, "
+            "Jones Beach Island, Long Beach ocean side, and Breezy Point."
+        ),
+        "evac_zones": (
+            "Montauk tip is a Suffolk County Zone A community. Route 27 is the only "
+            "land evacuation route; coordinate with Suffolk OEM."
+        ),
+        "critical_infrastructure": (
+            "East End emergency care depends on Southampton Hospital, Peconic Bay "
+            "Medical Center, local EMS, and USCG Station Montauk."
+        ),
+        "hazard_profiles": (
+            "Long Island priorities include coastal flooding, hurricane storm surge, "
+            "barrier-island overwash, extreme heat, and nor'easters."
+        ),
+        "resources": (
+            "Nassau OEM: 516-573-9600 | Suffolk OEM: 631-852-4900 | "
+            "NWS OKX: 631-924-0517 | USCG Emergency: VHF Ch 16"
+        ),
+    },
+    "map_points": {
+        "flood_risk": {
+            "label": "Flood Risk Areas",
+            "color": "#fb923c",
+            "icon": "💧",
+            "features": [{
+                "name": "Montauk (peninsula tip)",
+                "lat": 41.0534,
+                "lng": -71.9543,
+                "note": "Zone VE — 3-sided water exposure; single road in/out (Route 27)",
+            }],
+        },
+    },
+    "coops_stations": [{
+        "id": "8510560",
+        "name": "Montauk",
+        "lat": 41.0483,
+        "lng": -71.9594,
+        "is_primary": True,
+        "flood_thresholds": {
+            "action": 3.5,
+            "minor": 4.5,
+            "moderate": 5.5,
+            "major": 7.0,
+        },
+    }],
+}
+
 
 # ── Loader ─────────────────────────────────────────────────────────────────────
 class JurisdictionConfig:
@@ -92,6 +163,20 @@ class JurisdictionConfig:
                    if not j.get(f)]
         if missing:
             raise ValueError(f"jurisdiction.yaml is missing required fields: {missing}")
+
+        regions = self._raw.get("regions", {})
+        if not isinstance(regions, dict):
+            raise ValueError("jurisdiction.yaml regions must be a mapping")
+
+        sources = self._raw.get("source_registry", [])
+        if not isinstance(sources, list):
+            raise ValueError("jurisdiction.yaml source_registry must be a list")
+
+        source_ids = [source.get("id") for source in sources]
+        if any(not source_id for source_id in source_ids):
+            raise ValueError("every source_registry entry must have an id")
+        if len(source_ids) != len(set(source_ids)):
+            raise ValueError("source_registry ids must be unique")
 
     # ── jurisdiction ──────────────────────────────────────────────────────────
     @property
@@ -132,6 +217,25 @@ class JurisdictionConfig:
     @property
     def timezone(self) -> str:
         return self._raw["jurisdiction"].get("timezone", "America/New_York")
+
+    # ── Regional geography and sources ───────────────────────────────────────
+    @property
+    def regions(self) -> dict[str, dict]:
+        return self._raw.get("regions", {})
+
+    @property
+    def source_registry(self) -> list[dict]:
+        return self._raw.get("source_registry", [])
+
+    def source(self, source_id: str) -> dict | None:
+        return next(
+            (source for source in self.source_registry if source.get("id") == source_id),
+            None,
+        )
+
+    @property
+    def enabled_sources(self) -> list[dict]:
+        return [source for source in self.source_registry if source.get("enabled") is True]
 
     # ── NWS ───────────────────────────────────────────────────────────────────
     @property
@@ -334,27 +438,25 @@ def config_exists(path: Path | None = None) -> bool:
 
 def load_config(path: Path | str | None = None) -> JurisdictionConfig:
     """
-    Load and parse jurisdiction.yaml. Falls back to NYC defaults if file missing.
-    Raises ValueError if required fields are absent.
+    Load and parse jurisdiction.yaml.
+
+    A missing or invalid custom config falls back to the repository's default
+    Long Island config. If that config is also unavailable, use the bundled
+    Long Island minimum so NYC-specific facts can never reappear implicitly.
     """
     target = Path(path) if path else _DEFAULT_CFG
 
-    if not target.exists():
-        # Return NYC defaults so the app doesn't crash on first run
-        return JurisdictionConfig(_build_nyc_defaults())
+    for candidate in dict.fromkeys((target, _DEFAULT_CFG)):
+        try:
+            with open(candidate, "r") as f:
+                raw = yaml.safe_load(f)
+            if not isinstance(raw, dict):
+                raise ValueError("jurisdiction config must be a mapping")
+            return JurisdictionConfig(_merge_with_defaults(raw))
+        except (OSError, TypeError, ValueError, yaml.YAMLError):
+            continue
 
-    with open(target, "r") as f:
-        raw = yaml.safe_load(f)
-
-    # Merge with defaults for missing optional sections
-    for section, defaults in _DEFAULTS.items():
-        if section not in raw:
-            raw[section] = defaults
-        elif isinstance(defaults, dict) and isinstance(raw.get(section), dict):
-            merged = {**defaults, **raw[section]}
-            raw[section] = merged
-
-    return JurisdictionConfig(raw)
+    return JurisdictionConfig(_build_long_island_fallback())
 
 
 def save_config(data: dict, path: Path | str | None = None) -> Path:
@@ -373,13 +475,23 @@ def get_example_yaml() -> str:
     return ""
 
 
-def _build_nyc_defaults() -> dict:
-    """Return the full NYC config as a Python dict (used when no file exists)."""
-    nyc = Path(__file__).parent.parent / "config" / "jurisdiction.yaml"
-    if nyc.exists():
-        with open(nyc) as f:
-            return yaml.safe_load(f)
-    return _DEFAULTS
+def _merge_with_defaults(raw: dict) -> dict:
+    """Merge optional defaults without mutating the caller or module constants."""
+    merged_raw = copy.deepcopy(raw)
+    for section, defaults in _DEFAULTS.items():
+        if section not in merged_raw:
+            merged_raw[section] = copy.deepcopy(defaults)
+        elif isinstance(defaults, dict) and isinstance(merged_raw.get(section), dict):
+            merged_raw[section] = {
+                **copy.deepcopy(defaults),
+                **merged_raw[section],
+            }
+    return merged_raw
+
+
+def _build_long_island_fallback() -> dict:
+    """Return a bundled, dependency-free Long Island minimum configuration."""
+    return _merge_with_defaults(_LONG_ISLAND_FALLBACK)
 
 
 # ── NWS auto-discovery ────────────────────────────────────────────────────────

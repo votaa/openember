@@ -1,0 +1,21 @@
+{
+  "geography_records": [
+    {"scope_key":"nassau","geometry":{"type":"Polygon","coordinates":[[[0,0],[10,0],[10,10],[0,10],[0,0]]]}},
+    {"scope_key":"suffolk","geometry":{"type":"Polygon","coordinates":[[[10,0],[20,0],[20,10],[10,10],[10,0]]]}},
+    {"scope_key":"rockaway","geometry":{"type":"Polygon","coordinates":[[[-4,0],[0,0],[0,5],[-4,5],[-4,0]]]}},
+    {"scope_key":"pseg_long_island","geometry":{"type":"Polygon","coordinates":[[[2,2],[18,2],[18,8],[2,8],[2,2]]]}}
+  ],
+  "features": [
+    {"id":"nassau_pseg","geometry":{"type":"Point","coordinates":[5,5]}},
+    {"id":"municipal_freeport","geometry":{"type":"Point","coordinates":[1,1]}},
+    {"id":"suffolk_pseg","geometry":{"type":"Point","coordinates":[15,5]}},
+    {"id":"rockaway","geometry":{"type":"Point","coordinates":[-2,2]}},
+    {"id":"outside","geometry":{"type":"Point","coordinates":[30,30]}}
+  ],
+  "entry_paths": ["search", "quick_add", "pasted_url"],
+  "expected": {
+    "unfiltered": ["nassau_pseg", "municipal_freeport", "suffolk_pseg", "rockaway", "outside"],
+    "operational": ["nassau_pseg", "municipal_freeport", "suffolk_pseg", "rockaway"],
+    "pseg_long_island": ["nassau_pseg", "suffolk_pseg"]
+  }
+}
