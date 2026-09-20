@@ -2,6 +2,10 @@
 
 Status: implemented in the Rockaway Phase 4 source view
 
+Related follow-up: `feature-request-nyc-311-time-date-filters.md` proposes
+operator-controlled time/date windows for this layer and the general NYC 311
+layer.
+
 Logged: 2026-08-29
 
 ## Proposed operational use
