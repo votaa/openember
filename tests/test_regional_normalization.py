@@ -12,6 +12,7 @@ SPEC.loader.exec_module(MODULE)
 load_sources = MODULE.load_sources
 normalize_rockaway_payload = MODULE.normalize_rockaway_payload
 build_rockaway_query_url = MODULE.build_rockaway_query_url
+build_rockaway_aggregate_query_url = MODULE.build_rockaway_aggregate_query_url
 fetch_rockaway_source = MODULE.fetch_rockaway_source
 rockaway_source_card = MODULE.rockaway_source_card
 unavailable_rockaway_result = MODULE.unavailable_rockaway_result
@@ -26,6 +27,42 @@ SOURCES = load_sources()
 
 
 class RegionalNormalizationTests(unittest.TestCase):
+    def test_electric_hazard_classification_includes_non_electric_blockages(self):
+        source = SOURCES["nyc_311_electric_hazards_rockaway"]
+        rows = [
+            {"unique_key": "electric", "created_date": "2026-08-29T12:00:00.000", "agency": "HPD", "complaint_type": "ELECTRIC", "descriptor": "POWER OUTAGE", "status": "Open", "borough": "QUEENS", "community_board": "14 QUEENS", "latitude": "40.60", "longitude": "-73.80"},
+            {"unique_key": "tree", "created_date": "2026-08-29T12:01:00.000", "agency": "DPR", "complaint_type": "Dead Tree", "descriptor": "Hitting Power Lines", "status": "Open", "borough": "QUEENS", "community_board": "14 QUEENS", "latitude": "40.61", "longitude": "-73.81"},
+            {"unique_key": "flood-blockage", "created_date": "2026-08-29T12:02:00.000", "agency": "DOT", "complaint_type": "Blocked Road", "descriptor": "Flooding", "status": "Open", "borough": "QUEENS", "community_board": "14 QUEENS", "latitude": "40.62", "longitude": "-73.82"},
+            {"unique_key": "noise", "created_date": "2026-08-29T12:03:00.000", "agency": "NYPD", "complaint_type": "Noise - Residential", "descriptor": "Loud Music/Party", "status": "Open", "borough": "QUEENS", "community_board": "14 QUEENS", "latitude": "40.63", "longitude": "-73.83"},
+        ]
+        result = normalize_rockaway_payload(source, rows, FIXTURE["fetched_at"], FIXTURE["evaluated_at"])
+        self.assertEqual(result["data_state"], "partial")
+        self.assertEqual([record["properties"]["hazard_category_key"] for record in result["records"]], ["direct_electric", "electric_tree_or_wire", "road_blockage"])
+        self.assertEqual(result["records"][2]["category"], "Road blockage report")
+        self.assertEqual(result["rejected_count"], 1)
+
+    def test_hazard_source_has_full_inventory_aggregate_queries(self):
+        source = SOURCES["nyc_311_electric_hazards_rockaway"]
+        self.assertEqual(len(source["aggregate_queries"]), 4)
+        url = build_rockaway_aggregate_query_url(source, source["aggregate_queries"][0])
+        self.assertIn("%24select=count%28%2A%29+as+total", url)
+        self.assertNotIn("%24limit", url)
+
+        calls = []
+        class Response:
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return [{"total": "17"}] if "%24select=count%28%2A%29" in calls[-1] else [{"unique_key": "electric", "created_date": "2026-08-29T12:00:00.000", "agency": "HPD", "complaint_type": "ELECTRIC", "descriptor": "POWER OUTAGE", "status": "Open", "borough": "QUEENS", "community_board": "14 QUEENS", "latitude": "40.60", "longitude": "-73.80"}]
+        def request_get(url, **_kwargs):
+            calls.append(url)
+            return Response()
+        result = fetch_rockaway_source(source, request_get, FIXTURE["fetched_at"], sleep_fn=lambda _seconds: None)
+        self.assertEqual(result["aggregate_state"], "current")
+        self.assertEqual(len(result["aggregate_counts"]), 4)
+        self.assertEqual(result["aggregate_counts"][0]["total"], 17)
+        self.assertEqual(len(calls), 5)
+
     def test_socrata_timeout_retries_with_app_token(self):
         attempts = []
 

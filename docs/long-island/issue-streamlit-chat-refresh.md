@@ -1,6 +1,6 @@
 # Issue: Streamlit Chat Response Lost During Background Refresh
 
-Status: fixed locally; verification pending commit
+Status: implemented and included in `main`
 
 Logged: 2026-08-29
 

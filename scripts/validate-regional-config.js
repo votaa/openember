@@ -61,6 +61,7 @@ assert.deepEqual(
     "coops_kings_point",
     "coops_montauk",
     "coops_sandy_hook_reference",
+    "nyc_311_electric_hazards_rockaway",
     "nyc_311_rockaway",
     "nyc_cb14_boundary",
     "nyc_hurricane_evacuation_centers_rockaway",
@@ -79,6 +80,9 @@ assert.equal(sourceById["mta_lirr_realtime"].enabled, false)
 assert.equal(sourceById["mta_ace_realtime"].enabled, false)
 assert.equal(sourceById["mta_lirr_alerts"].enabled, false)
 assert.match(sourceById["nyc_311_rockaway"].required_filter, /community_board = '14 QUEENS'/)
+assert.equal(sourceById.nyc_311_electric_hazards_rockaway.query_limit, 500)
+assert.equal(sourceById.nyc_311_electric_hazards_rockaway.aggregate_queries.length, 4)
+assert.equal(sourceById.nyc_311_electric_hazards_rockaway.normalization.scope.kind, "classification_rules")
 assert.equal(sourceById["nyc_hurricane_evacuation_centers_rockaway"].endpoint.endsWith("/p5md-weyf.json"), true)
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.qualification, "qualified")
 assert.equal(sourceById.nyc_hurricane_evacuation_centers_rockaway.enabled, true)

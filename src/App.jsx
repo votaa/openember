@@ -277,7 +277,7 @@ function buildContext(files, apiResults, activeKB) {
   return buildContextRT(files, apiResults, activeKB, buildRuntimeKB(loadLocalConfig()), buildRuntimeConfig(loadLocalConfig()).name)
 }
 
-function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName) {
+function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase4Results = {}) {
   let ctx = `=== ${(jurisdictionName||"MY CITY").toUpperCase()} EMERGENCY MANAGEMENT KNOWLEDGE BASE ===\n\n`
   for (const [key, mod] of Object.entries(kb)) {
     if (activeKB.includes(key)) ctx += `--- ${mod.label} [${mod.source}] ---\n${mod.data}\n\n`
@@ -286,6 +286,17 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName) {
     ctx += `--- LIVE API DATA (${new Date().toUTCString()}) ---\n`
     apiResults.forEach(r => { ctx += summarizeAPIData(r) + "\n" })
     ctx += "\n"
+  }
+  const hazardResult = phase4Results.nyc_311_electric_hazards_rockaway
+  if (hazardResult) {
+    ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES ---\n"
+    for (const aggregate of hazardResult.aggregate_counts || []) {
+      ctx += `${aggregate.label}: ${aggregate.total ?? "unavailable"} full-inventory reports\n`
+    }
+    for (const record of (hazardResult.records || []).slice(0, 5)) {
+      ctx += `${record.category || "Report"}: ${record.description || "No descriptor"} | ${record.observed_at || "time unavailable"} | ${record.properties?.incident_zip || "ZIP unavailable"}\n`
+    }
+    ctx += "These are reported NYC 311 complaints, not utility-confirmed outages or verified restoration constraints.\n\n"
   }
   if (files.length) {
     ctx += "--- UPLOADED DOCUMENTS ---\n"
@@ -747,6 +758,7 @@ function Phase4SourcesPanel({ sources, results, loading, onRefresh, activeLayers
                     <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
                   </div>
                   {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
+                  {card.aggregate_counts?.length > 0 && <div style={{fontSize:8,color:"#889",lineHeight:1.45,marginTop:6}}>FULL-INVENTORY REPORTS · {card.aggregate_counts.map(item => `${item.label}: ${item.total ?? "unavailable"}`).join(" · ")}{card.aggregate_state === "partial" ? " · aggregate refresh partial" : ""}</div>}
                   {card.activation_state && <div style={{fontSize:8.5,color:"#facc15",marginTop:5}}>Activation: {card.activation_state.replaceAll("_", " ")}{card.confirmation_phone?` · verify via ${card.confirmation_phone}`:""}{card.confirmation_url?<>{" · "}<a href={card.confirmation_url} target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>official finder</a></>:null}</div>}
                   {card.disclaimer && <div style={{fontSize:8,color:"#445",marginTop:5}}>{card.disclaimer}</div>}
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>
@@ -926,7 +938,7 @@ export default function App() {
     setStreaming(true)
     abortRef.current?.abort()
     abortRef.current = new AbortController()
-    const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name)
+    const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
       + (noaaItems.length ? "--- NOAA DATA ---\n"+noaaItems.map(i=>i.content).join("\n\n")+"\n\n" : "")
       + (esriItems.length ? "--- ESRI LAYERS ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
     const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
@@ -944,7 +956,7 @@ export default function App() {
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, CFG_RT.name])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, phase4Results, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()

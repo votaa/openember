@@ -871,7 +871,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     return m
 
 
-def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None):
+def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None, phase4_results=None):
     ctx = build_knowledge_base_context(
         KNOWLEDGE_BASE, active_modules, CFG.name,
     )
@@ -893,6 +893,20 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         ctx += "--- LIVE API DATA ---\n"
         for r in api_results: ctx += summarize_api(r) + "\n"
         ctx += "\n"
+    hazard_result = (phase4_results or {}).get("nyc_311_electric_hazards_rockaway")
+    if hazard_result:
+        ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES ---\n"
+        for aggregate in hazard_result.get("aggregate_counts", []):
+            total = aggregate.get("total") if aggregate.get("total") is not None else "unavailable"
+            ctx += f"{aggregate.get('label')}: {total} full-inventory reports\n"
+        for record in hazard_result.get("records", [])[:5]:
+            properties = record.get("properties", {})
+            ctx += (
+                f"{record.get('category') or 'Report'}: {record.get('description') or 'No descriptor'} | "
+                f"{record.get('observed_at') or 'time unavailable'} | "
+                f"{properties.get('incident_zip') or 'ZIP unavailable'}\n"
+            )
+        ctx += "These are reported NYC 311 complaints, not utility-confirmed outages or verified restoration constraints.\n\n"
     if noaa_items:
         ctx += "--- NOAA OPEN DATA (auto-fetched) ---\n"
         for item in noaa_items: ctx += item["content"] + "\n\n"
@@ -1417,6 +1431,17 @@ def render_phase4_source_cards(source_ids, key_prefix):
             if card.get("disclaimer") else ""
         )
         rejected = f' · {card["rejected_count"]} rejected' if card.get("rejected_count") else ""
+        aggregate_html = ""
+        if card.get("aggregate_counts"):
+            aggregate_summary = " · ".join(
+                f"{item.get('label')}: {item.get('total') if item.get('total') is not None else 'unavailable'}"
+                for item in card["aggregate_counts"]
+            )
+            partial_suffix = " · aggregate refresh partial" if card.get("aggregate_state") == "partial" else ""
+            aggregate_html = (
+                f'<div style="font-size:8px;color:#889;line-height:1.35;margin-top:6px">'
+                f'FULL-INVENTORY REPORTS · {_html.escape(aggregate_summary)}{partial_suffix}</div>'
+            )
         with columns[index % 3]:
             st.markdown(
                 f'<div style="background:#0d1117;border:1px solid #1a1e28;border-left:3px solid {card["color"]};'
@@ -1429,6 +1454,7 @@ def render_phase4_source_cards(source_ids, key_prefix):
                 f'<div style="font-size:8px;color:#334;margin-top:3px">OBSERVED <span style="color:#aac">{observed}</span></div>'
                 f'<div style="font-size:8px;color:#334;margin-top:3px">FETCHED <span style="color:#aac">{fetched}</span></div>'
                 f'<div style="font-size:8px;color:#667;line-height:1.35;margin-top:7px">{note}</div>'
+                f'{aggregate_html}'
                 f'{activation}{disclaimer}'
                 f'<div style="font-size:8px;color:#445;margin-top:7px">{_html.escape(card["kind"].replace("_", " "))} · {_html.escape(card["attribution"])}{rejected}</div>'
                 f'</div>',
@@ -2388,6 +2414,7 @@ with tab_chat:
             active_kb, st.session_state.esri_items,
             st.session_state.get("noaa_items", []),
             st.session_state.get("gauge_data", {}),
+            st.session_state.phase4_results,
         )
         msgs = [
             {"role": m["role"], "content": m["content"]}

@@ -10,6 +10,7 @@ const config = JSON.parse(fs.readFileSync(path.join(root, "config", "jurisdictio
 const sources = Object.fromEntries(config.source_registry.map(source => [source.id, source]))
 
 const activeSourceIds = [
+  "nyc_311_electric_hazards_rockaway",
   "nyc_311_rockaway",
   "nyc_hurricane_evacuation_centers_rockaway",
   "nycha_developments_rockaway",

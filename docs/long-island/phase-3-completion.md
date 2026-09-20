@@ -57,7 +57,8 @@ npm run phase3:gate
 
 The gate verifies:
 
-- five Rockaway source dispositions, including the deliberately gated cooling
+- six Rockaway source dispositions, including the electric-hazard/road-blockage
+  view and the deliberately gated cooling
   center source;
 - shared React/Streamlit fixture parity and source failure states;
 - CB14, county, utility, NYPD, NYCHA, evacuation-center, NOAA, USGS, and DEC

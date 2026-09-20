@@ -2,6 +2,7 @@ import { normalizeRockawayPayload } from "./normalizeRockaway.js"
 
 export const ROCKAWAY_SOURCE_IDS = [
   "nyc_311_rockaway",
+  "nyc_311_electric_hazards_rockaway",
   "nyc_cooling_centers_rockaway",
   "nyc_hurricane_evacuation_centers_rockaway",
   "nycha_developments_rockaway",
@@ -63,6 +64,17 @@ export function buildRockawayQueryUrl(source) {
   return url.toString()
 }
 
+export function buildRockawayAggregateQueryUrl(source, aggregate) {
+  if (!source?.endpoint || !aggregate?.query_select || !aggregate?.required_filter) return source?.endpoint || ""
+  const url = new URL(source.endpoint)
+  url.searchParams.set("$select", aggregate.query_select)
+  url.searchParams.set("$where", aggregate.required_filter)
+  if (aggregate.query_group) url.searchParams.set("$group", aggregate.query_group)
+  if (aggregate.query_order) url.searchParams.set("$order", aggregate.query_order)
+  if (aggregate.query_limit) url.searchParams.set("$limit", String(aggregate.query_limit))
+  return url.toString()
+}
+
 export function unavailableRockawayResult(source) {
   return {
     records: [],
@@ -93,15 +105,52 @@ export async function fetchRockawaySource(source, {
   if (appToken) headers["X-App-Token"] = appToken
   let finalError = null
 
+  async function fetchJson(url) {
+    let error = null
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        const response = await fetchImpl(url, {
+          headers,
+          signal: AbortSignal.timeout(timeoutMs),
+        })
+        if (!response.ok) throw requestError(response)
+        return await response.json()
+      } catch (requestFailure) {
+        error = requestFailure
+        if (!isTransientRequestError(requestFailure) || attempt === maxRetries) break
+        await sleepImpl(backoffMs[Math.min(attempt, backoffMs.length - 1)] || 0)
+      }
+    }
+    throw error || new Error("request_failed")
+  }
+
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
-      const response = await fetchImpl(buildRockawayQueryUrl(source), {
-        headers,
-        signal: AbortSignal.timeout(timeoutMs),
-      })
-      if (!response.ok) throw requestError(response)
-      const payload = await response.json()
-      return { ...normalizeRockawayPayload(source, payload, fetchedAt, fetchedAt, geographyRecords), fetched_at: fetchedAt }
+      const payload = await fetchJson(buildRockawayQueryUrl(source))
+      const result = { ...normalizeRockawayPayload(source, payload, fetchedAt, fetchedAt, geographyRecords), fetched_at: fetchedAt }
+      if (Array.isArray(source.aggregate_queries) && source.aggregate_queries.length) {
+        const aggregateResults = []
+        let aggregateError = null
+        for (const aggregate of source.aggregate_queries) {
+          try {
+            const aggregatePayload = await fetchJson(buildRockawayAggregateQueryUrl(source, aggregate))
+            const row = Array.isArray(aggregatePayload) ? aggregatePayload[0] || {} : {}
+            const total = Number(row[aggregate.result_field || "total"])
+            aggregateResults.push({
+              key: aggregate.key,
+              label: aggregate.label,
+              total: Number.isFinite(total) ? total : null,
+            })
+          } catch (aggregateFailure) {
+            aggregateError = readableRequestError(aggregateFailure, timeoutMs)
+            aggregateResults.push({ key: aggregate.key, label: aggregate.label, total: null })
+          }
+        }
+        result.aggregate_counts = aggregateResults
+        result.aggregate_state = aggregateError ? "partial" : "current"
+        result.aggregate_reason = aggregateError
+      }
+      return result
     } catch (error) {
       finalError = error
       if (!isTransientRequestError(error) || attempt === maxRetries) break
@@ -137,6 +186,9 @@ export function rockawaySourceCard(source, result = unavailableRockawayResult(so
     fetched_at: result.fetched_at || records[0]?.fetched_at || null,
     attribution: source.attribution,
     note: source.operational_note || source.gate || result.reason || null,
+    aggregate_counts: Array.isArray(result.aggregate_counts) ? result.aggregate_counts : [],
+    aggregate_state: result.aggregate_state || null,
+    aggregate_reason: result.aggregate_reason || null,
     kind: source.display?.kind || "reference",
     icon: source.display?.icon || "📍",
     color: source.display?.color || "#60a5fa",

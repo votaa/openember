@@ -10,6 +10,7 @@ import { normalizeRockawayPayload } from "../src/data/regional/normalizeRockaway
 import {
   ROCKAWAY_SOURCE_IDS,
   buildRockawayQueryUrl,
+  buildRockawayAggregateQueryUrl,
   rockawaySourceCard,
   unavailableRockawayResult,
 } from "../src/data/regional/rockawaySources.js"
@@ -53,6 +54,29 @@ test("React and Streamlit normalize the shared Rockaway fixture identically", ()
     { encoding: "utf8" },
   ))
   assert.deepEqual(javascriptOutput(), python)
+})
+
+test("electric-hazard view includes non-electric road blockages", () => {
+  const source = sources.nyc_311_electric_hazards_rockaway
+  const rows = [
+    { unique_key: "electric", created_date: "2026-08-29T12:00:00.000", agency: "HPD", complaint_type: "ELECTRIC", descriptor: "POWER OUTAGE", status: "Open", borough: "QUEENS", community_board: "14 QUEENS", latitude: "40.60", longitude: "-73.80" },
+    { unique_key: "tree", created_date: "2026-08-29T12:01:00.000", agency: "DPR", complaint_type: "Dead Tree", descriptor: "Hitting Power Lines", status: "Open", borough: "QUEENS", community_board: "14 QUEENS", latitude: "40.61", longitude: "-73.81" },
+    { unique_key: "flood-blockage", created_date: "2026-08-29T12:02:00.000", agency: "DOT", complaint_type: "Blocked Road", descriptor: "Flooding", status: "Open", borough: "QUEENS", community_board: "14 QUEENS", latitude: "40.62", longitude: "-73.82" },
+    { unique_key: "noise", created_date: "2026-08-29T12:03:00.000", agency: "NYPD", complaint_type: "Noise - Residential", descriptor: "Loud Music/Party", status: "Open", borough: "QUEENS", community_board: "14 QUEENS", latitude: "40.63", longitude: "-73.83" },
+  ]
+  const result = normalizeRockawayPayload(source, rows, fixture.fetched_at, fixture.evaluated_at)
+  assert.equal(result.data_state, "partial")
+  assert.deepEqual(result.records.map(record => record.properties.hazard_category_key), ["direct_electric", "electric_tree_or_wire", "road_blockage"])
+  assert.equal(result.records[2].category, "Road blockage report")
+  assert.equal(result.rejected_count, 1)
+})
+
+test("electric-hazard source defines uncapped full-inventory aggregate queries", () => {
+  const source = sources.nyc_311_electric_hazards_rockaway
+  assert.equal(source.aggregate_queries.length, 4)
+  const url = new URL(buildRockawayAggregateQueryUrl(source, source.aggregate_queries[0]))
+  assert.equal(url.searchParams.get("$select"), "count(*) as total")
+  assert.equal(url.searchParams.has("$limit"), false)
 })
 
 test("React and Streamlit spatially qualify NYPD, NYCHA, and evacuation-center records identically", () => {

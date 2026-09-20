@@ -6,14 +6,24 @@ Implementation date: 2026-08-30
 
 ## Delivered in both interfaces
 
-React/Vercel and Streamlit now expose the same five Rockaway source
+React/Vercel and Streamlit now expose the same six Rockaway source
 dispositions:
 
 1. NYC 311 service requests.
-2. Cooling centers, visibly gated pending a stable machine-readable contract.
-3. Hurricane evacuation centers.
-4. NYPD complaint incidents.
-5. NYCHA public housing developments.
+2. NYC 311 reported electric hazards and road blockages, including non-electric
+   blocked-road causes that may affect restoration access.
+3. Cooling centers, visibly gated pending a stable machine-readable contract.
+4. Hurricane evacuation centers.
+5. NYPD complaint incidents.
+6. NYCHA public housing developments.
+
+The electric-hazard view uses explicit agency, complaint-type, and descriptor
+rules. Its map is limited to the newest 500 records with valid coordinates,
+while separate uncapped Socrata `count(*)` queries report full-inventory totals
+for all included reports, direct electrical reports, tree/wire reports, and
+road blockage reports. Road blockage counts intentionally include `Blocked
+Road`, `Blocking Street`, and `Street Condition` records with `Blocked - ...`
+descriptors even when they are unrelated to electricity.
 
 Each card identifies the owner, Rockaway/Queens Community Board 14 scope, data
 state, record and mapped counts, latest observation time, retrieval time,
@@ -87,7 +97,8 @@ Streamlit:
 1. Activate the OpenEmber environment and run
    `streamlit run streamlit/app.py` from the repository root.
 2. Confirm tidal gauges and the operational map appear before Rockaway cards.
-3. Select `NYC Open Data` and confirm the five Rockaway source dispositions.
+3. Select `NYC Open Data` and confirm the six Rockaway source dispositions,
+   including full-inventory report totals on the electric-hazard card.
 4. Confirm unavailable or non-mappable sources have disabled `Not map-ready`
    controls.
 5. Select `Regional Sources`; add one point source and one boundary source.

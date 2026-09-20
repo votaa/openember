@@ -17,6 +17,7 @@ from regional_geography import geometry_intersects_mask
 VALID_DATA_STATES = {"current", "stale", "partial", "unavailable", "access_required"}
 ROCKAWAY_SOURCE_IDS = [
     "nyc_311_rockaway",
+    "nyc_311_electric_hazards_rockaway",
     "nyc_cooling_centers_rockaway",
     "nyc_hurricane_evacuation_centers_rockaway",
     "nycha_developments_rockaway",
@@ -56,6 +57,23 @@ def _matches_field_scope(row: dict[str, Any], scope: dict[str, Any]) -> bool:
         if actual is None or actual.upper() not in expected:
             return False
     return True
+
+
+def _matches_rule(row: dict[str, Any], rule: dict[str, Any]) -> bool:
+    for requirement in rule.get("all", []):
+        actual = _text(row.get(requirement["field"]))
+        expected = {str(value).upper() for value in requirement.get("values", [])}
+        if actual is None or actual.upper() not in expected:
+            return False
+    for requirement in rule.get("contains_any", []):
+        actual = (_text(row.get(requirement["field"])) or "").upper()
+        if not any(str(value).upper() in actual for value in requirement.get("values", [])):
+            return False
+    return True
+
+
+def _classification_for_row(row: dict[str, Any], rules: list[dict[str, Any]] | None) -> dict[str, Any] | None:
+    return next((rule for rule in rules or [] if _matches_rule(row, rule)), None)
 
 
 def _geometry(row: dict[str, Any], contract: dict[str, Any]) -> dict[str, Any] | None:
@@ -146,6 +164,8 @@ def _matches_scope(
 ) -> bool:
     if scope and scope.get("kind") == "all_fields":
         return _matches_field_scope(row, scope)
+    if scope and scope.get("kind") == "classification_rules":
+        return bool(_classification_for_row(row, scope.get("rules")))
     if scope and scope.get("kind") == "geometry_intersects":
         mask = _mask_for_scope(geography_records, scope)
         return bool(mask and geometry and geometry_intersects_mask(geometry, mask))
@@ -190,6 +210,10 @@ def normalize_rockaway_record(
     properties["source_record_id"] = source_record_id
     if source.get("source_timestamp_timezone"):
         properties["source_timestamp_timezone"] = source["source_timestamp_timezone"]
+    classification = _classification_for_row(properties_row, contract.get("scope", {}).get("rules"))
+    if classification:
+        properties["hazard_category_key"] = classification["key"]
+        properties["hazard_category"] = classification["label"]
 
     return {
         "source_id": source["id"],
@@ -200,7 +224,7 @@ def normalize_rockaway_record(
         "fetched_at": fetched_at,
         "expires_at": _add_seconds(fetched_at, source.get("stale_after_seconds", 0)),
         "geometry": geometry,
-        "category": _text(properties_row.get(contract.get("category_field"))) or _text(contract.get("category_value")),
+        "category": classification.get("label") if classification else _text(properties_row.get(contract.get("category_field"))) or _text(contract.get("category_value")),
         "severity": _text(properties_row.get(contract.get("severity_field"))) if contract.get("severity_field") else None,
         "status": _text(contract.get("status_value")) or _status(properties_row, contract),
         "title": title,
@@ -261,6 +285,20 @@ def build_rockaway_query_url(source: dict[str, Any]) -> str:
     }
     if source.get("query_order"):
         params["$order"] = source["query_order"]
+    return f'{source["endpoint"]}?{urlencode(params)}'
+
+
+def build_rockaway_aggregate_query_url(source: dict[str, Any], aggregate: dict[str, Any]) -> str:
+    params = {
+        "$select": aggregate["query_select"],
+        "$where": aggregate["required_filter"],
+    }
+    if aggregate.get("query_group"):
+        params["$group"] = aggregate["query_group"]
+    if aggregate.get("query_order"):
+        params["$order"] = aggregate["query_order"]
+    if aggregate.get("query_limit"):
+        params["$limit"] = str(aggregate["query_limit"])
     return f'{source["endpoint"]}?{urlencode(params)}'
 
 
@@ -329,12 +367,43 @@ def fetch_rockaway_source(
         headers["X-App-Token"] = app_token
     final_error: Exception | None = None
 
+    def request_json(url: str) -> Any:
+        request_error: Exception | None = None
+        for request_attempt in range(max_retries + 1):
+            try:
+                response = request_get(url, timeout=timeout_seconds, headers=headers)
+                response.raise_for_status()
+                return response.json()
+            except Exception as exc:
+                request_error = exc
+                if not _transient_request_error(exc) or request_attempt == max_retries:
+                    break
+                sleep_fn(backoff_seconds[min(request_attempt, len(backoff_seconds) - 1)] if backoff_seconds else 0)
+        raise request_error or RuntimeError("request_failed")
+
     for attempt in range(max_retries + 1):
         try:
-            response = request_get(build_rockaway_query_url(source), timeout=timeout_seconds, headers=headers)
-            response.raise_for_status()
-            result = normalize_rockaway_payload(source, response.json(), fetched_at, fetched_at, geography_records or [])
+            result = normalize_rockaway_payload(source, request_json(build_rockaway_query_url(source)), fetched_at, fetched_at, geography_records or [])
             result["fetched_at"] = fetched_at
+            if source.get("aggregate_queries"):
+                aggregate_results = []
+                aggregate_error = None
+                for aggregate in source["aggregate_queries"]:
+                    try:
+                        payload = request_json(build_rockaway_aggregate_query_url(source, aggregate))
+                        row = payload[0] if isinstance(payload, list) and payload else {}
+                        raw_total = row.get(aggregate.get("result_field", "total"))
+                        try:
+                            total = int(raw_total)
+                        except (TypeError, ValueError):
+                            total = None
+                        aggregate_results.append({"key": aggregate["key"], "label": aggregate["label"], "total": total})
+                    except Exception as exc:
+                        aggregate_error = _readable_request_error(exc, timeout_seconds)
+                        aggregate_results.append({"key": aggregate["key"], "label": aggregate["label"], "total": None})
+                result["aggregate_counts"] = aggregate_results
+                result["aggregate_state"] = "partial" if aggregate_error else "current"
+                result["aggregate_reason"] = aggregate_error
             return result
         except Exception as exc:
             final_error = exc
@@ -372,6 +441,9 @@ def rockaway_source_card(source: dict[str, Any], result: dict[str, Any] | None =
         "fetched_at": result.get("fetched_at") or (records[0].get("fetched_at") if records else None),
         "attribution": source["attribution"],
         "note": source.get("operational_note") or source.get("gate") or result.get("reason"),
+        "aggregate_counts": result.get("aggregate_counts") if isinstance(result.get("aggregate_counts"), list) else [],
+        "aggregate_state": result.get("aggregate_state"),
+        "aggregate_reason": result.get("aggregate_reason"),
         "kind": display.get("kind", "reference"),
         "icon": display.get("icon", "📍"),
         "color": display.get("color", "#60a5fa"),

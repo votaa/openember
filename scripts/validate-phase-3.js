@@ -11,6 +11,7 @@ const sources = Object.fromEntries(config.source_registry.map((source) => [sourc
 
 const rockaway = [
   "nyc_311_rockaway",
+  "nyc_311_electric_hazards_rockaway",
   "nyc_cooling_centers_rockaway",
   "nyc_hurricane_evacuation_centers_rockaway",
   "nypd_incidents_rockaway",

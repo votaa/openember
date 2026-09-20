@@ -27,6 +27,20 @@ function matchesFieldScope(row, scope) {
   })
 }
 
+function matchesRule(row, rule) {
+  return (rule.all || []).every(({ field, values }) => {
+    const actual = normalizedText(row[field])?.toUpperCase()
+    return actual !== null && values.some(value => String(value).toUpperCase() === actual)
+  }) && (rule.contains_any || []).every(({ field, values }) => {
+    const actual = normalizedText(row[field])?.toUpperCase() || ""
+    return values.some(value => actual.includes(String(value).toUpperCase()))
+  })
+}
+
+function classificationForRow(row, rules = []) {
+  return rules.find(rule => matchesRule(row, rule)) || null
+}
+
 function recordGeometry(row, geometryContract) {
   if (geometryContract?.kind === "none") return null
   if (geometryContract?.kind === "feature_geometry") return row?.geometry || null
@@ -90,6 +104,7 @@ function maskForScope(geographyRecords, scope) {
 
 function matchesScope(row, scope, geometry, geographyRecords) {
   if (scope?.kind === "all_fields") return matchesFieldScope(row, scope)
+  if (scope?.kind === "classification_rules") return Boolean(classificationForRow(row, scope.rules))
   if (scope?.kind === "geometry_intersects") {
     const mask = maskForScope(geographyRecords, scope)
     return mask ? geometryIntersectsMask(geometry, mask) : false
@@ -128,6 +143,11 @@ export function normalizeRockawayRecord(source, row, fetchedAt, dataState = "cur
   if (source.source_timestamp_timezone) {
     properties.source_timestamp_timezone = source.source_timestamp_timezone
   }
+  const classification = classificationForRow(propertiesRow, contract.scope?.rules)
+  if (classification) {
+    properties.hazard_category_key = classification.key
+    properties.hazard_category = classification.label
+  }
 
   return {
     source_id: source.id,
@@ -138,7 +158,7 @@ export function normalizeRockawayRecord(source, row, fetchedAt, dataState = "cur
     fetched_at: fetchedAt,
     expires_at: addSeconds(fetchedAt, source.stale_after_seconds),
     geometry,
-    category: normalizedText(propertiesRow[contract.category_field]) || normalizedText(contract.category_value),
+    category: classification?.label || normalizedText(propertiesRow[contract.category_field]) || normalizedText(contract.category_value),
     severity: contract.severity_field ? normalizedText(propertiesRow[contract.severity_field]) : null,
     status: normalizedText(contract.status_value) || recordStatus(propertiesRow, contract),
     title,

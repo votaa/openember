@@ -141,6 +141,101 @@ source_registry:
         values: [14 QUEENS]
     audit_properties: [unique_key, agency, borough, community_board, incident_zip]
   failure_state: unavailable
+- id: nyc_311_electric_hazards_rockaway
+  name: NYC 311 reported electric hazards and road blockages — Rockaway
+  owner: NYC 311
+  geographies: [rockaway]
+  family: socrata
+  endpoint: https://data.cityofnewyork.us/resource/erm2-nwe9.json
+  format: json
+  qualification: qualified
+  enabled: true
+  refresh_seconds: 300
+  stale_after_seconds: 900
+  required_filter: "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')) OR (agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')) OR complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))"
+  query_select: unique_key,created_date,agency,complaint_type,descriptor,status,borough,community_board,incident_zip,latitude,longitude
+  query_order: created_date DESC
+  query_limit: 500
+  aggregate_queries:
+  - key: all_reported_hazards
+    label: All included reports
+    query_select: count(*) as total
+    required_filter: "borough = 'QUEENS' AND community_board = '14 QUEENS' AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')) OR (agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')) OR complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))"
+  - key: direct_electric
+    label: Direct electrical reports
+    query_select: count(*) as total
+    required_filter: "borough = 'QUEENS' AND community_board = '14 QUEENS' AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')))"
+  - key: electric_tree_or_wire
+    label: Tree or wire reports
+    query_select: count(*) as total
+    required_filter: "borough = 'QUEENS' AND community_board = '14 QUEENS' AND agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')"
+  - key: road_blockage
+    label: Road blockage reports
+    query_select: count(*) as total
+    required_filter: "borough = 'QUEENS' AND community_board = '14 QUEENS' AND (complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))"
+  attribution: NYC Open Data / NYC 311
+  disclaimer: NYC 311 records are reported complaints, not utility-confirmed outages or verified restoration constraints.
+  operational_note: Includes direct electrical reports, tree/wire reports, and any scoped blocked-road or blocked-street-condition reports because access constraints may affect restoration work.
+  display:
+    icon: "⚡"
+    color: '#facc15'
+    kind: operational
+    map_capable: true
+  source_timestamp_timezone: America/New_York
+  normalization:
+    id_field: unique_key
+    observed_at_field: created_date
+    category_field: complaint_type
+    title_field: complaint_type
+    description_fields: [descriptor]
+    status_field: status
+    severity_field: null
+    geometry:
+      kind: point_fields
+      latitude_field: latitude
+      longitude_field: longitude
+    scope:
+      kind: classification_rules
+      rules:
+      - key: direct_electric
+        label: Direct electrical report
+        all:
+        - field: agency
+          values: [HPD]
+        - field: complaint_type
+          values: [ELECTRIC, Electric]
+        - field: descriptor
+          values: [POWER OUTAGE, Power Outage]
+      - key: direct_electric
+        label: Direct electrical report
+        all:
+        - field: agency
+          values: [DOB]
+        - field: complaint_type
+          values: [Electrical]
+        - field: descriptor
+          values: [Electrical Wiring Defective, Electrical Wiring Exposed]
+      - key: electric_tree_or_wire
+        label: Tree or wire report
+        all:
+        - field: agency
+          values: [DPR]
+        - field: descriptor
+          values: [Hitting Power Lines, Hitting Power/Phone Lines, Hitting Phone/Cable Lines]
+      - key: road_blockage
+        label: Road blockage report
+        all:
+        - field: complaint_type
+          values: [Blocking Street, Blocked Road]
+      - key: road_blockage
+        label: Road blockage report
+        all:
+        - field: complaint_type
+          values: [Street Condition]
+        - field: descriptor
+          values: [Blocked - Construction]
+    audit_properties: [unique_key, agency, complaint_type, descriptor, borough, community_board, incident_zip]
+  failure_state: unavailable
 - id: nyc_cooling_centers_rockaway
   name: NYC active cooling centers — Rockaway
   owner: NYC Emergency Management (NYCEM)
