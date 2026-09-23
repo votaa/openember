@@ -2451,7 +2451,7 @@ with tab_chat:
             st.session_state.chat_response_pending = True
 
     st.chat_input(
-        "Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'",
+        "Incident type + location… e.g. 'Cat 2 hurricane at Fire Island'",
         key="chat_prompt",
         disabled=st.session_state.chat_response_pending,
         on_submit=queue_chat_prompt,

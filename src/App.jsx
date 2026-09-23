@@ -1109,7 +1109,7 @@ export default function App() {
 
               {/* Input */}
               <div style={{flexShrink:0,padding:"10px 18px",borderTop:"1px solid #111820",display:"flex",gap:8}}>
-                <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&(e.preventDefault(),sendQuery())} placeholder={`Incident type + location… e.g. 'Cat 2 hurricane at Coney Island'`} style={{flex:1,background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6,padding:"8px 12px",color:"#e0e0e8",fontFamily:"inherit",fontSize:12,outline:"none"}}/>
+                <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&(e.preventDefault(),sendQuery())} placeholder={`Incident type + location… e.g. 'Cat 2 hurricane at Fire Island'`} style={{flex:1,background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6,padding:"8px 12px",color:"#e0e0e8",fontFamily:"inherit",fontSize:12,outline:"none"}}/>
                 <button onClick={()=>streaming?abortRef.current?.abort():sendQuery()} style={{padding:"8px 16px",borderRadius:6,background:streaming?"#1a0808":"#e8372c",border:"none",color:"#fff",fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer"}}>
                   {streaming?"◼ STOP":"▶ SEND"}
                 </button>
