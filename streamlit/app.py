@@ -26,6 +26,7 @@ from tidal_gauges import (
 from config_loader import load_config, config_exists
 from setup_wizard import render_wizard
 from carto_tiles import basemap_config
+from report_window import report_window_message
 from regional_normalization import (
     ROCKAWAY_SOURCE_IDS,
 )
@@ -895,10 +896,12 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         ctx += "\n"
     hazard_result = (phase4_results or {}).get("nyc_311_electric_hazards_rockaway")
     if hazard_result:
-        ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES ---\n"
+        ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES · PAST 7 DAYS ONLY ---\n"
+        ctx += report_window_message({"rolling_window_days": 7}, hazard_result) + "\n"
+        ctx += f"Data state: {hazard_result.get('data_state')}; aggregate state: {hazard_result.get('aggregate_state') or 'unavailable'}\n"
         for aggregate in hazard_result.get("aggregate_counts", []):
             total = aggregate.get("total") if aggregate.get("total") is not None else "unavailable"
-            ctx += f"{aggregate.get('label')}: {total} full-inventory reports\n"
+            ctx += f"{aggregate.get('label')}: {total} reports in the past 7 days\n"
         for record in hazard_result.get("records", [])[:5]:
             properties = record.get("properties", {})
             ctx += (
@@ -1440,7 +1443,7 @@ def render_phase4_source_cards(source_ids, key_prefix):
             partial_suffix = " · aggregate refresh partial" if card.get("aggregate_state") == "partial" else ""
             aggregate_html = (
                 f'<div style="font-size:8px;color:#889;line-height:1.35;margin-top:6px">'
-                f'FULL-INVENTORY REPORTS · {_html.escape(aggregate_summary)}{partial_suffix}</div>'
+                f'PAST 7 DAYS · {_html.escape(aggregate_summary)}{partial_suffix}</div>'
             )
         with columns[index % 3]:
             st.markdown(

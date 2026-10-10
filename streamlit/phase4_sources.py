@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from report_window import report_window_message
 from regional_geography import fetch_geography_source
 from regional_normalization import ROCKAWAY_SOURCE_IDS, fetch_rockaway_source, unavailable_rockaway_result
 from regional_observations import fetch_regional_source
@@ -83,6 +84,9 @@ def phase4_source_card(source: dict[str, Any], result: dict[str, Any] | None = N
     mapped_records = [record for record in records if record.get("geometry")]
     state = result.get("data_state") or "unavailable"
     detail_parts = []
+    window_message = report_window_message(source, result)
+    if window_message:
+        detail_parts.append(window_message)
     if state != "current" and result.get("reason"):
         detail_parts.append(_human_reason(result["reason"]))
     if source.get("operational_note"):
@@ -157,7 +161,7 @@ def fetch_phase4_source_bundle(
         if source_id in ROCKAWAY_SOURCE_IDS:
             cache_entry = cache.get(source_id) if source.get("family") == "socrata" else None
             max_age = int(source.get("refresh_seconds") or 0)
-            if cache_entry and max_age > 0 and now_seconds - cache_entry["cached_at"] < max_age:
+            if not source.get("rolling_window_days") and cache_entry and max_age > 0 and now_seconds - cache_entry["cached_at"] < max_age:
                 return source_id, copy.deepcopy(cache_entry["result"])
             cached_result = cache_entry.get("result") if cache_entry else None
             previous_result = cached_result if cached_result and cached_result.get("records") else previous_results.get(source_id)

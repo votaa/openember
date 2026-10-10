@@ -1,3 +1,4 @@
+import { reportWindowMessage } from "./reportWindow.js"
 import { fetchGeographySource } from "./regionalGeography.js"
 import { fetchRegionalSource } from "./regionalObservations.js"
 import {
@@ -90,6 +91,8 @@ export function phase4SourceCard(source, result = unavailablePhase4Result(source
   const mappedRecords = records.filter(record => record?.geometry)
   const state = result?.data_state || "unavailable"
   const detailParts = []
+  const windowMessage = reportWindowMessage(source, result)
+  if (windowMessage) detailParts.push(windowMessage)
   if (state !== "current" && result?.reason) detailParts.push(humanReason(result.reason))
   if (source.operational_note) detailParts.push(source.operational_note)
   else if (!source.enabled && !detailParts.length && source.gate) detailParts.push(source.gate)
@@ -149,7 +152,7 @@ export async function fetchPhase4SourceBundle(sourceRegistry, {
       if (!source) return [sourceId, { records: [], data_state: "unavailable", reason: "source_missing", rejected_count: 0, fetched_at: null }]
       if (source.family === "socrata") {
         const cached = cachedSocrataResult(source, cache, nowMs)
-        if (cached) return [sourceId, cached]
+        if (cached && !source.rolling_window_days) return [sourceId, cached]
       }
       const result = await fetchRockawaySource(source, {
         fetchImpl,

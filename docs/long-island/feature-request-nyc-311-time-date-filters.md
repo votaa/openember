@@ -1,8 +1,16 @@
 # Feature Request: Time and Date Filters for NYC 311 Layers
 
-Status: proposed; requirements clarified; implementation pending approval
+Status: fixed seven-day window implemented for electric hazards and road blockages; broader shared controls remain proposed
 
 Requested: 2026-09-20
+
+## Implemented on 2026-10-10
+
+The electric-hazard / road-blockage source now uses a rolling past-seven-day window in React/Vercel and Streamlit. The window is 168 elapsed hours ending at fetch time, translated into `America/New_York` floating `created_date` bounds (both inclusive). Browse queries and all four uncapped aggregate queries share those bounds. Older and future records are excluded, including expired last-good records after a failed refresh; stale aggregate totals are withheld. Rolling-source refreshes bypass the five-minute result cache to keep record and aggregate bounds synchronized.
+
+Cards and Copilot identify the past-seven-day scope. A successful complete aggregate of zero shows “No recent data in the last 7 days.” Failures, incomplete aggregates, and reports lacking map coordinates remain distinct from a confirmed zero. Category classification, CB14 geography (including Broad Channel), and the 500-map-record cap are preserved.
+
+The general 311 source and the proposed shared presets/custom date controls below remain future work; the fixed seven-day hazard-source requirement supersedes the proposed 72-hour default for this source.
 
 ## Summary
 

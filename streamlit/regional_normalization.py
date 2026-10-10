@@ -14,6 +14,7 @@ from urllib.parse import urlencode
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from regional_geography import geometry_intersects_mask
+from report_window import windowed_source, restrict_report_window
 VALID_DATA_STATES = {"current", "stale", "partial", "unavailable", "access_required"}
 ROCKAWAY_SOURCE_IDS = [
     "nyc_311_rockaway",
@@ -362,6 +363,7 @@ def fetch_rockaway_source(
         return result
 
     fetched_at = fetched_at or datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    source = windowed_source(source, fetched_at)
     headers = {"Accept": "application/json"}
     if app_token:
         headers["X-App-Token"] = app_token
@@ -404,7 +406,7 @@ def fetch_rockaway_source(
                 result["aggregate_counts"] = aggregate_results
                 result["aggregate_state"] = "partial" if aggregate_error else "current"
                 result["aggregate_reason"] = aggregate_error
-            return result
+            return restrict_report_window(source, result, fetched_at)
         except Exception as exc:
             final_error = exc
             if not _transient_request_error(exc) or attempt == max_retries:
@@ -412,7 +414,7 @@ def fetch_rockaway_source(
             sleep_fn(backoff_seconds[min(attempt, len(backoff_seconds) - 1)] if backoff_seconds else 0)
 
     reason = _readable_request_error(final_error or RuntimeError("request_failed"), timeout_seconds)
-    return _stale_last_good_result(source, previous_result, reason) or {
+    return restrict_report_window(source, _stale_last_good_result(source, previous_result, reason) or {
         "records": [],
         "data_state": "unavailable",
         "reason": reason,
@@ -420,7 +422,7 @@ def fetch_rockaway_source(
         "fetched_at": fetched_at,
         "activation_state": source.get("activation", {}).get("state"),
         "scope_state": None,
-    }
+    }, fetched_at)
 
 
 def rockaway_source_card(source: dict[str, Any], result: dict[str, Any] | None = None) -> dict[str, Any]:

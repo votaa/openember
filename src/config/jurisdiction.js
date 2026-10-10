@@ -211,6 +211,7 @@ export const SOURCE_REGISTRY = [
     "format": "json",
     "qualification": "qualified",
     "enabled": true,
+    "rolling_window_days": 7,
     "refresh_seconds": 300,
     "stale_after_seconds": 900,
     "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')) OR (agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')) OR complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))",

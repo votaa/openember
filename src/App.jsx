@@ -1,3 +1,4 @@
+import { reportWindowMessage } from "./data/regional/reportWindow.js"
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
 // ── All config and data inline — no module-level imports that can throw ───────
@@ -290,9 +291,11 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   }
   const hazardResult = phase4Results.nyc_311_electric_hazards_rockaway
   if (hazardResult) {
-    ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES ---\n"
+    ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES · PAST 7 DAYS ONLY ---\n"
+    ctx += reportWindowMessage({ rolling_window_days: 7 }, hazardResult) + "\n"
+    ctx += `Data state: ${hazardResult.data_state}; aggregate state: ${hazardResult.aggregate_state || "unavailable"}\n`
     for (const aggregate of hazardResult.aggregate_counts || []) {
-      ctx += `${aggregate.label}: ${aggregate.total ?? "unavailable"} full-inventory reports\n`
+      ctx += `${aggregate.label}: ${aggregate.total ?? "unavailable"} reports in the past 7 days\n`
     }
     for (const record of (hazardResult.records || []).slice(0, 5)) {
       ctx += `${record.category || "Report"}: ${record.description || "No descriptor"} | ${record.observed_at || "time unavailable"} | ${record.properties?.incident_zip || "ZIP unavailable"}\n`
@@ -774,7 +777,7 @@ function Phase4SourcesPanel({ sources, results, loading, onRefresh, activeLayers
                     <div><span style={{color:"#334"}}>FETCHED</span><br/><span style={{color:"#aac"}}>{compactTimestamp(card.fetched_at)}</span></div>
                   </div>
                   {card.note && <div style={{fontSize:8.5,color:"#667",lineHeight:1.45,marginTop:7}}>{card.note}</div>}
-                  {card.aggregate_counts?.length > 0 && <div style={{fontSize:8,color:"#889",lineHeight:1.45,marginTop:6}}>FULL-INVENTORY REPORTS · {card.aggregate_counts.map(item => `${item.label}: ${item.total ?? "unavailable"}`).join(" · ")}{card.aggregate_state === "partial" ? " · aggregate refresh partial" : ""}</div>}
+                  {card.aggregate_counts?.length > 0 && <div style={{fontSize:8,color:"#889",lineHeight:1.45,marginTop:6}}>PAST 7 DAYS · {card.aggregate_counts.map(item => `${item.label}: ${item.total ?? "unavailable"}`).join(" · ")}{card.aggregate_state === "partial" ? " · aggregate refresh partial" : ""}</div>}
                   {card.activation_state && <div style={{fontSize:8.5,color:"#facc15",marginTop:5}}>Activation: {card.activation_state.replaceAll("_", " ")}{card.confirmation_phone?` · verify via ${card.confirmation_phone}`:""}{card.confirmation_url?<>{" · "}<a href={card.confirmation_url} target="_blank" rel="noopener noreferrer" style={{color:"#60a5fa"}}>official finder</a></>:null}</div>}
                   {card.disclaimer && <div style={{fontSize:8,color:"#445",marginTop:5}}>{card.disclaimer}</div>}
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginTop:7}}>

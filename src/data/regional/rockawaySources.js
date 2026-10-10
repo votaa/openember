@@ -1,3 +1,4 @@
+import { windowedSource, restrictReportWindow } from "./reportWindow.js"
 import { normalizeRockawayPayload } from "./normalizeRockaway.js"
 
 export const ROCKAWAY_SOURCE_IDS = [
@@ -101,6 +102,7 @@ export async function fetchRockawaySource(source, {
   if (!source?.enabled) return unavailableRockawayResult(source)
   if (!source.normalization) return { ...unavailableRockawayResult(source), reason: "source_not_normalizable" }
 
+  source = windowedSource(source, fetchedAt)
   const headers = { Accept: "application/json" }
   if (appToken) headers["X-App-Token"] = appToken
   let finalError = null
@@ -150,7 +152,7 @@ export async function fetchRockawaySource(source, {
         result.aggregate_state = aggregateError ? "partial" : "current"
         result.aggregate_reason = aggregateError
       }
-      return result
+      return restrictReportWindow(source, result, fetchedAt)
     } catch (error) {
       finalError = error
       if (!isTransientRequestError(error) || attempt === maxRetries) break
@@ -159,7 +161,7 @@ export async function fetchRockawaySource(source, {
   }
 
   const reason = readableRequestError(finalError, timeoutMs)
-  return staleLastGoodResult(source, previousResult, reason) || {
+  return restrictReportWindow(source, staleLastGoodResult(source, previousResult, reason) || {
     records: [],
     data_state: "unavailable",
     reason,
@@ -167,7 +169,7 @@ export async function fetchRockawaySource(source, {
     fetched_at: fetchedAt,
     activation_state: source.activation?.state || null,
     scope_state: null,
-  }
+  }, fetchedAt)
 }
 
 export function rockawaySourceCard(source, result = unavailableRockawayResult(source)) {
