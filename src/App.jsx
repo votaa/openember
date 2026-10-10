@@ -41,6 +41,7 @@ import {
 } from "./data/mapBuilderFilters.js"
 import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
 import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
+import { summarizeWeather } from "./data/weatherContext.js"
 
 const _J     = _J_raw     || {}
 const _REGIONS = _REGIONS_raw || {}
@@ -251,7 +252,7 @@ async function fetchLiveData(ep) {
   try {
     const r = await fetch(ep.url, { signal: AbortSignal.timeout(7000) })
     if (!r.ok) throw new Error(`HTTP ${r.status}`)
-    return { success:true, data:await r.json(), name:ep.name, type:ep.type }
+    return { success:true, data:await r.json(), name:ep.name, type:ep.type, url:ep.url, fetchedAt:new Date().toISOString() }
   } catch(e) { return { success:false, error:e.message, name:ep.name, type:ep.type } }
 }
 
@@ -264,7 +265,7 @@ function summarizeAPIData(r) {
       return `NWS Alerts (${CFG.state}): ${d.features.length} active. ${alerts || "None"}`
     }
     if (r.type === "forecast" && d?.properties?.periods) {
-      return "NWS Forecast: " + d.properties.periods.slice(0,3).map(p=>`${p.name}: ${p.shortForecast}, ${p.temperature}°${p.temperatureUnit}`).join("; ")
+      return `[NWS: ${r.name}]\nSource: ${r.url}\nFetched: ${r.fetchedAt}\n${summarizeWeather(d)}`
     }
     if (r.type === "flood" && d?.value?.timeSeries) {
       return "USGS Gauges: " + d.value.timeSeries.slice(0,4).map(ts=>`${ts.sourceInfo?.siteName}: ${ts.values?.[0]?.value?.[0]?.value||"N/A"} ft`).join("; ")
@@ -394,21 +395,36 @@ function summarizeNOAA(result) {
   const d = result.data
   const ep = result.ep
   try {
+    const weather = summarizeWeather(d)
+    if (weather !== null) return weather
     if (result.text) return String(d).substring(0, 300)
     if (d?.features && ep?.id?.includes("alert")) {
       const active = d.features.filter(f => f.properties?.status === "Actual")
       return `${active.length} active alert(s):\n` + active.slice(0,5).map(f => `  • ${f.properties?.event} (${f.properties?.severity}): ${(f.properties?.headline||"").substring(0,80)}`).join("\n")
     }
-    if (d?.properties?.periods) return d.properties.periods.slice(0,4).map(p => `${p.name}: ${p.shortForecast}, ${p.temperature}°${p.temperatureUnit}`).join("\n")
     if (d?.data && ep?.id?.startsWith("coops_")) {
       const last = d.data[d.data.length - 1]
       const meta = d.metadata || {}
+      if (ep.id === "coops_wind") return `${ep.name}\nSpeed: ${last?.s ?? "unknown"} knots; direction: ${last?.dr ?? "unknown"}; gusts: ${last?.g ?? "unknown"} knots @ ${last?.t ?? "unknown"}`
       return `${meta.name || ep.name}\nLatest: ${last?.v || "?"} ft MLLW @ ${last?.t || "?"}`
     }
     if (d?.predictions) return d.predictions.slice(0,6).map(p => `${p.type==="H"?"HIGH":"low "} ${p.v}ft @ ${p.t}`).join("\n")
     if (Array.isArray(d)) return `${d.length} records. First: ${JSON.stringify(d[0]).substring(0,120)}`
     return JSON.stringify(d).substring(0, 300)
   } catch(e) { return "parse error: " + e.message }
+}
+
+async function fetchNOAA(ep) {
+  try {
+    const response = await fetch(ep.url, {signal:AbortSignal.timeout(10000)})
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const isText = ep.text || (response.headers.get("content-type") || "").includes("text/plain")
+    const data = isText ? await response.text() : await response.json()
+    if (data?.error) throw new Error(data.error.message || String(data.error))
+    return {ok:true, data, text:isText, ep, fetchedAt:new Date().toISOString(), ts:new Date().toLocaleTimeString(), preview:isText ? String(data).slice(0,150) : JSON.stringify(data).slice(0,150)}
+  } catch (error) {
+    return {ok:false, error:error.message, ep, fetchedAt:new Date().toISOString()}
+  }
 }
 
 // ── Map component ─────────────────────────────────────────────────────────────
@@ -794,7 +810,7 @@ export default function App() {
     setLocalConfig(merged)
     if (!saveLocalConfig(merged)) console.warn("EMBER config could not be saved to localStorage")
   }
-  const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: Ollama Cloud · ${OLLAMA_MODEL}${!getRuntimeKey()?" · ⚠ NO API KEY":""  }\n\nKnowledge base loaded · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
+  const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: Ollama Cloud · ${OLLAMA_MODEL}${!getRuntimeKey()?" · ⚠ NO API KEY":""  }\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
   const [input, setInput]               = useState("")
   const [keyInput, setKeyInput]         = useState("")
   const [runtimeKey, setRuntimeKeyState]= useState(getRuntimeKey)
@@ -814,6 +830,9 @@ export default function App() {
   const [rightTab, setRightTab]         = useState("chat")
   const [noaaCat, setNoaaCat]           = useState("ALL")
   const [noaaCache, setNoaaCache]       = useState({})
+  const noaaCacheRef = useRef({})
+  const noaaItemsRef = useRef([])
+  const initialNoaaFetchRef = useRef(null)
   const [showQuick, setShowQuick]       = useState(false)
   const MAP_WIDTH_DEFAULT = 80
   const MAP_WIDTH_MIN = 60
@@ -908,9 +927,44 @@ export default function App() {
 
   useEffect(() => { refreshPhase4Sources() }, [refreshPhase4Sources])
 
+  const weatherEndpoints = NOAA_ENDPOINTS.filter(ep => ["nws_alerts", "nws_forecast", "nws_hourly", "nws_grid"].includes(ep.id)).map(ep => ({
+    ...ep,
+    url: ep.id === "nws_alerts" ? `https://api.weather.gov/alerts/active?area=${CFG_RT.state}`
+      : `https://api.weather.gov/gridpoints/${CFG_RT.nwsOffice}/${CFG_RT.nwsGridX},${CFG_RT.nwsGridY}${ep.id === "nws_forecast" ? "/forecast" : ep.id === "nws_hourly" ? "/forecast/hourly" : ""}`,
+  }))
+  const storeNOAA = result => {
+    const ep = result.ep
+    noaaCacheRef.current = {...noaaCacheRef.current, [ep.id]:result}
+    setNoaaCache(previous => ({...previous, [ep.id]:result}))
+    if (!result.ok) return
+    const entry = {name:`NOAA: ${ep.name}`, itemId:ep.id, content:`[NOAA: ${ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${ep.url}\n\n${summarizeNOAA(result)}`, mapKey:ep.mapKey || false}
+    noaaItemsRef.current = [...noaaItemsRef.current.filter(item => item.itemId !== ep.id), entry]
+    setNoaaItems(previous => [...previous.filter(item => item.itemId !== ep.id), entry])
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    setFetching(true)
+    const endpoints = NOAA_ENDPOINTS.map(ep => weatherEndpoints.find(weather => weather.id === ep.id) || ep)
+    initialNoaaFetchRef.current = Promise.all(endpoints.map(async ep => {
+      const result = await fetchNOAA(ep)
+      if (!cancelled) storeNOAA(result)
+    })).then(() => {
+      if (!cancelled) {
+        setFetching(false)
+        setApiStatus(endpoints.some(ep => noaaCacheRef.current[ep.id]?.ok) ? "live" : "error")
+      }
+    })
+    return () => { cancelled = true }
+  }, [CFG_RT.state, CFG_RT.nwsOffice, CFG_RT.nwsGridX, CFG_RT.nwsGridY])
+
   const fetchAPIs = async () => {
     setFetching(true)
-    const results = await Promise.all(LIVE_ENDPOINTS_RT.map(fetchLiveData))
+    const [results, weather] = await Promise.all([
+      Promise.all(LIVE_ENDPOINTS_RT.map(fetchLiveData)),
+      Promise.all(NOAA_ENDPOINTS.map(ep => weatherEndpoints.find(weather => weather.id === ep.id) || ep).map(fetchNOAA)),
+    ])
+    weather.forEach(storeNOAA)
     setApiResults(results)
     setApiStatus(results.some(r=>r.success)?"live":"error")
     // Extract live readings for map
@@ -938,8 +992,20 @@ export default function App() {
     setStreaming(true)
     abortRef.current?.abort()
     abortRef.current = new AbortController()
+    // Refresh missing/stale weather before constructing this request, so the
+    // first ordinary question gets the same forecast evidence as Streamlit.
+    await initialNoaaFetchRef.current
+    const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
+      const cached = noaaCacheRef.current[ep.id]
+      return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
+    }).map(fetchNOAA))
+    refreshed.forEach(storeNOAA)
+    const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
+    refreshed.forEach(result => currentNoaa.push({content:result.ok
+      ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
+      : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
     const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
-      + (noaaItems.length ? "--- NOAA DATA ---\n"+noaaItems.map(i=>i.content).join("\n\n")+"\n\n" : "")
+      + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
       + (esriItems.length ? "--- ESRI LAYERS ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
     const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
     let full = ""
@@ -956,7 +1022,7 @@ export default function App() {
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, phase4Results, CFG_RT.name])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()
@@ -1133,7 +1199,7 @@ export default function App() {
             <div style={{flex:1,display:"flex",flexDirection:"column",minHeight:0}}>
               <div style={{flexShrink:0,padding:"12px 18px 8px",borderBottom:"1px solid #111820"}}>
                 <div style={{color:"#4ade80",fontWeight:700,marginBottom:4}}>📡 NOAA Data Stack</div>
-                <div style={{fontSize:9.5,color:"#556"}}>NWS · CO-OPS · SPC · SWPC · No API key required · Fetched data auto-added to KB</div>
+                <div style={{fontSize:9.5,color:"#556"}}>NWS · CO-OPS · SPC · SWPC · No API key required · Feeds fetch on load · Successful data auto-added to KB</div>
                 <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
                   {["ALL","NWS","CO-OPS","SPC","SWPC"].map(cat=>(
                     <button key={cat} onClick={()=>setNoaaCat(cat)} style={{padding:"2px 10px",borderRadius:10,fontSize:9,fontWeight:700,border:`1px solid ${noaaCat===cat?"#4ade8066":"#1a1e28"}`,background:noaaCat===cat?"#4ade8015":"transparent",color:noaaCat===cat?"#4ade80":"#334",cursor:"pointer",fontFamily:"inherit"}}>{cat}</button>
@@ -1141,20 +1207,8 @@ export default function App() {
                 </div>
               </div>
               <div style={{flex:1,overflowY:"auto",padding:"10px 18px"}}>
-                {NOAA_ENDPOINTS.filter(ep=>noaaCat==="ALL"||ep.cat===noaaCat).map(ep=>(
-                  <NOAAEndpointRow key={ep.id} ep={ep} cached={noaaCache[ep.id]} onFetch={result=>{
-                    setNoaaCache(p=>({...p,[ep.id]:result}))
-                    if (result.ok) {
-                      const summary = summarizeNOAA(result)
-                      const content = `[NOAA: ${ep.name}]\nFetched: ${new Date().toLocaleTimeString()}\nSource: ${ep.url}\n\n${summary}`
-                      setNoaaItems(p=>{
-                        const existing = p.findIndex(x=>x.itemId===ep.id)
-                        const entry = {name:`NOAA: ${ep.name}`,itemId:ep.id,content,mapKey:ep.mapKey||false}
-                        if (existing>=0){const n=[...p];n[existing]=entry;return n}
-                        return [...p,entry]
-                      })
-                    }
-                  }}/>
+                {NOAA_ENDPOINTS.map(ep => weatherEndpoints.find(weather => weather.id === ep.id) || ep).filter(ep=>noaaCat==="ALL"||ep.cat===noaaCat).map(ep=>(
+                  <NOAAEndpointRow key={ep.id} ep={ep} cached={noaaCache[ep.id]} onFetch={storeNOAA} inKB={noaaItems.some(item => item.itemId === ep.id)}/>
                 ))}
                 {noaaItems.length>0 && (
                   <div style={{marginTop:12,borderTop:"1px solid #111820",paddingTop:10}}>
@@ -1164,7 +1218,10 @@ export default function App() {
                         <span style={{fontSize:9.5,color:item.mapKey?"#34d399":"#4ade80",background:item.mapKey?"#34d39912":"#4ade8012",padding:"2px 8px",borderRadius:10,border:`1px solid ${item.mapKey?"#34d39933":"#4ade8033"}`}}>
                           {item.mapKey?"🗺 ":""}{item.name.substring(0,44)}
                         </span>
-                        <button onClick={()=>setNoaaItems(p=>p.filter((_,j)=>j!==i))} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
+                        <button onClick={()=>{
+                          noaaItemsRef.current = noaaItemsRef.current.filter(entry => entry.itemId !== item.itemId)
+                          setNoaaItems(p=>p.filter(entry => entry.itemId !== item.itemId))
+                        }} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
                       </div>
                     ))}
                   </div>
@@ -1237,27 +1294,17 @@ export default function App() {
 }
 
 // ── NOAA row component ────────────────────────────────────────────────────────
-function NOAAEndpointRow({ep, cached, onFetch}) {
+function NOAAEndpointRow({ep, cached, onFetch, inKB}) {
   const [loading, setLoading] = useState(false)
 
   const doFetch = async () => {
     setLoading(true)
-    try {
-      const r = await fetch(ep.url, {signal:AbortSignal.timeout(10000),headers:{"User-Agent":"EMBER/1.0"}})
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      const ct = r.headers.get("content-type")||""
-      const isText = ep.text || ct.includes("text/plain")
-      const data = isText ? await r.text() : await r.json()
-      const ts = new Date().toLocaleTimeString()
-      onFetch({ok:true, data, text:isText, ep, ts, preview: isText ? String(data).substring(0,150) : JSON.stringify(data).substring(0,150)})
-    } catch(e) {
-      onFetch({ok:false, error:e.message, ep})
-    }
+    onFetch(await fetchNOAA(ep))
     setLoading(false)
   }
 
   const color = ep.color || "#4ade80"
-  const isInKB = !!cached?.ok
+  const isInKB = inKB
 
   return (
     <div style={{marginBottom:8,padding:"8px 10px",background:"#0d1117",border:`1px solid ${isInKB?"#1e2e20":"#1a1e28"}`,borderLeft:`3px solid ${color}`,borderRadius:6}}>
@@ -1275,6 +1322,7 @@ function NOAAEndpointRow({ep, cached, onFetch}) {
         </button>
         <a href={ep.url} target="_blank" rel="noopener noreferrer" style={{padding:"2px 8px",borderRadius:4,fontSize:9,border:"1px solid #1a1e28",color:"#556",textDecoration:"none"}}>↗</a>
       </div>
+      {cached?.error && <div style={{marginTop:5,fontSize:9,color:"#f87171"}}>{cached.error}</div>}
       {cached?.preview && <div style={{marginTop:5,fontSize:9,color:color+"88",fontFamily:"monospace",wordBreak:"break-all"}}>{cached.preview.substring(0,100)}{cached.preview.length>100?"…":""}</div>}
     </div>
   )

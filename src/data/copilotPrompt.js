@@ -1,4 +1,8 @@
 export const COPILOT_RULES = [
+  "Use the supplied knowledge base and fetched live context automatically for every relevant question; the user does not need to mention the KB.",
+  "Treat fetched NOAA/NWS forecasts, observations, and grids in the context as available evidence. Prefer the latest supplied evidence over earlier assistant claims that data is unavailable.",
+  "For weather impacts, first summarize the supplied forecast for the requested place and time, then distinguish inferred impacts from reported conditions. Cite the feed name, source URL, and valid or fetched time when supplied.",
+  "Check coverage, valid times, units, and freshness before applying evidence. Zero active alerts does not mean no rain or no impacts. Do not invent rainfall totals or extend a forecast beyond its supplied coverage.",
   "Lead with critical information.",
   "Cite only sources present in the supplied knowledge base or live context, including [NWS], [FEMA], [USGS], [CO-OPS], and [ESRI] when applicable.",
   "Flag data gaps.",
