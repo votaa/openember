@@ -12,6 +12,7 @@ Run:
 import html as _html
 import json, os, re, time as _time, datetime as _dt
 from io import StringIO
+from concurrent.futures import ThreadPoolExecutor
 import folium, requests, streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit.errors import StreamlitSecretNotFoundError
@@ -47,6 +48,7 @@ from copilot_prompt import (
     build_copilot_system_prompt,
     build_knowledge_base_context,
 )
+from weather_context import summarize_weather
 from esri_presentation import (
     build_presentation,
     discover_feature_layers,
@@ -298,7 +300,7 @@ def summarize_api(result):
             alerts = "; ".join(f"{f['properties']['event']} — {str(f['properties'].get('headline',''))[:80]}" for f in d["features"][:3])
             return f"NWS Alerts (NY): {len(d['features'])} active. {alerts or 'None'}"
         if t == "forecast" and "properties" in d:
-            return "NWS Forecast: " + "; ".join(f"{p['name']}: {p['shortForecast']}, {p['temperature']}°{p['temperatureUnit']}" for p in d["properties"].get("periods", [])[:3])
+            return "NWS Forecast:\n" + (summarize_weather(d) or "No forecast periods supplied")
         if t == "flood" and "value" in d:
             return "USGS Gauges: " + "; ".join(f"{g['sourceInfo']['siteName']}: {g['values'][0]['value'][0]['value'] if g.get('values') else 'N/A'} ft" for g in d["value"].get("timeSeries", [])[:4])
         if t == "fema" and "DisasterDeclarationsSummaries" in d:
@@ -354,7 +356,11 @@ def fetch_noaa_ep(ep):
         r = requests.get(url, timeout=10, headers={"User-Agent": "EMBER/1.0"})
         r.raise_for_status()
         is_text = ep.get("text") or "text/plain" in r.headers.get("content-type", "")
-        return {"success": True, "data": r.text if is_text else r.json(),
+        data = r.text if is_text else r.json()
+        if isinstance(data, dict) and data.get("error"):
+            error = data["error"]
+            raise ValueError(error.get("message", str(error)) if isinstance(error, dict) else str(error))
+        return {"success": True, "data": data,
                 "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now().strftime("%H:%M:%S")}
     except Exception as e:
         return {"success": False, "error": str(e), "ep": ep,
@@ -364,20 +370,13 @@ def summarize_noaa(result):
     if not result["success"]: return f"[{result['ep']['name']}: failed — {result['error']}]"
     d, ep, ts = result["data"], result["ep"], result.get("fetched_at", "?")
     try:
+        weather = summarize_weather(d)
+        if weather is not None:
+            return weather
         if result.get("text"): return f"[NOAA {ep['name']} @ {ts}]\n{str(d)[:800]}"
         if "features" in d and "alert" in ep["id"]:
             alerts = "\n".join(f"  - {f['properties']['event']} ({f['properties']['severity']}): {str(f['properties'].get('headline',''))[:90]}" for f in d["features"][:5])
             return f"[NWS Alerts @ {ts}: {len(d['features'])} active]\n{alerts or '  None active'}"
-        if "forecast" in ep["id"] and "properties" in d and "periods" in d.get("properties", {}):
-            periods = "\n".join(f"  {p['name']}: {p['shortForecast']}, {p['temperature']}°{p['temperatureUnit']}" for p in d["properties"]["periods"][:6])
-            return f"[NWS Forecast @ {ts}]\n{periods}"
-        if "grid" in ep["id"] and "properties" in d:
-            p = d["properties"]
-            ws  = [v for v in p.get("windSpeed", {}).get("values", [])[:6] if v.get("value") is not None]
-            qpf = [v for v in p.get("quantitativePrecipitation", {}).get("values", [])[:6] if v.get("value") is not None]
-            speeds = ", ".join(f"{v['value']*0.621371:.0f}mph" for v in ws)
-            inches = ", ".join(f"{v['value']*0.0393701:.2f}\"" for v in qpf)
-            return f"[NWS Grid Wind & Precip @ {ts}]\n  Wind (next 6h): {speeds}\n  QPF (next 6h): {inches}"
         if "obs" in ep["id"] and "properties" in d:
             p = d["properties"]
             tempF   = f"{(p['temperature']['value']*9/5+32):.1f}°F" if p.get("temperature", {}).get("value") is not None else "?"
@@ -478,13 +477,14 @@ def extract_map_readings_from_noaa():
                 }
     return readings
 
-def auto_fetch_map_endpoints():
-    ep_map = {ep["id"]: ep for ep in NOAA_ENDPOINTS}
-    for ep_id in MAP_CONNECTED_IDS:
-        ep = ep_map.get(ep_id)
-        if ep and ep_id not in st.session_state.noaa_results:
-            result = fetch_noaa_ep(ep)
-            st.session_state.noaa_results[ep_id] = result
+def auto_fetch_noaa_endpoints():
+    missing = [ep for ep in NOAA_ENDPOINTS if ep["id"] not in st.session_state.noaa_results]
+    if not missing:
+        return
+    # Fetch concurrently; session state is updated only on the Streamlit thread.
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        for ep, result in zip(missing, pool.map(fetch_noaa_ep, missing)):
+            st.session_state.noaa_results[ep["id"]] = result
             if result["success"]:
                 upsert_noaa_kb(ep, result)
 
@@ -1523,8 +1523,8 @@ if _gauge_age > _gauge_refresh_seconds or not st.session_state.gauge_data:
     st.session_state.gauge_data       = fetch_configured_gauges(st.session_state.gauge_data)
     st.session_state.gauge_fetched_at = _dt.datetime.now()
 
-# Seed map-connected NOAA endpoints and refresh stale ones
-auto_fetch_map_endpoints()
+# Seed the complete NOAA catalogue and refresh stale feeds
+auto_fetch_noaa_endpoints()
 refresh_stale_endpoints()
 
 # ═══════════════════════════════════════════════════════════════════════════════
