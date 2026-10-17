@@ -1,3 +1,4 @@
+import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
@@ -873,6 +874,16 @@ export default function App() {
     ])),
     [esriMapLayers, geographyFilterRecords],
   )
+  const [mapEvidence, setMapEvidence] = useState({})
+  const [evidenceRefresh, setEvidenceRefresh] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    setMapEvidence({})
+    Promise.all(Object.values(evaluatedEsriMapLayers).filter(layer => layer.visible !== false).map(async layer =>
+      [layer.id, await fetchMapLayerEvidence(layer, geographyFilterRecords)],
+    )).then(entries => { if (!cancelled) setMapEvidence(Object.fromEntries(entries)) })
+    return () => { cancelled = true }
+  }, [evaluatedEsriMapLayers, geographyFilterRecords, evidenceRefresh])
   const esriMapRecords = useMemo(
     () => Object.fromEntries(Object.values(evaluatedEsriMapLayers).map(layer => [layer.id, layer.filter.records])),
     [evaluatedEsriMapLayers],
@@ -1007,9 +1018,13 @@ export default function App() {
     refreshed.forEach(result => currentNoaa.push({content:result.ok
       ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
       : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
+    const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
+      .filter(layer => layer.visible !== false)
+      .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
     const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
+      + mapLayerContext(loadedEvidence)
       + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
-      + (esriItems.length ? "--- ESRI LAYERS ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
+      + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
     const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
     let full = ""
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
@@ -1025,7 +1040,7 @@ export default function App() {
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()
@@ -1237,39 +1252,35 @@ export default function App() {
           {rightTab==="esri" && (
           <ESRIPanel onInject={item=>{
               setEsriItems(p=>p.find(x=>x.itemId===item.itemId)?p:[...p,item])
-              setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI layer added: ${item.name}. Try: "What does this layer cover?"`}])
+              setMessages(p=>[...p,{role:"assistant",content:`✓ ESRI catalog metadata saved: ${item.name}. Try: "What does this layer cover?"`}])
               setRightTab("chat")
             }} esriItems={esriItems} onRemove={i=>setEsriItems(p=>p.filter((_,j)=>j!==i))}
               esriMapLayers={evaluatedEsriMapLayers}
+              mapEvidence={mapEvidence}
+              onEvidenceRefresh={()=>setEvidenceRefresh(value=>value+1)}
               onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:{...layer,baseRecords:layer.records}})}
               onMapLayerFilterChange={async (layerId,filterMode)=>{
                 const layer = esriMapLayers[layerId]
                 if (!layer) return
-                if (filterMode === MAP_BUILDER_FILTER_MODES.UNFILTERED) {
-                  setEsriMapLayers(previous=>({...previous,[layerId]:{
-                    ...previous[layerId], records:previous[layerId].baseRecords || previous[layerId].records,
-                    filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
-                  }}))
+                const geometry = filterMode === MAP_BUILDER_FILTER_MODES.UNFILTERED ? null : arcGISGeometryForMode(geographyFilterRecords, filterMode)
+                if (filterMode !== MAP_BUILDER_FILTER_MODES.UNFILTERED && !geometry) {
+                  setEsriMapLayers(previous=>previous[layerId] ? {...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:false,filterError:"missing_geography_masks",requestId:null}} : previous)
                   return
                 }
-                const geometry = arcGISGeometryForMode(geographyFilterRecords, filterMode)
-                if (!geometry) {
-                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:false,filterError:"missing_geography_masks"}}))
-                  return
-                }
-                setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:true,filterError:""}}))
+                const requestId = Symbol()
+                setEsriMapLayers(previous=>previous[layerId] ? {...previous,[layerId]:{...previous[layerId],filterMode,filterLoading:true,filterError:"",requestId}} : previous)
                 try {
                   const refreshed = await fetchArcGISLayer(
                     {id:layer.ownerItemId,title:layer.name,owner:layer.owner,type:layer.sourceType,url:layer.originalUrl,color:layer.color},
                     {id:layer.sublayerId,name:layer.name,url:layer.url},
-                    {entryPath:layer.entryPath,color:layer.color,geometry},
+                    {entryPath:layer.entryPath,color:layer.color,geometry,where:layer.where},
                   )
-                  setEsriMapLayers(previous=>({...previous,[layerId]:{
-                    ...previous[layerId], records:refreshed.records, count:refreshed.records.length,
+                  setEsriMapLayers(previous=>previous[layerId]?.requestId === requestId ? {...previous,[layerId]:{
+                    ...previous[layerId], records:refreshed.records, metadata:refreshed.metadata, queryGeometry:geometry, count:refreshed.records.length,
                     filterMode, filterLoading:false, filterError:"", serverFilteredMode:filterMode,
-                  }}))
+                  }} : previous)
                 } catch (error) {
-                  setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],filterLoading:false,filterError:error.message || "filtered_query_failed"}}))
+                  setEsriMapLayers(previous=>previous[layerId]?.requestId === requestId ? {...previous,[layerId]:{...previous[layerId],filterLoading:false,filterError:error.message || "filtered_query_failed"}} : previous)
                 }
               }}
               onMapLayerRemove={layerId=>setEsriMapLayers(previous=>{
@@ -1338,7 +1349,7 @@ function manualArcGISItemId(url) {
   return `manual_${Math.abs(hash)}`
 }
 
-function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove}) {
+function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, mapEvidence, onEvidenceRefresh, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove}) {
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
@@ -1461,7 +1472,7 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
                 const content = `[ESRI: ${item.title}]\nType: ${item.type}\nOwner: ${item.owner}\nSnippet: ${item.snippet||""}\nTags: ${tags}\nURL: ${item.url||""}\nItem ID: ${item.id}`
                 onInject({name:`ESRI: ${item.title}`,itemId:item.id,content})
               }} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #a78bfa33",background:"transparent",color:"#a78bfa",cursor:"pointer",fontFamily:"inherit"}}>
-                + Add to KB
+                + Save catalog metadata
               </button>
             ) : (
               <button disabled style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,border:"1px solid #33334433",background:"transparent",color:"#334",fontFamily:"inherit"}}>✓ In KB</button>
@@ -1483,7 +1494,7 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
       )})}
       {mappedLayers.length>0 && (
         <div style={{marginTop:16,borderTop:"1px solid #15303a",paddingTop:12}}>
-          <div style={{fontSize:9.5,color:"#22d3ee",fontWeight:700,marginBottom:7}}>MAP BUILDER LAYERS ({mappedLayers.length})</div>
+          <div style={{fontSize:9.5,color:"#22d3ee",fontWeight:700,marginBottom:7}}>MAP BUILDER LAYERS ({mappedLayers.length}) <button onClick={onEvidenceRefresh}>Refresh chat evidence</button></div>
           {mappedLayers.map(layer=>{
             const filter = layer.filter
             const fallback = filter.requestedMode!==filter.effectiveMode
@@ -1493,17 +1504,18 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, onMapLayerAdd,
                 <button aria-label={`Remove ${layer.name} from map`} onClick={()=>onMapLayerRemove(layer.id)} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
               </div>
               <div style={{fontSize:8.5,color:"#557",margin:"3px 0 5px"}}>{layer.entryPath.replaceAll("_"," ")} · <a href={layer.originalUrl||layer.url} target="_blank" rel="noopener noreferrer" style={{color:"#668"}}>original service</a></div>
+              <div style={{fontSize:9,color:"#9de7f3",marginBottom:5}}>{mapEvidence[layer.id] ? mapLayerStatus(mapEvidence[layer.id]) : "Chat evidence refreshing…"}</div>
               <select aria-label={`Geography filter for ${layer.name}`} value={layer.filterMode||MAP_BUILDER_FILTER_MODES.UNFILTERED} onChange={event=>onMapLayerFilterChange(layer.id,event.target.value)} disabled={!filter.supported} title={!filter.supported?"Geography filtering is available only for queryable Feature Layers":"Applied after Add to Map"} style={{width:"100%",background:"#0d1117",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:filter.supported?"#9de7f3":"#445",fontFamily:"inherit",fontSize:9}}>
                 {Object.entries(MAP_BUILDER_FILTER_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
               </select>
-              <div style={{marginTop:4,fontSize:8.5,color:layer.filterLoading||fallback?"#facc15":"#667"}}>{layer.filterLoading?`Loading up to 500 features in ${MAP_BUILDER_FILTER_LABELS[layer.filterMode]}…`:layer.filterError?`Filtered query failed (${layer.filterError.replaceAll("_"," ")}); showing last successful result.`:fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); displaying unfiltered.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
+              <div style={{marginTop:4,fontSize:8.5,color:layer.filterLoading||fallback?"#facc15":"#667"}}>{layer.filterLoading?`Loading up to 500 features in ${MAP_BUILDER_FILTER_LABELS[layer.filterMode]}…`:layer.filterError?`Filtered query failed (${layer.filterError.replaceAll("_"," ")}); showing last successful map result; chat analysis unavailable.`:fallback?`Filter unavailable (${filter.reason.replaceAll("_"," ")}); feature analysis unavailable.`:filter.effectiveMode===MAP_BUILDER_FILTER_MODES.UNFILTERED?`${filter.outputCount} features · unfiltered`:`${filter.outputCount} of ${filter.inputCount} features · ${MAP_BUILDER_FILTER_LABELS[filter.effectiveMode]}`}</div>
             </div>
           })}
         </div>
       )}
       {esriItems.length>0 && (
         <div style={{marginTop:16,borderTop:"1px solid #111820",paddingTop:12}}>
-          <div style={{fontSize:9.5,color:"#a78bfa",fontWeight:700,marginBottom:6}}>{esriItems.length} layer(s) in KB:</div>
+          <div style={{fontSize:9.5,color:"#a78bfa",fontWeight:700,marginBottom:6}}>{esriItems.length} catalog item(s) in KB (metadata only):</div>
           {esriItems.map((item,i)=>(
             <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
               <span style={{fontSize:9.5,color:"#a78bfa",background:"#a78bfa12",padding:"2px 8px",borderRadius:10,border:"1px solid #a78bfa33"}}>{item.name.substring(0,40)}</span>

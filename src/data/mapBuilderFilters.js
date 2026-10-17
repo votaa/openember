@@ -66,6 +66,7 @@ export function evaluateMapBuilderFilter(layer, geographyRecords) {
   if (layer?.filterLoading) return { ...base, reason:"loading_filtered_records" }
   if (layer?.filterError) return { ...base, reason:layer.filterError }
   if (!supported) return { ...base, reason:"unsupported_layer_type" }
+  if (layer.serverFilteredMode === requestedMode) return { ...base, effectiveMode:requestedMode }
   try {
     const filtered = filterFeaturesByMode(records, geographyRecords, requestedMode)
     return {

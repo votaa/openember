@@ -56,6 +56,7 @@ from esri_presentation import (
     feature_label as esri_feature_label,
     feature_popup_html,
 )
+from map_layer_evidence import fetch_map_layer_evidence, map_layer_context, map_layer_status
 from map_builder_state import initialize_map_builder_layers
 from map_builder_presets import LIVING_ATLAS_PRESETS
 from map_builder_filters import (
@@ -917,7 +918,7 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         ctx += "--- UPLOADED DOCUMENTS ---\n"
         for f in files: ctx += f"[File: {f['name']}]\n{f['content'][:4000]}\n\n"
     if esri_items:
-        ctx += "--- ESRI / LIVING ATLAS LAYERS ---\n"
+        ctx += "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"
         for item in esri_items: ctx += item["content"] + "\n\n"
     return ctx
 
@@ -1288,7 +1289,7 @@ def add_operational_esri_layer(item_id: str, item_title: str, layer_choice: dict
                                color: str = "#a78bfa") -> dict:
     """Fetch one selected sublayer and add it to the operational Folium map."""
     result = fetch_esri_feature_layer(layer_choice["url"], max_features=500)
-    if result.get("error") or not result.get("features"):
+    if result.get("error"):
         return result
     layer_name = item_title
     if layer_choice.get("name") and layer_choice["name"] != item_title:
@@ -1727,6 +1728,33 @@ if show_wind and wind_obs:
                 delta=f"{int(o['dir_deg'])}° · {o.get('desc','')[:20]}" if o.get("dir_deg") is not None else None,
                 delta_color="off"
             )
+
+def current_geography_records():
+    return [record for source_id in PHASE4_GEOGRAPHY_SOURCE_IDS
+            for record in st.session_state.phase4_results.get(source_id, {}).get("records", [])]
+
+
+@st.cache_data(ttl=60, show_spinner=False)
+def cached_map_evidence(layer, geography_records, question=""):
+    return fetch_map_layer_evidence(layer, geography_records, requests.post, requests.get, question)
+
+
+def current_map_evidence(question=""):
+    layers = [dict(layer, map_path="operational") for layer in st.session_state.map_layers if layer.get("type") == "esri"]
+    layers += [dict(layer, map_path="builder") for layer in st.session_state.mb_layers]
+    return [dict(cached_map_evidence(layer, current_geography_records(), question), map_path=layer["map_path"])
+            for layer in layers if layer.get("visible", True)]
+
+
+with st.expander("Loaded map layers available to chat", expanded=False):
+    if st.button("Refresh map chat evidence"):
+        cached_map_evidence.clear()
+    for evidence in current_map_evidence():
+        st.markdown(f"**{evidence['name']}** · {evidence['map_path']}")
+        st.caption(map_layer_status(evidence))
+        st.caption(evidence.get("url"))
+    st.caption("Counts cover full matching inventories; map browse and examples may be subsets. Catalog KB items contain metadata only.")
+
 
 if st.session_state.map_layers:
     n_layers = len(st.session_state.map_layers)
@@ -2260,7 +2288,7 @@ with tab_esri:
                                 st.json(full_item, expanded=False)
                 with cb:
                     if not injected:
-                        if st.button("+ Add to KB", key=f"inject_{item['id']}", use_container_width=True):
+                        if st.button("+ Save catalog metadata", key=f"inject_{item['id']}", use_container_width=True):
                             full_item, data, _ = fetch_item_metadata(item["id"])
                             ctx_text = format_item_for_context(full_item or item, data)
                             st.session_state.esri_items.append({"name": f"ESRI: {item.get('title','')}", "item_id": item["id"], "content": ctx_text})
@@ -2298,7 +2326,8 @@ with tab_esri:
                                 if result.get("error"):
                                     st.error(f"Error fetching layer: {result['error']}")
                                 elif not result.get("features"):
-                                    st.warning("No features returned — layer may be empty or require authentication")
+                                    st.info("Layer added with an empty map browse; complete inventory count is shown in chat evidence.")
+                                    st.rerun()
                                 else:
                                     st.success(f"✓ Added {result['total']} features to map")
                                     st.rerun()
@@ -2340,7 +2369,7 @@ with tab_esri:
 
     if st.session_state.esri_items:
         st.divider()
-        st.markdown(f"**{len(st.session_state.esri_items)} ESRI layer(s) in KB:**")
+        st.markdown(f"**{len(st.session_state.esri_items)} ESRI catalog item(s) in KB (metadata only):**")
         for i, ei in enumerate(st.session_state.esri_items):
             c1, c2 = st.columns([5, 1])
             with c1: st.markdown(f'<span class="pill p-purple">⊕ {ei["name"][:60]}</span>', unsafe_allow_html=True)
@@ -2419,6 +2448,7 @@ with tab_chat:
             st.session_state.get("gauge_data", {}),
             st.session_state.phase4_results,
         )
+        ctx += map_layer_context(current_map_evidence(prompt))
         msgs = [
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
@@ -2703,14 +2733,17 @@ with tab_mapbuilder:
                             "Geography filtering is unavailable for Map Services, imagery, vector tiles, and other non-Feature Layer types."
                         ),
                     )
+                    previous_filter_mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
                     st.session_state.mb_layers[li]["filter_mode"] = (
                         selected_filter_mode if filter_is_supported else MAP_BUILDER_UNFILTERED
                     )
+                    if previous_filter_mode != st.session_state.mb_layers[li]["filter_mode"]:
+                        st.rerun()
                     if not filter_is_supported:
                         st.caption("Unfiltered · this layer type cannot honor the shared Feature Layer geography contract.")
                     elif filter_mask_errors.get(selected_filter_mode):
                         st.warning(
-                            "Geography filter unavailable; this layer is currently displayed unfiltered. "
+                            "Geography filter unavailable; map features are hidden and chat analysis is unavailable. "
                             f"{filter_mask_errors[selected_filter_mode].replace('_', ' ')}"
                         )
 
@@ -2720,7 +2753,11 @@ with tab_mapbuilder:
                     new_visible = st.checkbox("Visible", value=layer.get("visible", True),
                                               key=f"mb_vis_{li}_{layer['id'][:8]}")
                     st.session_state.mb_layers[li]["opacity"] = new_opacity
+                    previous_visible = layer.get("visible", True)
                     st.session_state.mb_layers[li]["visible"] = new_visible
+                    if previous_visible != new_visible:
+                        st.rerun()
+                    st.caption(map_layer_status(cached_map_evidence(layer, current_geography_records())))
                     presentation = layer.get("presentation")
                     if presentation and presentation.get("fields"):
                         options = ["__auto__"] + presentation["fields"]
@@ -2770,13 +2807,13 @@ with tab_mapbuilder:
                 "filter_mode": (
                     l.get("filter_mode", MAP_BUILDER_UNFILTERED)
                     if map_builder_filter_supported(l)
-                    and not filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
                     else MAP_BUILDER_UNFILTERED
                 ),
                 "filter_error": (
                     "unsupported_layer_type" if not map_builder_filter_supported(l)
                     else filter_mask_errors.get(l.get("filter_mode", MAP_BUILDER_UNFILTERED))
                 ),
+                "where": l.get("where", "1=1"),
                 "opacity": l.get("opacity", 1.0),
                 "visible": l.get("visible", True),
                 "color": l.get("color", "#a78bfa"),
@@ -2915,7 +2952,8 @@ with tab_mapbuilder:
         var opts = {{
           title:   layerCfg.name,
           opacity: layerCfg.opacity,
-          visible: layerCfg.visible,
+          visible: layerCfg.visible && !(layerCfg.filter_mode !== "unfiltered" && layerCfg.filter_error),
+          definitionExpression: layerCfg.where || "1=1",
         }};
 
         if (layerCfg.presentation) {{
@@ -2976,6 +3014,7 @@ with tab_mapbuilder:
             }}).catch(function(err) {{
               document.getElementById("status").textContent =
                 "⚠ " + layerCfg.name + " filter: " + (err.message || "filter error");
+              lyr.visible = false;
             }});
           }}
         }}

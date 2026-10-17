@@ -150,6 +150,7 @@ export async function fetchArcGISLayer(item, layer, {
   entryPath = "search",
   color = item?.color || "#a78bfa",
   geometry = null,
+  where = "1=1",
 } = {}) {
   const discovered = layer?.url ? layer : (await discoverArcGISLayers(item?.url, { fetchImpl }))[0]
   if (!discovered?.url) throw new Error("Select an ArcGIS feature layer first")
@@ -161,7 +162,7 @@ export async function fetchArcGISLayer(item, layer, {
   }
   const resolvedLayer = { ...discovered, name: discovered.name || metadata.name, metadata }
   const params = {
-    where: "1=1",
+    where,
     outFields: "*",
     returnGeometry: "true",
     outSR: "4326",
@@ -186,7 +187,7 @@ export async function fetchArcGISLayer(item, layer, {
 
   const fetchedAt = new Date().toISOString()
   const records = normalizeArcGISFeatures(payload, { item, layer: resolvedLayer, fetchedAt })
-  if (!records.length) throw new Error("The selected layer returned no supported map geometry")
+  if (!Array.isArray(payload.features)) throw new Error("ArcGIS returned no feature collection")
   return {
     id: `esri_${item.id}_${resolvedLayer.id}`,
     ownerItemId: item.id,
@@ -197,6 +198,10 @@ export async function fetchArcGISLayer(item, layer, {
     type: "Feature Layer",
     sourceType: item.type || "Feature Layer",
     entryPath,
+    metadata,
+    fetchedAt,
+    where,
+    queryGeometry: geometry,
     filterMode: "unfiltered",
     records,
     count: records.length,

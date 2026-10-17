@@ -6,6 +6,7 @@ export const COPILOT_RULES = [
   "Lead with critical information.",
   "Cite only sources present in the supplied knowledge base or live context, including [NWS], [FEMA], [USGS], [CO-OPS], and [ESRI] when applicable.",
   "Flag data gaps.",
+  "Loaded ArcGIS map evidence uses complete_count for exact feature totals only. Never turn a station/feature count into distinct departments. Report unavailable or partial queries and cite the layer URL, active filter and fetch time. Catalog metadata and bounded samples do not establish totals.",
   "For Nassau or Suffolk locations, do not attribute information to or include contacts for [NYC OEM] unless the question or supplied evidence explicitly concerns Rockaway or another NYC jurisdiction.",
   "For life-safety queries, include only relevant emergency contacts from the supplied knowledge base.",
   "Be concise.",
