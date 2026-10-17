@@ -57,6 +57,10 @@ from esri_presentation import (
     feature_popup_html,
 )
 from map_layer_evidence import fetch_map_layer_evidence, map_layer_context, map_layer_status
+from arcgis_map_layers import (
+    fetch_scoped_map_features, operational_layer_status, refresh_operational_layer,
+    set_shared_filter, shared_filter_mode, synchronize_filters,
+)
 from map_builder_state import initialize_map_builder_layers
 from map_builder_presets import LIVING_ATLAS_PRESETS
 from map_builder_filters import (
@@ -813,7 +817,9 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     for li, layer in enumerate(map_layers):
         if not layer.get("visible", True): continue
         lcolor = layer.get("color", LAYER_COLORS[li % len(LAYER_COLORS)])
-        fg = folium.FeatureGroup(name=f"{layer.get('icon','📍')} {layer['name']}", show=True)
+        suffix = (" · " + MAP_BUILDER_FILTER_LABELS.get(layer.get("filter_mode", MAP_BUILDER_UNFILTERED), "Unknown geography")
+                  if layer.get("type") == "esri" else "")
+        fg = folium.FeatureGroup(name=f"{layer.get('icon','📍')} {layer['name']}{suffix}", show=True)
 
         for feat in layer.get("features", []):
             ftype = feat.get("type", "point")
@@ -1142,142 +1148,17 @@ def fetch_esri_layer_metadata(layer_url: str) -> dict:
     return {"metadata": None, "error": "Feature Layer metadata was unavailable"}
 
 
-def fetch_esri_feature_layer(service_url: str, max_features: int = 500) -> dict:
-    """
-    Query an ArcGIS REST layer endpoint and return GeoJSON-like features.
-    Works with public ArcGIS Feature/Map Services — no auth required.
-    Appends /query if not already present. Some older or specially configured
-    services reject ``f=geojson``, so fall back to ArcGIS JSON and normalize
-    its native geometry format.
-    """
-    base = service_url.rstrip("/")
-    if "arcgis.com/home/item" in base:
-        return {"features": [], "error": "Item page URL — use the Service URL (REST endpoint), not the item page URL"}
-
-        # Do not assume the first layer is always layer 0. Some ArcGIS
-        # services expose only a different layer ID (for example, LIRR
-        # branches exposes layer 4), while the portal result URL may point to
-        # the service root or an outdated layer path.
-        service_match = re.match(r"^(.*?/(?:FeatureServer|MapServer))(?:/(\d+))?$", base, re.I)
-        if service_match:
-            service_root, requested_id = service_match.groups()
-            try:
-                meta_res = requests.get(f"{service_root}?f=json", timeout=15,
-                                         headers={"User-Agent": "EMBER/1.0"})
-                if meta_res.ok:
-                    meta = meta_res.json()
-                    available = meta.get("layers") or []
-                    available_ids = {str(layer.get("id")) for layer in available}
-                    if available and (requested_id is None or requested_id not in available_ids):
-                        base = f"{service_root}/{available[0]['id']}"
-            except (ValueError, requests.RequestException):
-                # Let the query below return the service's normal error.
-                pass
-
-    discovery = discover_esri_feature_layers(base)
-    if discovery.get("error"):
-        return {"features": [], "total": 0, "error": discovery["error"]}
-    layers = discovery.get("layers", [])
-    if len(layers) != 1:
-        return {
-            "features": [], "total": 0,
-            "error": "This service contains multiple Feature Layers. Select one or more sublayers first.",
-        }
-    base = layers[0]["url"]
-    metadata = layers[0].get("metadata")
-    if metadata is None:
-        layer_discovery = discover_esri_feature_layers(base)
-        if layer_discovery.get("layers"):
-            metadata = layer_discovery["layers"][0].get("metadata")
-    query_url = base + "/query"
-
-    params = {
-        "where":        "1=1",
-        "outFields":    "*",
-        "returnGeometry": "true",
-        "outSR":        "4326",
-        "resultRecordCount": max_features,
-    }
+def fetch_esri_feature_layer(service_url: str, max_features: int = 500,
+                             filter_mode: str = MAP_BUILDER_UNFILTERED,
+                             geography_records=None, metadata=None, where="1=1") -> dict:
     try:
-        headers = {"User-Agent": "EMBER/1.0"}
-        r = requests.get(query_url, params={**params, "f": "geojson"}, timeout=15, headers=headers)
+        return fetch_scoped_map_features(
+            dict(url=service_url, filter_mode=filter_mode, metadata=metadata, where=where),
+            geography_records or [], requests.get, requests.post, max_features=max_features,
+        )
+    except Exception as exc:
+        return {"features": [], "total": 0, "error": str(exc)}
 
-        # GeoJSON output is not enabled on every public ArcGIS layer. Retry
-        # with the universally supported ArcGIS JSON representation.
-        if r.status_code == 400:
-            r = requests.get(query_url, params={**params, "f": "json"}, timeout=15, headers=headers)
-        r.raise_for_status()
-        payload = r.json()
-
-        if "error" in payload:
-            return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
-        if "error" in payload:
-            return {"features": [], "error": payload["error"].get("message", "ArcGIS error")}
-
-        features = []
-        for feat in payload.get("features", []):
-            # ArcGIS JSON uses attributes/geometry; GeoJSON uses
-            # properties/geometry. Keep the existing map contract unchanged.
-            props = feat.get("properties") or feat.get("attributes") or {}
-            geom = feat.get("geometry") or {}
-            if "x" in geom and "y" in geom:
-                features.append({"type": "point", "lat": geom["y"], "lng": geom["x"], "props": props})
-                continue
-
-            if "paths" in geom:
-                paths = geom["paths"]
-                coordinates = paths[0] if len(paths) == 1 else paths
-                gtype = "LineString" if len(paths) == 1 else "MultiLineString"
-                features.append({"type": "line", "geometry": {"type": gtype, "coordinates": coordinates}, "props": props})
-                continue
-
-            if "rings" in geom:
-                features.append({"type": "polygon", "geometry": {"type": "Polygon", "coordinates": geom["rings"]}, "props": props})
-                continue
-
-            # Already-normalized GeoJSON geometry, if returned by the service.
-            gtype = geom.get("type", "")
-        for feat in payload.get("features", []):
-            # ArcGIS JSON uses attributes/geometry; GeoJSON uses
-            # properties/geometry. Keep the existing map contract unchanged.
-            props = feat.get("properties") or feat.get("attributes") or {}
-            geom = feat.get("geometry") or {}
-            if "x" in geom and "y" in geom:
-                features.append({"type": "point", "lat": geom["y"], "lng": geom["x"], "props": props})
-                continue
-
-            if "paths" in geom:
-                paths = geom["paths"]
-                coordinates = paths[0] if len(paths) == 1 else paths
-                gtype = "LineString" if len(paths) == 1 else "MultiLineString"
-                features.append({"type": "line", "geometry": {"type": gtype, "coordinates": coordinates}, "props": props})
-                continue
-
-            if "rings" in geom:
-                features.append({"type": "polygon", "geometry": {"type": "Polygon", "coordinates": geom["rings"]}, "props": props})
-                continue
-
-            # Already-normalized GeoJSON geometry, if returned by the service.
-            gtype = geom.get("type", "")
-            if gtype == "Point":
-                coords = geom.get("coordinates", [])
-                if len(coords) >= 2:
-                    features.append({"type": "point", "lat": coords[1], "lng": coords[0], "props": props})
-            elif gtype in ("Polygon", "MultiPolygon"):
-                features.append({"type": "polygon", "geometry": geom, "props": props})
-            elif gtype in ("LineString", "MultiLineString"):
-                features.append({"type": "line", "geometry": geom, "props": props})
-
-        return {
-            "features": features,
-            "total": len(features),
-            "error": None,
-            "resolved_url": base,
-            "metadata": metadata,
-            "presentation": build_presentation(metadata, features),
-        }
-    except Exception as e:
-        return {"features": [], "total": 0, "error": str(e)}
 
 def esri_feature_popup_html(feature: dict, layer_name: str, color: str,
                             presentation: dict | None = None) -> str:
@@ -1288,29 +1169,25 @@ def esri_feature_popup_html(feature: dict, layer_name: str, color: str,
 def add_operational_esri_layer(item_id: str, item_title: str, layer_choice: dict,
                                color: str = "#a78bfa") -> dict:
     """Fetch one selected sublayer and add it to the operational Folium map."""
-    result = fetch_esri_feature_layer(layer_choice["url"], max_features=500)
-    if result.get("error"):
-        return result
+    mode = shared_filter_mode(layer_choice["url"], st.session_state.map_layers,
+                              st.session_state.mb_layers, st.session_state.esri_layer_filters)
+    existing = next((layer for layer in st.session_state.map_layers
+                     if layer.get("type") == "esri" and layer.get("url", "").rstrip("/") == layer_choice["url"].rstrip("/")), None)
     layer_name = item_title
     if layer_choice.get("name") and layer_choice["name"] != item_title:
         layer_name = f"{item_title} — {layer_choice['name']}"
-    st.session_state.map_layers.append({
-        "id": f"esri_{item_id}_{layer_choice['id']}",
-        "owner_item_id": item_id,
-        "sublayer_id": layer_choice["id"],
-        "name": layer_name,
-        "type": "esri",
-        "color": color,
-        "icon": "⊕",
-        "features": result["features"],
-        "visible": True,
-        "count": result["total"],
-        "source": f"ESRI · {result.get('resolved_url', layer_choice['url'])}",
-        "url": result.get("resolved_url", layer_choice["url"]),
-        "metadata": result.get("metadata"),
-        "presentation": result.get("presentation"),
-    })
-    return result
+    layer = existing or dict(id=f"esri_{item_id}_{layer_choice['id']}", owner_item_id=item_id,
+                            sublayer_id=layer_choice["id"], name=layer_name, type="esri",
+                            source_type="Feature Layer", color=color, icon="⊕", visible=True,
+                            features=[], count=0, url=layer_choice["url"],
+                            source=f"ESRI · {layer_choice['url']}", metadata=layer_choice.get("metadata"))
+    layer["filter_mode"] = mode
+    refresh_operational_layer(layer, current_geography_records(), query_operational_features, force=True)
+    if layer.get("map_query_error"):
+        return {"features": [], "total": 0, "error": layer["map_query_error"]}
+    if existing is None:
+        st.session_state.map_layers.append(layer)
+    return {"features": layer["features"], "total": layer["count"], "error": None}
 
 
 def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: dict,
@@ -1318,6 +1195,9 @@ def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: d
                                   entry_path: str = "search") -> dict:
     """Add one selected ArcGIS Feature Layer with its presentation metadata."""
     metadata_result = fetch_esri_layer_metadata(layer_choice["url"])
+    if any(layer.get("url", "").rstrip("/") == layer_choice["url"].rstrip("/")
+           for layer in st.session_state.mb_layers):
+        return metadata_result
     metadata = metadata_result.get("metadata")
     layer_name = item_title
     if layer_choice.get("name") and layer_choice["name"] != item_title:
@@ -1332,7 +1212,8 @@ def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: d
         "type": "Feature Layer",
         "source_type": source_type,
         "entry_path": entry_path,
-        "filter_mode": MAP_BUILDER_UNFILTERED,
+        "filter_mode": shared_filter_mode(layer_choice["url"], st.session_state.map_layers,
+                                          st.session_state.mb_layers, st.session_state.esri_layer_filters),
         "opacity": 1.0,
         "visible": True,
         "color": color,
@@ -1371,6 +1252,7 @@ for k, v in [
     ("_runtime_map_points", MAP_POINTS), # setup wizard edits before/reload after save
     ("nyc_token",   ""),        # NYC Open Data app token (user-provided)
     ("mb_layers",   []),        # Map Builder layers: [{id, name, url, type, opacity, visible, color}]
+    ("esri_layer_filters", {}), # geography shared by resolved sublayer URL across both maps
     ("mb_layers_initialized", False), # distinguish intentional empty state from first load
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
     ("phase4_results", {source["id"]: unavailable_phase4_result(source) for source in PHASE4_SOURCES}),
@@ -1734,6 +1616,46 @@ def current_geography_records():
             for record in st.session_state.phase4_results.get(source_id, {}).get("records", [])]
 
 
+def query_operational_features(layer, geography_records):
+    return fetch_esri_feature_layer(
+        layer["url"], filter_mode=layer.get("filter_mode", MAP_BUILDER_UNFILTERED),
+        geography_records=geography_records, metadata=layer.get("metadata"), where=layer.get("where", "1=1"),
+    )
+
+
+def change_layer_geography(url, widget_key):
+    mode = st.session_state.get(widget_key)
+    # A removed/recreated widget can send an empty value during a rerun.
+    if mode not in MAP_BUILDER_FILTER_MODES:
+        return
+    set_shared_filter(url, mode, st.session_state.map_layers,
+                      st.session_state.mb_layers, st.session_state.esri_layer_filters)
+
+
+def render_layer_geography(label, layer, prefix, disabled=False):
+    mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
+    if mode not in MAP_BUILDER_FILTER_MODES:
+        mode = MAP_BUILDER_UNFILTERED
+    key = prefix + layer["url"].rstrip("/")
+    # Reset a peer widget before it is instantiated, rather than writing a
+    # widget's value in a callback and conflicting with its default index.
+    if key in st.session_state and st.session_state[key] != mode:
+        del st.session_state[key]
+    return st.selectbox(
+        label, MAP_BUILDER_FILTER_MODES, index=MAP_BUILDER_FILTER_MODES.index(mode),
+        format_func=lambda value: MAP_BUILDER_FILTER_LABELS[value], key=key,
+        disabled=disabled, on_change=change_layer_geography, args=(layer["url"], key),
+        help="Shared by matching layers on both maps and chat. Geometry is applied before the browse cap.",
+    )
+
+
+synchronize_filters(st.session_state.map_layers, st.session_state.mb_layers,
+                    st.session_state.esri_layer_filters)
+for operational_layer in st.session_state.map_layers:
+    if operational_layer.get("type") == "esri":
+        refresh_operational_layer(operational_layer, current_geography_records(), query_operational_features)
+
+
 @st.cache_data(ttl=60, show_spinner=False)
 def cached_map_evidence(layer, geography_records, question=""):
     return fetch_map_layer_evidence(layer, geography_records, requests.post, requests.get, question)
@@ -1748,6 +1670,9 @@ def current_map_evidence(question=""):
 
 with st.expander("Loaded map layers available to chat", expanded=False):
     if st.button("Refresh map chat evidence"):
+        for layer in st.session_state.map_layers:
+            if layer.get("type") == "esri":
+                refresh_operational_layer(layer, current_geography_records(), query_operational_features, force=True)
         cached_map_evidence.clear()
     for evidence in current_map_evidence():
         st.markdown(f"**{evidence['name']}** · {evidence['map_path']}")
@@ -1771,6 +1696,9 @@ if st.session_state.map_layers:
                 f'</div>',
                 unsafe_allow_html=True
             )
+            if layer.get("type") == "esri":
+                render_layer_geography("Main map geography", layer, "esri_filter_main:")
+                st.caption(operational_layer_status(layer))
 
 if show_radar:
     next_refresh = 300 - (int(_time.time()) % 300)
@@ -2391,6 +2319,7 @@ with tab_esri:
                 if st.button("✕", key=f"rm_esri_map_{i}"):
                     st.session_state.map_layers = [l for l in st.session_state.map_layers if l["id"] != layer["id"]]
                     st.rerun()
+            st.caption(operational_layer_status(layer))
             presentation = layer.get("presentation") or build_presentation(
                 layer.get("metadata"), layer.get("features", [])
             )
@@ -2717,28 +2646,10 @@ with tab_mapbuilder:
                         f"Original service: {layer.get('url', '')}"
                     )
                     filter_is_supported = map_builder_filter_supported(layer)
-                    current_filter_mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
-                    if current_filter_mode not in MAP_BUILDER_FILTER_MODES:
-                        current_filter_mode = MAP_BUILDER_UNFILTERED
-                    selected_filter_mode = st.selectbox(
-                        "Geography display filter",
-                        MAP_BUILDER_FILTER_MODES,
-                        index=MAP_BUILDER_FILTER_MODES.index(current_filter_mode),
-                        format_func=lambda mode: MAP_BUILDER_FILTER_LABELS[mode],
-                        key=f"mb_filter_{li}_{layer['id'][:8]}",
+                    selected_filter_mode = render_layer_geography(
+                        "Geography display filter", layer, "esri_filter_builder:",
                         disabled=not filter_is_supported,
-                        help=(
-                            "Applied after Add to Map using the authoritative operational or PSEG polygons."
-                            if filter_is_supported else
-                            "Geography filtering is unavailable for Map Services, imagery, vector tiles, and other non-Feature Layer types."
-                        ),
                     )
-                    previous_filter_mode = layer.get("filter_mode", MAP_BUILDER_UNFILTERED)
-                    st.session_state.mb_layers[li]["filter_mode"] = (
-                        selected_filter_mode if filter_is_supported else MAP_BUILDER_UNFILTERED
-                    )
-                    if previous_filter_mode != st.session_state.mb_layers[li]["filter_mode"]:
-                        st.rerun()
                     if not filter_is_supported:
                         st.caption("Unfiltered · this layer type cannot honor the shared Feature Layer geography contract.")
                     elif filter_mask_errors.get(selected_filter_mode):
