@@ -14,10 +14,10 @@ OSM_ATTRIBUTION = (
 )
 
 
-def basemap_config(api_key: str | None) -> tuple[str, str, str]:
-    """Return tile URL, attribution, and layer name for the available basemap."""
+def basemap_config(api_key: str | None, selected: str = "OpenStreetMap") -> tuple[str, str, str]:
+    """Return tile URL, attribution, and layer name for the selected basemap, falling back to OpenStreetMap."""
     key = (api_key or "").strip()
-    if key:
+    if key and selected == "CARTO Dark Matter":
         return (
             f"{CARTO_TILE_URL}?key={quote(key, safe='')}",
             CARTO_ATTRIBUTION,

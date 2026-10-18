@@ -1,4 +1,5 @@
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
+import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
 
@@ -525,6 +526,11 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
     requestAnimationFrame(() => leafRef.current?.invalidateSize())
   }, [mapWidth])
 
+  useEffect(() => {
+    setSelectedFeature(null)
+    leafRef.current?.closePopup()
+  }, [activeLayers, activeRegionalLayers, showRadar, showWind])
+
   // Layer visibility
   useEffect(() => {
     if (!ready || !leafRef.current) return
@@ -539,7 +545,9 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
   useEffect(() => {
     if (!ready || !leafRef.current) return
     const map = leafRef.current
+    let cancelled = false
     import("leaflet").then(({default:L}) => {
+      if (cancelled) return
       for (const group of Object.values(regionalLayerRefs.current)) {
         if (map.hasLayer(group)) map.removeLayer(group)
       }
@@ -597,7 +605,8 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
         if (activeRegionalLayers.includes(sourceId)) group.addTo(map)
       }
     })
-  }, [regionalRecords, regionalLayerMetadata, ready])
+    return () => { cancelled = true }
+  }, [regionalRecords, regionalLayerMetadata, activeRegionalLayers, ready])
 
   useEffect(() => {
     if (!ready || !leafRef.current) return
@@ -853,8 +862,10 @@ export default function App() {
   ))
   const phase4ResultsRef = useRef(phase4Results)
   const [phase4Loading, setPhase4Loading] = useState(false)
-  const [activePhase4Layers, setActivePhase4Layers] = useState(["nyc_311_rockaway"])
+  const [activePhase4Layers, setActivePhase4Layers] = useState([])
+  const [enrolledPhase4Layers, setEnrolledPhase4Layers] = useState([])
   const togglePhase4Layer = useCallback(sourceId => {
+    setEnrolledPhase4Layers(previous => previous.includes(sourceId) ? previous : [...previous, sourceId])
     setActivePhase4Layers(previous => previous.includes(sourceId)
       ? previous.filter(id => id !== sourceId)
       : [...previous, sourceId])
@@ -900,9 +911,33 @@ export default function App() {
     [phase4Records, esriMapRecords],
   )
   const activeRegionalMapLayers = useMemo(
-    () => [...activePhase4Layers, ...Object.keys(evaluatedEsriMapLayers)],
-    [activePhase4Layers, evaluatedEsriMapLayers],
+    () => [...activePhase4Layers.filter(id => phase4SourceCard(phase4Sources.find(source => source.id === id), phase4Results[id]).map_capable), ...visibleAddedLayers(evaluatedEsriMapLayers).map(layer => layer.id)],
+    [activePhase4Layers, evaluatedEsriMapLayers, phase4Results, phase4Sources],
   )
+  const eligibleRegionalIds = phase4Sources.filter(source => phase4SourceCard(source, phase4Results[source.id]).map_capable).map(source => source.id)
+  const participatingRegionIds = participatingRegionalIds(eligibleRegionalIds, enrolledPhase4Layers)
+  const overlayState = overlaySelection([
+    ...MAP_LAYER_TOGGLES.map(layer => activeMapLayers.includes(layer.id)),
+    ...participatingRegionIds.map(id => activePhase4Layers.includes(id)),
+    ...Object.values(esriMapLayers).map(layer => layer.visible !== false),
+    showRadar, showWind,
+  ])
+  const previousOverlaySelection = useRef({state:"All", regionalIds:[]})
+  useEffect(() => {
+    const previous = previousOverlaySelection.current
+    const newlyReady = eligibleRegionalIds.filter(id => !previous.regionalIds.includes(id))
+    if (previous.state === "Off" && newlyReady.length) {
+      setActivePhase4Layers(selected => selected.filter(id => !newlyReady.includes(id)))
+    }
+    previousOverlaySelection.current = {state:overlayState, regionalIds:eligibleRegionalIds}
+  }, [overlayState, eligibleRegionalIds.join("|")])
+  const selectAllOverlays = enabled => {
+    setActiveLayers(enabled ? MAP_LAYER_TOGGLES.map(layer => layer.id) : [])
+    setActivePhase4Layers(enabled ? enrolledPhase4Layers : [])
+    setShowRadar(enabled)
+    setShowWind(enabled)
+    setEsriMapLayers(previous => Object.fromEntries(Object.entries(previous).map(([id, layer]) => [id, {...layer, visible:enabled}])))
+  }
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
   const setNycOpenDataToken_ = (token) => {
@@ -1096,7 +1131,11 @@ export default function App() {
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>KB</span>
         {KB_MODULES.map(m => pill(m.label, activeKB.includes(m.id), ()=>setActiveKB(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id])))}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
-        <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>MAP</span>
+        <label title="Main map overlays, weather, added layers, and Phase 4 layers enabled during this session" style={{display:"flex",alignItems:"center",gap:4,color:overlayState === "Off" ? "#889" : "#22d3ee",fontSize:10,fontWeight:700,cursor:"pointer"}}>
+          <input type="checkbox" checked={overlayState === "All"} ref={input => {if (input) input.indeterminate = overlayState === "Some"}} disabled={overlayState === "Unavailable"} aria-label={overlayState === "All" ? "Hide all map overlays" : "Select all map overlays"} aria-describedby="overlay-scope" onChange={()=>selectAllOverlays(overlayState !== "All")} />
+          {overlayState === "Unavailable" ? "No overlays available" : `MAP · ${overlayState.toUpperCase()}`}
+        </label>
+        <span id="overlay-scope" style={{fontSize:8,color:"#889"}}>Main map overlays, weather, added layers, and Phase 4 layers enabled during this session</span>
         {MAP_LAYER_TOGGLES.map(m => pill(m.label, activeMapLayers.includes(m.id), ()=>setActiveLayers(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id]), m.color))}
         {pill("311 ROCKAWAY", activePhase4Layers.includes("nyc_311_rockaway"), ()=>togglePhase4Layer("nyc_311_rockaway"), "#f59e0b")}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
@@ -1258,7 +1297,8 @@ export default function App() {
               esriMapLayers={evaluatedEsriMapLayers}
               mapEvidence={mapEvidence}
               onEvidenceRefresh={()=>setEvidenceRefresh(value=>value+1)}
-              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:{...layer,baseRecords:layer.records}})}
+              onMapLayerAdd={layer=>setEsriMapLayers(previous=>previous[layer.id]?previous:{...previous,[layer.id]:{...layer,visible:overlayState !== "Off",baseRecords:layer.records}})}
+              onMapLayerToggle={layerId=>setEsriMapLayers(previous=>({...previous,[layerId]:{...previous[layerId],visible:previous[layerId].visible === false}}))}
               onMapLayerFilterChange={async (layerId,filterMode)=>{
                 const layer = esriMapLayers[layerId]
                 if (!layer) return
@@ -1349,7 +1389,7 @@ function manualArcGISItemId(url) {
   return `manual_${Math.abs(hash)}`
 }
 
-function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, mapEvidence, onEvidenceRefresh, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove}) {
+function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, mapEvidence, onEvidenceRefresh, onMapLayerAdd, onMapLayerFilterChange, onMapLayerRemove, onMapLayerToggle}) {
   const [query, setQuery]     = useState("")
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
@@ -1501,10 +1541,11 @@ function ESRIPanel({onInject, esriItems, onRemove, esriMapLayers, mapEvidence, o
             return <div key={layer.id} style={{marginBottom:8,padding:"7px 8px",border:"1px solid #16313a",borderRadius:5,background:"#071018"}}>
               <div style={{display:"flex",justifyContent:"space-between",gap:6,alignItems:"center"}}>
                 <span style={{fontSize:9.5,color:layer.color,fontWeight:700}}>{layer.name}</span>
+                <button aria-pressed={layer.visible !== false} onClick={()=>onMapLayerToggle(layer.id)}>{layer.visible === false ? "Show on map" : "Hide from map"}</button>
                 <button aria-label={`Remove ${layer.name} from map`} onClick={()=>onMapLayerRemove(layer.id)} style={{background:"none",border:"none",color:"#f87171",cursor:"pointer",fontSize:10}}>✕</button>
               </div>
               <div style={{fontSize:8.5,color:"#557",margin:"3px 0 5px"}}>{layer.entryPath.replaceAll("_"," ")} · <a href={layer.originalUrl||layer.url} target="_blank" rel="noopener noreferrer" style={{color:"#668"}}>original service</a></div>
-              <div style={{fontSize:9,color:"#9de7f3",marginBottom:5}}>{mapEvidence[layer.id] ? mapLayerStatus(mapEvidence[layer.id]) : "Chat evidence refreshing…"}</div>
+              <div style={{fontSize:9,color:"#9de7f3",marginBottom:5}}>{layer.visible === false ? "Hidden from map and chat evidence" : mapEvidence[layer.id] ? mapLayerStatus(mapEvidence[layer.id]) : "Chat evidence refreshing…"}</div>
               <select aria-label={`Geography filter for ${layer.name}`} value={layer.filterMode||MAP_BUILDER_FILTER_MODES.UNFILTERED} onChange={event=>onMapLayerFilterChange(layer.id,event.target.value)} disabled={!filter.supported} title={!filter.supported?"Geography filtering is available only for queryable Feature Layers":"Applied after Add to Map"} style={{width:"100%",background:"#0d1117",border:"1px solid #22d3ee33",borderRadius:4,padding:"4px 6px",color:filter.supported?"#9de7f3":"#445",fontFamily:"inherit",fontSize:9}}>
                 {Object.entries(MAP_BUILDER_FILTER_LABELS).map(([value,label])=><option key={value} value={value}>{label}</option>)}
               </select>

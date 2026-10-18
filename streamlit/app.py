@@ -26,6 +26,9 @@ from tidal_gauges import (
 from config_loader import load_config, config_exists
 from setup_wizard import render_wizard
 from carto_tiles import basemap_config
+from map_overlay_selection import (STANDARD_IDS, overlay_inventory, selection_state,
+                                   set_overlay, select_overlays, initialize_added_visibility)
+from operational_layer_control import OperationalLayerControl
 from report_window import report_window_message
 from regional_normalization import (
     ROCKAWAY_SOURCE_IDS,
@@ -538,7 +541,8 @@ def fetch_wind_obs():
 
 def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
               live_readings=None, gauge_data=None, map_layers=None, map_points=None,
-              phase4_results=None, active_phase4_layers=None):
+              phase4_results=None, active_phase4_layers=None, show_tidal=True,
+              basemap="OpenStreetMap", center=None, zoom=None, events_enabled=True):
     live_readings = live_readings or {}
     wind_obs      = wind_obs or []
     gauge_data    = gauge_data or {}
@@ -546,8 +550,8 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     map_points    = map_points or MAP_POINTS
     phase4_results = phase4_results or {}
     active_phase4_layers = active_phase4_layers or []
-    basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY)
-    m = folium.Map(location=list(CFG.center), zoom_start=CFG.zoom,
+    basemap_url, basemap_attr, basemap_name = basemap_config(CARTO_API_KEY, basemap)
+    m = folium.Map(location=center or list(CFG.center), zoom_start=CFG.zoom if zoom is None else zoom,
                    tiles=None, prefer_canvas=True)
     folium.TileLayer(
         tiles=basemap_url, name=basemap_name, attr=basemap_attr,
@@ -583,77 +587,79 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                     popup=folium.Popup(popup_html, max_width=max_width),
                     tooltip=tooltip_html,
                 ).add_to(feature_group)
+    overlay_controls = {}
     # NEXRAD radar tiles with 5-min cache buster
-    if show_radar:
-        epoch_5min = int(_time.time() // 300)
-        folium.TileLayer(
-            tiles=f"https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{{z}}/{{x}}/{{y}}.png?_={epoch_5min}",
-            name="NEXRAD Radar", attr="NEXRAD &copy; Iowa State MESONET",
-            opacity=0.65, overlay=True, control=True,
-        ).add_to(m)
+    epoch_5min = int(_time.time() // 300)
+    radar_layer = folium.TileLayer(
+        tiles=f"https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{{z}}/{{x}}/{{y}}.png?_={epoch_5min}",
+        name="NEXRAD Radar", attr="NEXRAD &copy; Iowa State MESONET",
+        opacity=0.65, overlay=True, control=True, show=show_radar,
+    ).add_to(m)
+
+    overlay_controls["show_radar"] = radar_layer
 
     # ── Live tidal gauge layer (separate from static gauge markers) ────────────
-    if gauge_data:
-        tg_fg = folium.FeatureGroup(name="🌊 Live Tidal Gauges (CO-OPS)", show=True)
-        for sid, gd in gauge_data.items():
-            ld = gd.get("level")
-            if not ld or not ld.get("lat") or not ld.get("lng"):
-                # Try to find coords from the station list if level data has no coords
-                continue
-            lat, lng = ld.get("lat", 0), ld.get("lng", 0)
-            if lat == 0 and lng == 0:
-                continue
-            color   = gauge_marker_color(gd)
-            lft     = ld.get("level_ft", 0)
-            status  = ld.get("status", "NORMAL")
-            station_name = str(ld.get("station_name") or sid or "Tidal gauge")
-            gauge_description = f"Water level: {lft:.2f}ft MLLW · {status}"
-            popup_h = map_feature_popup_html(
-                build_gauge_popup(gd),
-                station_name,
-                "Live Tidal Gauges (CO-OPS)",
-                "Point",
-                gauge_description,
-            )
-            tooltip_h = map_feature_tooltip_html(
-                f"🌊 {station_name} — {lft:.2f}ft MLLW — {status}",
-                station_name,
-                "Live Tidal Gauges (CO-OPS)",
-                "Point",
-                gauge_description,
-            )
+    tg_fg = folium.FeatureGroup(name="🌊 Live Tidal Gauges (CO-OPS)", show=show_tidal)
+    for sid, gd in gauge_data.items():
+        ld = gd.get("level")
+        if not ld or not ld.get("lat") or not ld.get("lng"):
+            # Try to find coords from the station list if level data has no coords
+            continue
+        lat, lng = ld.get("lat", 0), ld.get("lng", 0)
+        if lat == 0 and lng == 0:
+            continue
+        color   = gauge_marker_color(gd)
+        lft     = ld.get("level_ft", 0)
+        status  = ld.get("status", "NORMAL")
+        station_name = str(ld.get("station_name") or sid or "Tidal gauge")
+        gauge_description = f"Water level: {lft:.2f}ft MLLW · {status}"
+        popup_h = map_feature_popup_html(
+            build_gauge_popup(gd),
+            station_name,
+            "Live Tidal Gauges (CO-OPS)",
+            "Point",
+            gauge_description,
+        )
+        tooltip_h = map_feature_tooltip_html(
+            f"🌊 {station_name} — {lft:.2f}ft MLLW — {status}",
+            station_name,
+            "Live Tidal Gauges (CO-OPS)",
+            "Point",
+            gauge_description,
+        )
 
-            # Pulsing circle — outer ring shows flood status, inner solid
-            folium.CircleMarker(
-                location=[lat, lng], radius=16,
-                color=color, fill=False, weight=2, opacity=0.5,
-                interactive=False,
-            ).add_to(tg_fg)
-            folium.CircleMarker(
-                location=[lat, lng], radius=9,
-                color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2,
-                popup=folium.Popup(popup_h, max_width=280),
-                tooltip=tooltip_h,
-            ).add_to(tg_fg)
+        # Pulsing circle — outer ring shows flood status, inner solid
+        folium.CircleMarker(
+            location=[lat, lng], radius=16,
+            color=color, fill=False, weight=2, opacity=0.5,
+            interactive=False,
+        ).add_to(tg_fg)
+        folium.CircleMarker(
+            location=[lat, lng], radius=9,
+            color=color, fill=True, fill_color=color, fill_opacity=0.85, weight=2,
+            popup=folium.Popup(popup_h, max_width=280),
+            tooltip=tooltip_h,
+        ).add_to(tg_fg)
 
-            # Level label
-            folium.Marker(
-                location=[lat, lng],
-                icon=folium.DivIcon(
-                    html=f'<div style="font-family:monospace;font-size:10px;font-weight:700;'
-                         f'color:{color};background:#07090dcc;padding:1px 4px;border-radius:3px;'
-                         f'border:1px solid {color}55;white-space:nowrap;margin-top:14px;margin-left:12px">'
-                         f'{lft:.2f}ft</div>',
-                    icon_size=(60, 20), icon_anchor=(0, 0)
-                ),
-                interactive=False,
-            ).add_to(tg_fg)
+        # Level label
+        folium.Marker(
+            location=[lat, lng],
+            icon=folium.DivIcon(
+                html=f'<div style="font-family:monospace;font-size:10px;font-weight:700;'
+                     f'color:{color};background:#07090dcc;padding:1px 4px;border-radius:3px;'
+                     f'border:1px solid {color}55;white-space:nowrap;margin-top:14px;margin-left:12px">'
+                     f'{lft:.2f}ft</div>',
+                icon_size=(60, 20), icon_anchor=(0, 0)
+            ),
+            interactive=False,
+        ).add_to(tg_fg)
 
-        tg_fg.add_to(m)
+    tg_fg.add_to(m)
+    overlay_controls["show_tidal"] = tg_fg
     # Marker layers
     for key, layer in map_points.items():
-        if key not in active_layers: continue
-        fg = folium.FeatureGroup(name=layer["label"])
+        fg = folium.FeatureGroup(name=layer["label"], show=key in active_layers)
+        overlay_controls[f"map_{key}"] = fg
         for f in layer["features"]:
             reading      = None
             marker_color = layer["color"]
@@ -712,16 +718,15 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     # map locations.
     for source in PHASE4_SOURCES:
         source_id = source["id"]
-        if source_id not in active_phase4_layers:
-            continue
         result = phase4_results.get(source_id, {})
         records = [record for record in result.get("records", []) if record.get("geometry")]
-        if not records:
+        if not phase4_source_card(source, result)["map_capable"]:
             continue
         display = source.get("display", {})
         color = display.get("color", "#60a5fa")
         icon = display.get("icon", "📍")
-        fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=True)
+        fg = folium.FeatureGroup(name=f"{icon} {source['name']}", show=source_id in active_phase4_layers)
+        overlay_controls[f"regional:{source_id}"] = fg
         for record in records:
             geometry = record.get("geometry", {})
             popup_body = (
@@ -765,61 +770,61 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 )
         fg.add_to(m)
     # Wind arrows
-    if show_wind and wind_obs:
-        wfg = folium.FeatureGroup(name="Wind Observations")
-        for o in wind_obs:
-            if o.get("speed_mph") is None or o.get("dir_deg") is None: continue
-            spd   = int(o["speed_mph"])
-            gust  = int(o["gust_mph"]) if o.get("gust_mph") else None
-            color = "#4ade80" if spd < 15 else "#facc15" if spd < 25 else "#fb923c" if spd < 40 else "#f87171"
-            to_dir = (o["dir_deg"] + 180) % 360
-            html = (f'<div style="font-family:monospace;text-align:center">'
-                    f'<div style="transform:rotate({to_dir}deg);font-size:20px;color:{color}">↑</div>'
-                    f'<div style="font-size:9px;font-weight:700;color:{color};background:#07090dcc;'
-                    f'padding:1px 3px;border-radius:2px">{spd}{"g"+str(gust) if gust else ""}mph</div></div>')
-            popup_txt = (f'<b style="color:{color}">{o["id"]} — {o["name"]}</b><br>'
-                         f'Wind: {spd}mph from {int(o["dir_deg"])}°'
-                         + (f' (gusts {gust}mph)' if gust else '')
-                         + (f'<br>Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
-                         + (f'<br>Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
-                         + (f'<br>{o["desc"]}' if o.get("desc") else ''))
-            title = f'{o["id"]} — {o["name"]}'
-            description = (
-                f'Wind: {spd}mph from {int(o["dir_deg"])}°'
-                + (f' (gusts {gust}mph)' if gust else '')
-                + (f' · Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
-                + (f' · Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
-                + (f' · {o["desc"]}' if o.get("desc") else '')
-            )
-            popup_h = map_feature_popup_html(
-                f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>',
-                title,
-                "Wind Observations",
-                "Point",
-                description,
-            )
-            tooltip_h = map_feature_tooltip_html(
-                f"{title} · {spd}mph",
-                title,
-                "Wind Observations",
-                "Point",
-                description,
-            )
-            folium.Marker(
-                location=[o["lat"], o["lng"]],
-                icon=folium.DivIcon(html=html, icon_size=(50, 40), icon_anchor=(25, 10)),
-                popup=folium.Popup(popup_h, max_width=220),
-                tooltip=tooltip_h,
-            ).add_to(wfg)
-        wfg.add_to(m)
+    wfg = folium.FeatureGroup(name="Wind Observations", show=show_wind)
+    overlay_controls["show_wind"] = wfg
+    for o in wind_obs:
+        if o.get("speed_mph") is None or o.get("dir_deg") is None: continue
+        spd   = int(o["speed_mph"])
+        gust  = int(o["gust_mph"]) if o.get("gust_mph") else None
+        color = "#4ade80" if spd < 15 else "#facc15" if spd < 25 else "#fb923c" if spd < 40 else "#f87171"
+        to_dir = (o["dir_deg"] + 180) % 360
+        html = (f'<div style="font-family:monospace;text-align:center">'
+                f'<div style="transform:rotate({to_dir}deg);font-size:20px;color:{color}">↑</div>'
+                f'<div style="font-size:9px;font-weight:700;color:{color};background:#07090dcc;'
+                f'padding:1px 3px;border-radius:2px">{spd}{"g"+str(gust) if gust else ""}mph</div></div>')
+        popup_txt = (f'<b style="color:{color}">{o["id"]} — {o["name"]}</b><br>'
+                     f'Wind: {spd}mph from {int(o["dir_deg"])}°'
+                     + (f' (gusts {gust}mph)' if gust else '')
+                     + (f'<br>Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
+                     + (f'<br>Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
+                     + (f'<br>{o["desc"]}' if o.get("desc") else ''))
+        title = f'{o["id"]} — {o["name"]}'
+        description = (
+            f'Wind: {spd}mph from {int(o["dir_deg"])}°'
+            + (f' (gusts {gust}mph)' if gust else '')
+            + (f' · Precip (1h): {o["precip_in"]}"' if o.get("precip_in") is not None else '')
+            + (f' · Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
+            + (f' · {o["desc"]}' if o.get("desc") else '')
+        )
+        popup_h = map_feature_popup_html(
+            f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>',
+            title,
+            "Wind Observations",
+            "Point",
+            description,
+        )
+        tooltip_h = map_feature_tooltip_html(
+            f"{title} · {spd}mph",
+            title,
+            "Wind Observations",
+            "Point",
+            description,
+        )
+        folium.Marker(
+            location=[o["lat"], o["lng"]],
+            icon=folium.DivIcon(html=html, icon_size=(50, 40), icon_anchor=(25, 10)),
+            popup=folium.Popup(popup_h, max_width=220),
+            tooltip=tooltip_h,
+        ).add_to(wfg)
+    wfg.add_to(m)
     # ── User-added map layers (NYC Open Data + ESRI Feature Layers) ───────────
     LAYER_COLORS = ["#f472b6","#818cf8","#2dd4bf","#fb7185","#a3e635","#fbbf24","#60a5fa","#c084fc"]
     for li, layer in enumerate(map_layers):
-        if not layer.get("visible", True): continue
         lcolor = layer.get("color", LAYER_COLORS[li % len(LAYER_COLORS)])
         suffix = (" · " + MAP_BUILDER_FILTER_LABELS.get(layer.get("filter_mode", MAP_BUILDER_UNFILTERED), "Unknown geography")
                   if layer.get("type") == "esri" else "")
-        fg = folium.FeatureGroup(name=f"{layer.get('icon','📍')} {layer['name']}{suffix}", show=True)
+        fg = folium.FeatureGroup(name=f"{layer.get('icon','📍')} {layer['name']}{suffix}", show=layer.get("visible", True))
+        overlay_controls[f"user:{layer['id']}"] = fg
 
         for feat in layer.get("features", []):
             ftype = feat.get("type", "point")
@@ -876,6 +881,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         fg.add_to(m)
 
     folium.LayerControl().add_to(m)
+    OperationalLayerControl(overlay_controls, enabled=events_enabled).add_to(m)
     return m
 
 
@@ -1244,6 +1250,8 @@ for k, v in [
     ("noaa_items",   []),
     ("show_radar",   True),
     ("show_wind",    True),
+    ("show_tidal",   True),
+    ("operational_basemap", "OpenStreetMap"),
     ("gauge_data",   {}),       # live tidal gauge readings keyed by station_id
     ("gauge_stations", []),     # CO-OPS station list for NY (dynamic)
     ("gauge_fetched_at", _dt.datetime.min), # last fetch timestamp
@@ -1257,7 +1265,8 @@ for k, v in [
     ("mb_basemap",  "dark-gray-vector"),  # Map Builder basemap
     ("phase4_results", {source["id"]: unavailable_phase4_result(source) for source in PHASE4_SOURCES}),
     ("phase4_cache", {}),
-    ("active_phase4_layers", ["nyc_311_rockaway"]),
+    ("active_phase4_layers", []),
+    ("enrolled_phase4_layers", []),
     ("phase4_initialized", False),
     ("selected_map_feature", None),
     ("map_interaction_revision", 0),
@@ -1265,6 +1274,47 @@ for k, v in [
 ]:
     if k not in st.session_state:
         st.session_state[k] = v
+
+def eligible_operational_regions():
+    return [source["id"] for source in PHASE4_SOURCES
+            if phase4_source_card(source, st.session_state.phase4_results.get(source["id"]))["map_capable"]]
+
+
+def clear_operational_selection():
+    st.session_state.selected_map_feature = None
+    st.session_state.map_interaction_revision += 1
+
+
+def bulk_operational_visibility(visible):
+    regional_ids = eligible_operational_regions()
+    select_overlays(st.session_state, regional_ids, visible)
+    clear_operational_selection()
+
+
+def user_operational_visibility(layer_id):
+    set_overlay(st.session_state, f"user:{layer_id}", st.session_state[f"visible_user:{layer_id}"])
+    clear_operational_selection()
+
+
+def operational_map_event():
+    data = st.session_state.get(map_component_key(st.session_state.map_interaction_revision)) or {}
+    if data.get("center"):
+        st.session_state.operational_center = data["center"]
+    if data.get("zoom") is not None:
+        st.session_state.operational_zoom = data["zoom"]
+    event = data.get("overlay_event")
+    if event and isinstance(event.get("visibility"), dict):
+        inventory = overlay_inventory(st.session_state, eligible_operational_regions())
+        for overlay_id, visible in event["visibility"].items():
+            if (overlay_id in inventory or overlay_id in {f"regional:{key}" for key in eligible_operational_regions()}) and isinstance(visible, bool):
+                set_overlay(st.session_state, overlay_id, visible)
+        clear_operational_selection()
+
+
+initialize_added_visibility(st.session_state)
+for overlay_key in STANDARD_IDS:
+    st.session_state.setdefault(f"map_{overlay_key}", True)
+
 
 # A widget-triggered rerun can interrupt the synchronous Ollama generator after
 # its placeholder is persisted. Recover that placeholder before processing the
@@ -1352,13 +1402,8 @@ def render_phase4_source_cards(source_ids, key_prefix):
                     key=f"{key_prefix}_map_{source_id}",
                     use_container_width=True,
                 ):
-                    if is_active:
-                        st.session_state.active_phase4_layers = [
-                            active_id for active_id in st.session_state.active_phase4_layers
-                            if active_id != source_id
-                        ]
-                    else:
-                        st.session_state.active_phase4_layers = [*st.session_state.active_phase4_layers, source_id]
+                    set_overlay(st.session_state, f"regional:{source_id}", not is_active)
+                    clear_operational_selection()
                     st.rerun()
             else:
                 st.button(
@@ -1443,6 +1488,13 @@ refresh_stale_endpoints()
 # SIDEBAR
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Reconcile sources that become map-ready after a refresh while overlays are Off.
+ready_regions = eligible_operational_regions()
+if st.session_state.get("previous_overlay_state") == "Off":
+    for source_id in set(ready_regions) - set(st.session_state.get("known_ready_regions", [])):
+        set_overlay(st.session_state, f"regional:{source_id}", False)
+st.session_state.known_ready_regions = ready_regions
+
 with st.sidebar:
     st.markdown(f"## {CFG.logo_emoji} {CFG.app_title}")
     st.caption(f"Ollama Cloud · {OLLAMA_MODEL} · {CFG.name}")
@@ -1465,18 +1517,27 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**MAP LAYERS**")
+    st.selectbox("Basemap", ["OpenStreetMap"] + (["CARTO Dark Matter"] if CARTO_API_KEY else []), key="operational_basemap", on_change=clear_operational_selection)
+    if not CARTO_API_KEY:
+        st.caption("CARTO Dark Matter requires CARTO configuration.")
+    selection = selection_state(overlay_inventory(st.session_state, eligible_operational_regions()))
+    st.caption(f"Map overlays: {selection} · includes weather, tidal, added layers and Phase 4 layers enabled this session")
+    select_col, unselect_col = st.columns(2)
+    select_col.button("Select All", on_click=bulk_operational_visibility, args=(True,))
+    unselect_col.button("Unselect All", on_click=bulk_operational_visibility, args=(False,))
     layer_opts = {"hospitals": "🏥 Trauma Centers", "shelters": "🏫 Evac Shelters",
                   "gauges": "📡 Stream Gauges", "eoc": "🏛 EOC / Command", "floodRisk": "💧 Flood Risk Areas"}
-    active_layers = [k for k, label in layer_opts.items() if st.checkbox(label, value=True, key=f"map_{k}")]
+    active_layers = [k for k, label in layer_opts.items() if st.checkbox(label, key=f"map_{k}", on_change=clear_operational_selection)]
 
     st.markdown("**WEATHER OVERLAYS**")
-    show_radar = st.checkbox("📡 NEXRAD Radar (auto-refresh)", key="show_radar",
+    show_radar = st.checkbox("📡 NEXRAD Radar (auto-refresh)", key="show_radar", on_change=clear_operational_selection,
                              help="Iowa State MESONET — tiles refresh every 5min automatically")
-    show_wind  = st.checkbox("💨 Wind Observations (auto-refresh)", key="show_wind",
+    show_wind  = st.checkbox("💨 Wind Observations (auto-refresh)", key="show_wind", on_change=clear_operational_selection,
                              help="Live NWS surface obs — refreshes every 5min automatically")
 
     st.divider()
     st.markdown("**TIDAL GAUGES**")
+    st.checkbox("Show live tidal gauges", key="show_tidal", on_change=clear_operational_selection)
     g_fetched = st.session_state.get("gauge_fetched_at")
     g_age_s   = int((_dt.datetime.now() - g_fetched).total_seconds()) if g_fetched else None
     g_age_str = f"last fetched {g_age_s//60}m ago" if g_age_s else "not yet fetched"
@@ -1696,6 +1757,8 @@ if st.session_state.map_layers:
                 f'</div>',
                 unsafe_allow_html=True
             )
+            st.session_state.setdefault(f"visible_user:{layer['id']}", layer.get("visible", True))
+            st.checkbox("Show on map", key=f"visible_user:{layer['id']}", on_change=user_operational_visibility, args=(layer["id"],))
             if layer.get("type") == "esri":
                 render_layer_geography("Main map geography", layer, "esri_filter_main:")
                 st.caption(operational_layer_status(layer))
@@ -1715,21 +1778,28 @@ if "__flood_alert__" in live_rdgs:
     a = live_rdgs["__flood_alert__"]
     st.error(f"⚠ **{a['event']}** ({a['severity']}) — {a['headline']}")
 
+st.session_state.previous_overlay_state = selection_state(overlay_inventory(st.session_state, eligible_operational_regions()))
 map_data = st_folium(
     build_map(active_layers, show_radar=show_radar, show_wind=show_wind,
-              wind_obs=wind_obs, live_readings=live_rdgs,
+              wind_obs=st.session_state.get("wind_obs", []), live_readings=live_rdgs,
               gauge_data=st.session_state.gauge_data,
               map_layers=st.session_state.map_layers,
               map_points=st.session_state.get("_runtime_map_points", MAP_POINTS),
               phase4_results=st.session_state.phase4_results,
-              active_phase4_layers=st.session_state.active_phase4_layers),
+              active_phase4_layers=st.session_state.active_phase4_layers,
+              show_tidal=st.session_state.show_tidal,
+              basemap=st.session_state.operational_basemap,
+              center=[st.session_state.operational_center["lat"], st.session_state.operational_center["lng"]] if "operational_center" in st.session_state else None,
+              zoom=st.session_state.get("operational_zoom"),
+              events_enabled=not st.session_state.chat_response_pending),
     width="100%", height=380,
     key=map_component_key(st.session_state.map_interaction_revision),
+    on_change=operational_map_event,
     # Map clicks can also trigger a Streamlit rerun. Do not subscribe to map
     # events while a response is streaming, or the generator can be interrupted
     # by an otherwise harmless click on a different feature.
     returned_objects=(
-        () if st.session_state.chat_response_pending else MAP_RETURNED_OBJECTS
+        () if st.session_state.chat_response_pending else (*MAP_RETURNED_OBJECTS, "center", "zoom")
     ),
 )
 

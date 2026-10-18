@@ -1,6 +1,6 @@
 # Feature Requests: Map Basemap and Layer Selection
 
-Status: proposed; documentation only, no application changes
+Status: implemented locally October 18, 2026; validation recorded below; deployment acceptance pending
 
 Requested: October 17, 2026
 
@@ -10,9 +10,9 @@ Applies to: OpenEmber Streamlit operational map and React/Vercel operational map
 
 1. **Streamlit:** Default to OpenStreetMap and allow the operator to switch away from CARTO Dark Matter without changing application configuration.
 2. **Streamlit:** Provide Select All / Unselect All to quickly show or hide all operational map overlays.
-3. **Vercel:** Provide an equivalent all-layers On/Off action while retaining individual controls. Evaluate using the existing `MAP` label as the control, highlighted when On by default.
+3. **Vercel:** Provide an equivalent all-layers On/Off action while retaining individual controls. Evaluate using the existing `MAP` label as the control, with a visible aggregate selection state.
 
-**Confirmed clarification:** For Vercel, turning layers back On must enable all eligible layers, including layers individually turned off earlier. It must not merely restore the previous selections. Apply the same Select All semantics to Streamlit for consistent behavior.
+**Confirmed clarification:** For Vercel, turning layers back On must enable all main overlays and loaded added layers, plus Phase 4 layers previously enabled individually during this session (including participating layers individually turned off earlier). Untouched Phase 4 layers stay Off. It must not merely restore the previous selections. Apply the same Select All semantics to Streamlit for consistent behavior.
 
 ## Current behavior and evaluation
 
@@ -53,14 +53,14 @@ Provide a clearly labeled **Basemap** selector, preferably in the existing layer
 
 Add adjacent **Select All** and **Unselect All** actions to the operational map layer controls, plus an `All`, `Some`, or `Off` selection indicator.
 
-- Select All enables every eligible operational overlay. Unselect All hides every operational overlay, leaving the selected basemap visible.
-- Cover the standard layers, map-ready regional layers, loaded user layers, radar, wind observations, and separate live tidal gauge overlay.
+- Select All enables every participating operational overlay. Unselect All hides every operational overlay, leaving the selected basemap visible.
+- Cover the standard layers, map-ready regional layers individually activated during the session, loaded user layers, radar, wind observations, and separate live tidal gauge overlay.
 - Keep every individual checkbox and in-map layer selection consistent with the resulting state. Individual selection remains available after either bulk action.
 - Store visibility in application/session state so a rerun, feed refresh, or map rebuild does not unexpectedly turn hidden overlays back on.
 - Add explicit visibility state for overlays that currently render solely because data exists, including live tidal gauges.
 - Update widget state through callbacks before widgets are instantiated. A client-side Folium plugin alone is insufficient unless its visibility changes are synchronized back to the application.
 
-**Acceptance:** With multiple standard, weather, regional, tidal, and user overlays present, Unselect All leaves only the basemap. Select All enables all eligible overlays, including ones individually disabled before Unselect All. The result survives a rerun and data refresh; an individual layer can still be hidden afterward.
+**Acceptance:** With multiple standard, weather, regional, tidal, and user overlays present, Unselect All leaves only the basemap. Select All enables all participating overlays, including ones individually disabled before Unselect All. The result survives a rerun and data refresh; an individual layer can still be hidden afterward.
 
 ## Request 3 — Vercel MAP all-layers control
 
@@ -80,15 +80,15 @@ The partial state matters: after an operator hides one individual layer, the mas
 
 ### Scope and state
 
-- Include the same overlay categories as the Streamlit request, where present: standard layers, map-ready regional layers, loaded ESRI layers, radar, and wind. Because this spans the current `MAP` and `WX` groups, expose the scope through nearby help text: `All map overlays, including weather and added layers`.
+- Include the same overlay categories as the Streamlit request, where present: standard layers, individually opted-in map-ready regional layers, loaded ESRI layers, radar, and wind. Because this spans the current `MAP` and `WX` groups, expose the scope through nearby help text: `Main map overlays, weather, added layers, and Phase 4 layers enabled during this session`.
 - Keep individual pills and source-card controls synchronized. Add a per-layer show/hide action for loaded ESRI layers so hidden layers can be individually re-enabled without re-adding them.
-- Default to all eligible overlays selected, matching the requested On default. This intentionally expands the current regional startup selection, which currently starts with only 311 Rockaway active. Unloaded catalog items are not auto-added.
+- **Confirmed correction, October 18, 2026:** Use the corrected startup selection in both apps: all Phase 4 layers start Off, including 311 Rockaway, NYS boundaries and utility service areas. A Phase 4 layer joins the master control only after the operator enables it individually; its participation persists for the session, including after bulk Off or an individual hide. Standard overlays and weather retain their existing startup defaults. The master state reflects only participating overlays. Untouched Phase 4 layers do not affect All/Some/Off and are not enabled by Select All. Unloaded catalog items are not auto-added.
 - Derive the master state from individual selections. Do not use an independent boolean that can disagree with the displayed layers.
 - Bulk Off preserves loaded ESRI entries, records, filters, styling, and source metadata. Implement visibility separately from removal.
-- Bulk On sets all eligible overlay states to enabled. A simple global visibility gate that restores an earlier subset does not satisfy the confirmed requirement.
+- Bulk On enables all main overlays, added layers, and eligible Phase 4 layers individually activated during this session. Never auto-enable an untouched Phase 4 layer. A simple global visibility gate that restores an earlier subset does not satisfy the confirmed requirement.
 - Keep map center, zoom, basemap, geography filters, and loaded data intact when toggling visibility.
 
-**Acceptance:** One activation from `All` hides every operational overlay, including weather and added ESRI layers. The next activation enables all eligible overlays. Turning off one individual layer produces `Some`; activating `Some` enables it again. Individual controls and the map agree after each action. Keyboard users can operate and identify the master control and its state.
+**Acceptance:** One activation from `All` hides every operational overlay, including weather and added ESRI layers. The next activation enables all participating overlays. Turning off one individual layer produces `Some`; activating `Some` enables it again. Individual controls and the map agree after each action. Keyboard users can operate and identify the master control and its state.
 
 ## Shared scope and edge cases
 
@@ -110,4 +110,20 @@ Use a common inventory of overlay IDs and effective visibility in each runtime. 
 
 Validate each app with standard layers, a regional layer, weather, and a loaded ESRI layer. In Streamlit, include separate live tidal gauges and test with and without CARTO configuration. Exercise all-to-off-to-all, a partial selection, individual re-enabling, refresh while Off, adding/removing a layer, empty/unavailable data, preserved map position, and hidden-layer chat evidence. Check keyboard operation and visible state labels. Deployment acceptance is required after any future implementation.
 
-This document records feature requests and a recommended design. Implementation, commits, publication, and deployment are separate work.
+## Local implementation — October 18, 2026
+
+Implemented in the React operational map and Streamlit operational map:
+
+- Streamlit starts on OpenStreetMap even with CARTO configured. Its session-owned Basemap selector offers CARTO only when configured and retains the map view and overlay selections.
+- Streamlit Select All / Unselect All covers standard, map-ready regional, loaded user, radar, wind, and separate live tidal overlays. Each has explicit visibility state. Folium registers hidden overlays so they can be individually enabled in-map; `OperationalLayerControl` sends stable overlay IDs through the Streamlit component event protocol, and `on_change` reconciles session/widget state before widgets render. The minimum `streamlit-folium` version is now 0.27.4.
+- React has a native tri-state checkbox labeled MAP · ALL / SOME / OFF with visible scope text. Bulk On enables all participating overlays rather than restoring an earlier subset. Added ESRI layers have separate visibility and removal actions.
+- Both runtimes preserve loaded records, filters and metadata on hide, exclude hidden added ESRI layers from visible chat evidence, clear feature inspection when visibility changes, and retain Off for newly added/available layers. Following manual review on October 18, regional startup selection was restored to no Phase 4 layers in both apps, including 311 Rockaway. Phase 4 participation in Select All is opt-in for the session after individual activation. The separate Streamlit ArcGIS Map Builder remains outside the bulk control.
+
+Local validation:
+
+- `npm run phase4:gate`: config validation, regional/Streamlit tests, production build, contract checks, Python compilation, and whitespace checks pass using a temporary Python environment with the application dependencies installed.
+- Regression coverage includes aggregate states, all/off/all overriding individual choices, removal, adding while Off, OSM/CARTO availability and defaults, rendered hidden overlays with loaded user/tidal data, actual Streamlit widget lifecycle/rerun behavior, and preservation of visibility events across competing viewport updates and rapid toggles.
+- Chrome checks on the local React app passed all/off/all, individual mixed state, native Space-key operation, loaded ESRI hide/show/removal, and hidden chat-evidence presentation. The ESRI service was intercepted with fixture data.
+- Chrome checks on a local Streamlit harness using the actual application map function and callbacks passed all/off/all, Folium-to-sidebar visibility synchronization, mixed state recovery, OSM/CARTO selector round trips, and preservation of a changed center/zoom through these actions. The harness used fixture regional and user data with a synthetic CARTO configuration; CARTO provider authorization and live feed availability are not established by these checks.
+
+Production deployment and live acceptance on Vercel and Streamlit remain pending. This work does not commit, push, publish, or deploy the implementation.
