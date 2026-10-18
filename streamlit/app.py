@@ -1521,7 +1521,7 @@ with st.sidebar:
     if not CARTO_API_KEY:
         st.caption("CARTO Dark Matter requires CARTO configuration.")
     selection = selection_state(overlay_inventory(st.session_state, eligible_operational_regions()))
-    st.caption(f"Map overlays: {selection} · includes weather, tidal, added layers and Phase 4 layers enabled this session")
+    st.caption(f"Map overlays: {selection} · includes weather, tidal, added layers and layers added from Regional Sources this session")
     select_col, unselect_col = st.columns(2)
     select_col.button("Select All", on_click=bulk_operational_visibility, args=(True,))
     unselect_col.button("Unselect All", on_click=bulk_operational_visibility, args=(False,))
