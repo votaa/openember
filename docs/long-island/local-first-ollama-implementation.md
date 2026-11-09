@@ -264,3 +264,33 @@ Protocol checked against official [chat API](https://docs.ollama.com/api/chat)
 and [installed models API](https://docs.ollama.com/api/tags). Native server
 binding and daemon cloud-disable settings are documented in the
 [Ollama FAQ](https://docs.ollama.com/faq).
+
+
+## Streamlit rerun follow-up — November 9, 2026
+
+Docker testing with native Qwen revealed that script reruns could interrupt the
+synchronous model generator despite the existing refresh guards. Inference now
+uses a session-owned worker (`streamlit/chat_job.py`) with no Streamlit calls
+from the background thread. A polling chat fragment persists its snapshots and
+shows connection/thinking/answer progress. A rerun reuses the same job and never
+replays the provider request. Prompt/evidence construction and routing contracts
+remain unchanged. Seven additional regression tests cover job lifecycle and the
+production fragment under real Streamlit AppTest widget reruns.
+
+Validation: `npm run local-first:gate` passed; full discovery passed 99 JavaScript
+and 97 Python tests, with no skips. Docker Streamlit was rebuilt and restarted
+in its original `local-only` mode. Its status confirmed native `qwen3:8b`, with
+no cloud key configured. In the browser, a real local connectivity request
+survived a deliberate full-page provider-status refresh, displayed Thinking,
+and retained its final `OK` answer. The single native `/api/chat` request
+completed successfully in about 70 seconds, beyond the 60-second refresh window.
+
+Performance/quality finding (separate follow-up): native Ollama logged 16,769
+input tokens, truncated to 2,050 for its 4,096-token context window. Prompt
+processing took about 24 seconds and generation about 40 seconds (334 tokens,
+roughly 8.3 tokens/second), plus model loading. Evidence budgeting/context sizing
+and optional thinking controls need acceptance before relying on long-context
+answers. This rerun fix does not change prompt content, model settings, or
+provider fallback behavior. No paid cloud inference or hosted deployment was
+performed.
+See [the issue record](issue-streamlit-chat-refresh.md) for lifecycle limits.

@@ -40,13 +40,12 @@ from phase4_sources import (
     phase4_source_card,
     unavailable_phase4_result,
 )
-from ollama_provider import configuration, provider_status, provider_label, stream_chat
+from ollama_provider import configuration, provider_status, provider_label
+from chat_job import ChatJob, sync_chat_job
 from chat_state import (
     background_refresh_allowed,
     begin_chat_response,
-    finish_chat_response,
     recover_interrupted_responses,
-    update_chat_response,
 )
 from copilot_prompt import (
     build_copilot_system_prompt,
@@ -1283,11 +1282,12 @@ for overlay_key in STANDARD_IDS:
     st.session_state.setdefault(f"map_{overlay_key}", True)
 
 
-# A widget-triggered rerun can interrupt the synchronous Ollama generator after
-# its placeholder is persisted. Recover that placeholder before processing the
-# next event so the transcript never appears permanently stuck.
-if recover_interrupted_responses(st.session_state.messages):
-    st.session_state.chat_response_pending = False
+# Inference runs outside the script runner. Reruns copy its latest snapshot
+# rather than treating a live worker as an abandoned streaming placeholder.
+sync_chat_job(st.session_state)
+if not st.session_state.get("chat_job") and "pending_query" not in st.session_state:
+    if recover_interrupted_responses(st.session_state.messages):
+        st.session_state.chat_response_pending = False
 
 
 def refresh_phase4_sources():
@@ -2384,9 +2384,52 @@ with tab_esri:
 
 # ── Chat Tab ──────────────────────────────────────────────────────────────────
 with tab_chat:
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    def prepare_chat_job(prompt):
+        assistant_index = st.session_state.get("chat_preparation_index")
+        if assistant_index is None:
+            assistant_index = begin_chat_response(st.session_state.messages, prompt)
+            st.session_state.chat_preparation_index = assistant_index
+        ctx = build_context(
+            st.session_state.files, st.session_state.api_results,
+            active_kb, st.session_state.esri_items,
+            st.session_state.get("noaa_items", []),
+            st.session_state.get("gauge_data", {}),
+            st.session_state.phase4_results,
+        )
+        ctx += map_layer_context(current_map_evidence(prompt))
+        msgs = [
+            {"role": m["role"], "content": m["content"]}
+            for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
+        ]
+        payload = [{"role": "system", "content": build_copilot_system_prompt(CFG.name, ctx)}] + msgs[-10:]
+        st.session_state.pop("ollama_error", None)
+        st.session_state.chat_job = ChatJob(payload, OLLAMA_CONFIG, assistant_index)
+        # The stored job is resumable even if a script rerun arrives here.
+        sync_chat_job(st.session_state)
+
+    if "pending_query" in st.session_state and not st.session_state.get("chat_job"):
+        if not st.session_state.chat_response_pending:
+            st.session_state.chat_response_pending = True
+            st.rerun()
+        prepare_chat_job(st.session_state.pending_query)
+
+    @st.fragment(run_every=0.5 if st.session_state.get("chat_job") else None)
+    def render_chat_messages():
+        completed = sync_chat_job(st.session_state)
+        for index, msg in enumerate(st.session_state.messages):
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+                job = st.session_state.get("chat_job")
+                if job and index == job.assistant_index:
+                    snapshot = job.snapshot()
+                    st.caption(snapshot["phase"])
+                    if snapshot["provider"]:
+                        st.caption(provider_label(snapshot["provider"]))
+        if completed:
+            # Re-enable inputs, map events and the normal feed-refresh timer.
+            st.rerun()
+
+    render_chat_messages()
 
     with st.expander("▸ Quick Queries"):
         qcols = st.columns(2)
@@ -2408,61 +2451,9 @@ with tab_chat:
             ):
                 st.session_state.pending_query = q
 
-    def run_query(prompt):
-        assistant_index = begin_chat_response(st.session_state.messages, prompt)
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        ctx  = build_context(
-            st.session_state.files, st.session_state.api_results,
-            active_kb, st.session_state.esri_items,
-            st.session_state.get("noaa_items", []),
-            st.session_state.get("gauge_data", {}),
-            st.session_state.phase4_results,
-        )
-        ctx += map_layer_context(current_map_evidence(prompt))
-        msgs = [
-            {"role": m["role"], "content": m["content"]}
-            for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
-        ]
-        with st.chat_message("assistant"):
-            placeholder = st.empty()
-            full = ""
-            response_metadata = None
-            st.session_state.pop("ollama_error", None)
-            try:
-                payload = [{"role": "system", "content": build_copilot_system_prompt(CFG.name, ctx)}] + msgs[-10:]
-                for frame in stream_chat(payload, OLLAMA_CONFIG):
-                    if frame.get("provider"):
-                        response_metadata = frame["provider"]
-                        st.session_state.ollama_provider = frame["provider"]
-                        st.session_state.messages[assistant_index]["provider"] = frame["provider"]
-                        st.caption(provider_label(frame["provider"]))
-                        continue
-                    if frame.get("error"):
-                        full += "\n\n⚠ " + frame["error"]["message"]
-                        st.session_state.ollama_error = frame["error"]
-                    token = frame.get("message", {}).get("content", "")
-                    full += token
-                    update_chat_response(st.session_state.messages, assistant_index, full)
-                    if response_metadata:
-                        st.session_state.messages[assistant_index]["provider"] = response_metadata
-                    placeholder.markdown(full + "▋")
-            except Exception as exc:
-                full += f"\n\n⚠ Chat response interrupted: {exc}"
-            finally:
-                metadata = response_metadata
-                finish_chat_response(st.session_state.messages, assistant_index, full)
-                if metadata:
-                    st.session_state.messages[assistant_index]["provider"] = metadata
-                st.session_state.chat_response_pending = False
-            placeholder.markdown(full)
-        st.rerun()
-
     if "pending_query" in st.session_state:
-        if not st.session_state.chat_response_pending:
-            st.session_state.chat_response_pending = True
-            st.rerun()
-        run_query(st.session_state.pop("pending_query"))
+        st.session_state.chat_response_pending = True
+        st.rerun()
 
     def queue_chat_prompt():
         if st.session_state.chat_response_pending:
