@@ -1,0 +1,115 @@
+import sys
+import json
+import unittest
+from pathlib import Path
+from unittest.mock import Mock
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'streamlit'))
+from ollama_provider import configuration, stream_chat, provider_status, ProviderError
+
+
+class Response:
+    def __init__(self, frames=(), status=200, models=None):
+        self.status_code, self.frames, self.models = status, frames, models
+        self.closed = False
+    def __enter__(self): return self
+    def __exit__(self, *_): self.closed = True
+    def json(self): return {'models': self.models}
+    def iter_lines(self, **kwargs):
+        for frame in self.frames:
+            if isinstance(frame, Exception): raise frame
+            yield frame if isinstance(frame, str) else json.dumps(frame)
+
+
+ANSWER = {'message': {'content': 'Answer'}, 'done': True}
+MESSAGES = [{'role': 'system', 'content': 'grounded'}, {'role': 'user', 'content': 'question'}]
+
+
+def config(**env):
+    values = {'OLLAMA_API_KEY': 'test-secret', **env}
+    return configuration(lambda key, default='': values.get(key, default))
+
+
+def mock(models=None, local=None, cloud=None):
+    http = Mock()
+    http.get.return_value = Response(models=[{'name': 'qwen3:8b'}] if models is None else models)
+    http.post.side_effect = lambda url, **kwargs: (cloud or Response([ANSWER])) if url.startswith('https://ollama.com') else (local or Response([ANSWER]))
+    return http
+
+
+class OllamaTests(unittest.TestCase):
+    def test_configuration(self):
+        self.assertEqual(config()['mode'], 'local-first')
+        self.assertEqual(config(OLLAMA_CLOUD_MODEL='custom')['cloud_model'], 'custom')
+        self.assertEqual(config(OLLAMA_MODEL='legacy')['cloud_model'], 'legacy')
+        for env in ({'OLLAMA_MODE': 'oops'}, {'OLLAMA_STREAM_TIMEOUT_MS': '-1'}, {'OLLAMA_LOCAL_HOST': 'ftp://invalid'}):
+            with self.assertRaises(ProviderError): config(**env)
+
+    def test_local_without_key_no_cloud_or_credentials(self):
+        http = mock()
+        result = list(stream_chat(MESSAGES, config(OLLAMA_API_KEY=''), http))
+        self.assertEqual(result[0]['provider']['provider'], 'local')
+        self.assertEqual(http.post.call_count, 1)
+        args = http.post.call_args.kwargs
+        self.assertNotIn('Authorization', args['headers'])
+        self.assertEqual(args['json']['messages'], MESSAGES)
+        self.assertTrue(http.get.return_value.closed)
+
+    def test_fallback_cases(self):
+        cases = [mock(models=[]), mock(models=[{'name': 'qwen3:8b', 'remote_host': 'ollama.com'}])]
+        cases += [mock(local=Response(status=s)) for s in (401, 404, 429, 500)]
+        cases += [mock(local=Response([frame])) for frame in ('bad', {'error': 'private'}, None)]
+        cases += [mock(local=Response([]))]
+        for http in cases:
+            with self.subTest(http=http):
+                result = list(stream_chat(MESSAGES, config(), http))
+                self.assertEqual(result[0]['provider']['provider'], 'cloud')
+                self.assertTrue(result[0]['provider']['fallback'])
+                self.assertIn('code', result[0]['provider']['attempts'][0])
+                self.assertNotIn('private', json.dumps(result))
+                self.assertEqual(http.post.call_args.kwargs['headers']['Authorization'], 'Bearer test-secret')
+
+    def test_probe_failure_and_timeout_fallback(self):
+        import requests
+        for exc in (requests.exceptions.ConnectionError(), requests.exceptions.Timeout()):
+            http = mock(); http.get.side_effect = exc
+            result = list(stream_chat(MESSAGES, config(), http))
+            self.assertEqual(result[0]['provider']['provider'], 'cloud')
+
+    def test_local_only_never_cloud(self):
+        http = mock(models=[])
+        result = list(stream_chat(MESSAGES, config(OLLAMA_MODE='local-only'), http))
+        self.assertEqual(result[-1]['error']['code'], 'no_provider'); http.post.assert_not_called()
+
+    def test_cloud_only_never_local_and_missing_key_no_request(self):
+        http = mock()
+        result = list(stream_chat(MESSAGES, config(OLLAMA_MODE='cloud-only'), http))
+        self.assertEqual(result[0]['provider']['provider'], 'cloud'); http.get.assert_not_called()
+        http = mock()
+        result = list(stream_chat(MESSAGES, config(OLLAMA_MODE='cloud-only', OLLAMA_API_KEY=''), http))
+        self.assertEqual(result[-1]['error']['code'], 'no_provider'); http.post.assert_not_called()
+
+    def test_partial_or_thinking_prevents_fallback(self):
+        for frame in ({'message': {'content': 'partial'}}, {'message': {'thinking': 'thought'}}):
+            for ending in ('bad', {'error': 'private'}, RuntimeError('private')):
+                response = Response([frame, ending]); http = mock(local=response)
+                result = list(stream_chat(MESSAGES, config(), http))
+                self.assertTrue(result[-1]['error']['partial']); self.assertEqual(http.post.call_count, 1)
+                self.assertTrue(response.closed)
+
+    def test_early_eof(self):
+        http = mock(local=Response([{'message': {'content': 'partial'}}]))
+        result = list(stream_chat(MESSAGES, config(), http))
+        self.assertEqual(result[-1]['error']['code'], 'interrupted'); self.assertEqual(http.post.call_count, 1)
+
+    def test_generator_close_closes_response(self):
+        response = Response([{'message': {'content': 'partial'}}, ANSWER]); http = mock(local=response)
+        iterator = stream_chat(MESSAGES, config(), http); next(iterator); iterator.close()
+        self.assertTrue(response.closed); self.assertEqual(http.post.call_count, 1)
+
+    def test_status_no_cloud_calls_no_secret(self):
+        http = mock(); status = provider_status(config(), http)
+        self.assertEqual(status['provider'], 'local'); self.assertFalse(status['cloud']['verified'])
+        self.assertNotIn('test-secret', json.dumps(status)); http.post.assert_not_called()
+
+
+if __name__ == '__main__': unittest.main()

@@ -1,3 +1,4 @@
+import { streamChat, getProviderStatus, providerLabel } from './ollama-client.js'
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
@@ -82,9 +83,7 @@ const CFG = {
 const NWS_ALERT_URL    = _NWS.alert_url    || `https://api.weather.gov/alerts/active?area=${CFG.state}`
 const NWS_FORECAST_URL = _NWS.forecast_url || `https://api.weather.gov/gridpoints/OKX/33,37/forecast`
 const SOCRATA_DOMAIN   = _SOC.domain       || "data.cityofnewyork.us"
-const OLLAMA_HOST        = import.meta.env?.VITE_OLLAMA_HOST  || "https://ollama.com"
-const OLLAMA_MODEL       = import.meta.env?.VITE_OLLAMA_MODEL || "gpt-oss:120b-cloud"
-const OLLAMA_KEY_ENV     = import.meta.env?.VITE_OLLAMA_API_KEY || ""
+
 const NYC_OPEN_DATA_TOKEN_ENV = import.meta.env?.VITE_NYC_OPEN_DATA_APP_TOKEN || ""
 const CARTO_TILE_URL     = appendCartoApiKey(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
@@ -155,14 +154,6 @@ const DEFAULT_KB_TEXT = {
   criticalInfrastructure: "List key hospitals (with trauma level), power substations, water/wastewater plants, transit hubs.\nNote any facilities in flood zones.",
   hazardProfiles: "Describe primary hazards for your jurisdiction.\nInclude historical events and typical impacts.",
   resources: "Emergency Management: [phone] | [website]\nFire: 911 | Police: 911\nAdd your local emergency contacts here.",
-}
-
-// Runtime key
-function getRuntimeKey() {
-  try { return sessionStorage.getItem("ember_ollama_key") || OLLAMA_KEY_ENV } catch { return OLLAMA_KEY_ENV }
-}
-function setRuntimeKey(k) {
-  try { sessionStorage.setItem("ember_ollama_key", k) } catch {}
 }
 
 function getNycOpenDataToken() {
@@ -309,67 +300,6 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
     files.forEach(f => { ctx += `[${f.name}]\n${f.content.substring(0,4000)}\n\n` })
   }
   return ctx
-}
-
-async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name) {
-  const key = apiKey || getRuntimeKey()
-
-  // Build the system prompt + message array
-  const system = buildCopilotSystemPrompt(jurisdictionName, context)
-  const allMessages = [
-    { role: "system", content: system },
-    ...messages.slice(-10),
-  ]
-
-  // Use the server-side proxy (/api/chat) to avoid CORS.
-  // Pass the user's runtime key as a header if not baked in at build time.
-  const headers = { "Content-Type": "application/json" }
-  if (key && !import.meta.env?.VITE_OLLAMA_API_KEY) {
-    headers["x-ollama-key"] = key
-  }
-
-  let res
-  try {
-    res = await fetch("/api/chat", {
-      method:  "POST",
-      headers,
-      body:    JSON.stringify({ messages: allMessages, model: OLLAMA_MODEL }),
-      signal,
-    })
-  } catch (e) {
-    yield `⚠ Network error: ${e.message}\n\nMake sure the app is deployed on Vercel (the /api/chat proxy is required). It won't work on a plain static host.`
-    return
-  }
-
-  if (!res.ok) {
-    let errMsg = `HTTP ${res.status}`
-    try { const j = await res.json() ; errMsg = j.error || errMsg } catch {}
-    if (res.status === 401) {
-      yield `⚠ No API key configured.\n\nGo to your Vercel dashboard → Project → Settings → Environment Variables and add:\n  OLLAMA_API_KEY = your_key_here\n\nGet a free key at: https://ollama.com/settings/keys\n\nThen redeploy.`
-    } else {
-      yield `⚠ Ollama error: ${errMsg}`
-    }
-    return
-  }
-
-  // Stream NDJSON lines from the proxy
-  const reader = res.body.getReader()
-  const dec = new TextDecoder()
-  let buf = ""
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buf += dec.decode(value, { stream: true })
-    const lines = buf.split("\n") ; buf = lines.pop()
-    for (const line of lines) {
-      if (!line.trim()) continue
-      try {
-        const obj = JSON.parse(line)
-        if (obj.message?.content) yield obj.message.content
-        if (obj.done) return
-      } catch {}
-    }
-  }
 }
 
 // ── Full NOAA endpoint catalogue ──────────────────────────────────────────────
@@ -823,10 +753,16 @@ export default function App() {
     setLocalConfig(merged)
     if (!saveLocalConfig(merged)) console.warn("EMBER config could not be saved to localStorage")
   }
-  const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: Ollama Cloud · ${OLLAMA_MODEL}${!getRuntimeKey()?" · ⚠ NO API KEY":""  }\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
+  const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: checking Ollama provider status\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
   const [input, setInput]               = useState("")
-  const [keyInput, setKeyInput]         = useState("")
-  const [runtimeKey, setRuntimeKeyState]= useState(getRuntimeKey)
+  const [providerStatus, setProviderStatus] = useState(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    getProviderStatus({ signal: controller.signal }).then(setProviderStatus).catch(error => {
+      if (!controller.signal.aborted) setProviderStatus({ available: false, message: error.message })
+    })
+    return () => controller.abort()
+  }, [])
   const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
@@ -939,7 +875,6 @@ export default function App() {
     setEsriMapLayers(previous => Object.fromEntries(Object.entries(previous).map(([id, layer]) => [id, {...layer, visible:enabled}])))
   }
   const mapLayersVersion = JSON.stringify(ML_RT)
-  const setRuntimeKey_ = (k) => { setRuntimeKeyState(k); setRuntimeKey(k); setKeyInput("") }
   const setNycOpenDataToken_ = (token) => {
     const nextToken = token.trim()
     clearPhase4SourceCache()
@@ -1064,18 +999,25 @@ export default function App() {
     let full = ""
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
     try {
-      for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name,
+      for await (const token of streamChat(
+        [{ role: "system", content: buildCopilotSystemPrompt(CFG_RT.name, ctx) }, ...msgs.slice(-10)],
+        { signal: abortRef.current.signal, onProvider: metadata => {
+          setProviderStatus({ ...metadata, available: true })
+          setMessages(p => [...p.slice(0,-1), { ...p.at(-1), provider: metadata }])
+        } },
       )) {
         full += token
-        setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])
+        setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full+"▋"}])
       }
     } catch(e) {
-      if (e.name!=="AbortError") full += `\n\n⚠ Error: ${e.message}`
+      if (e.name!=="AbortError") {
+        full += `\n\n⚠ Error: ${e.message}`
+        setProviderStatus(previous => ({ ...previous, available: false, message: e.message }))
+      }
     }
-    setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
+    setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, CFG_RT.name])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()
@@ -1109,22 +1051,15 @@ export default function App() {
         </div>
         <div style={{display:"flex",gap:14,alignItems:"center",fontSize:9.5}}>
           {statusDot(true,"ACTIVE")}
-          {statusDot(!!runtimeKey, runtimeKey?`OLLAMA · ${OLLAMA_MODEL}`:"NO API KEY")}
+          {statusDot(providerStatus?.available ?? null, providerStatus?.available === false ? "PROVIDER ERROR" : providerLabel(providerStatus))}
           {statusDot(apiStatus==="live"?true:apiStatus==="error"?false:null, apiStatus==="live"?"FEEDS LIVE":apiStatus==="error"?"FEED ERR":"FEEDS IDLE")}
         </div>
       </div>
 
-      {!runtimeKey && (
-        <div style={{flexShrink:0,background:"#1a0808",borderBottom:"1px solid #3a1010",padding:"5px 18px",fontSize:10,color:"#f87171",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-          <span>⚠ No Ollama API key — add <code style={{background:"#2a0808",padding:"1px 5px",borderRadius:3}}>OLLAMA_API_KEY</code> to Vercel env vars &amp; redeploy ·{" "}
-            <a href="https://ollama.com/settings/keys" target="_blank" rel="noopener noreferrer" style={{color:"#f87171"}}>Get a free key</a>
-          </span>
-          <span style={{color:"#556",fontSize:9}}>or enter for this session:</span>
-          <input value={keyInput} onChange={e=>setKeyInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&setRuntimeKey_(keyInput)} placeholder="sk-..." type="password"
-            style={{background:"#1a0808",border:"1px solid #f8717144",borderRadius:4,padding:"2px 8px",color:"#f87171",fontFamily:"monospace",fontSize:10,outline:"none",width:180}}/>
-          <button onClick={()=>setRuntimeKey_(keyInput)} style={{padding:"2px 10px",borderRadius:4,background:"#e8372c",border:"none",color:"#fff",fontFamily:"monospace",fontSize:10,fontWeight:700,cursor:"pointer"}}>Save</button>
-        </div>
-      )}
+      <div role="status" style={{padding:"5px 18px",fontSize:10,color:providerStatus?.available === false ? "#f87171" : "#9ca3af"}}>
+        {providerLabel(providerStatus)}{providerStatus?.message ? ` — ${providerStatus.message}` : ""}
+        <button onClick={() => getProviderStatus().then(setProviderStatus).catch(error => setProviderStatus({available:false,message:error.message}))} style={{marginLeft:12,background:"#111820",color:"#aab",border:"1px solid #2a2e3a",borderRadius:4,fontFamily:"inherit",fontSize:10,cursor:"pointer"}}>Refresh provider status</button>
+      </div>
 
       {/* Control rail */}
       <div style={{flexShrink:0,padding:"6px 18px",borderBottom:"1px solid #0f1218",background:"#090c12",display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>

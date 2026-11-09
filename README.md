@@ -2,91 +2,31 @@
 
 AI-powered situational awareness for emergency managers across Nassau County, Suffolk County, and the Rockaway / Queens Community Board 14 operating area. EMBER combines configured knowledge-base content, live weather and water data, regional source feeds, ArcGIS/Living Atlas layers, map visualization, and advisory chat.
 
-**Backend:** [Ollama Cloud](https://docs.ollama.com/cloud) — fully hosted, no local GPU needed.
+**Backend:** native Ollama locally, with optional Ollama Cloud fallback. Vercel
+always uses cloud-only routing. See the [local-first setup and implementation
+record](docs/long-island/local-first-ollama-implementation.md) for the configuration
+contract, Docker instructions, troubleshooting, decisions, and test results.
 
----
+## Local quickstart
 
-## Quickstart (2 steps)
+Install Node 20+ and native [Ollama](https://ollama.com/download), then:
 
-### 1. Get an Ollama Cloud API key
-Create a free account and generate a key at:
-**https://ollama.com/settings/keys**
-
-### 2. Pull the cloud model
 ```bash
-ollama signin
-ollama pull gpt-oss:120b-cloud
-```
-
----
-
-## Option A — React/Vite → Vercel
-
-### Local dev
-```bash
-git clone https://github.com/votaa/openember.git
-cd openember
-npm install
+ollama pull qwen3:8b
+npm ci
 npm run dev
-# → http://localhost:3000
+# Open http://localhost:3000
 ```
 
-The React development server runs on port `3000`. The repository does not
-currently include an `.env.example` file; configure deployment secrets through
-the hosting provider or use the in-app session key field for a local chat smoke
-test.
+Start the Ollama macOS application (or `ollama serve` in another terminal) first.
+Chat uses the installed model without an API key. Local-first fallback needs an
+optional **server-side** `OLLAMA_API_KEY`. Set `OLLAMA_MODE=local-only` to prohibit
+cloud requests. Copy `.env.example` to `.env.local` only if that file does not
+already exist; otherwise merge the documented settings without overwriting it.
+Never put an Ollama key in a `VITE_*` variable.
 
-### Deploy to Vercel
-```bash
-npm i -g vercel
-vercel login
-vercel --prod
-```
-
-Or: connect the GitHub repo at **vercel.com** → it auto-detects Vite.
-
-**Add env vars in Vercel dashboard** (Settings → Environment Variables):
-| Key | Value |
-|-----|-------|
-| `OLLAMA_API_KEY` | `your_key_here` |
-| `OLLAMA_HOST` | `https://ollama.com` |
-| `OLLAMA_MODEL` | `gpt-oss:120b-cloud` |
-| `VITE_NYC_OPEN_DATA_APP_TOKEN` | `your_socrata_app_token` |
-| `VITE_CARTO_API_KEY` | `your_carto_key_here` |
-
-Keep `OLLAMA_API_KEY` server-side in Vercel. `VITE_*` variables are
-browser-visible build-time values and should not be used for production
-secrets.
-
----
-
-## Option B — Streamlit → Streamlit Cloud
-
-### Local dev
-```bash
-cd streamlit/
-pip install -r requirements.txt
-export OLLAMA_API_KEY=your_key_here
-streamlit run app.py
-# → http://localhost:8501
-```
-
-The Ollama key is optional for a local map/data smoke test. If no
-`secrets.toml` or `OLLAMA_API_KEY` is configured, the app launches and marks
-chat as unavailable until a key is provided.
-
-### Deploy to Streamlit Cloud
-1. Push repo to GitHub
-2. Go to **https://share.streamlit.io** → New app
-3. Set **Main file path**: `streamlit/app.py`
-4. **Settings → Secrets** — add:
-```toml
-OLLAMA_API_KEY = "your_key_here"
-OLLAMA_HOST    = "https://ollama.com"
-OLLAMA_MODEL   = "gpt-oss:120b-cloud"
-CARTO_API_KEY  = "your_carto_key_here"
-```
-5. Deploy — no server management, free tier available.
+For Python/Streamlit, Docker, hosted configuration, and validation, use the
+[setup guide](docs/long-island/local-first-ollama-implementation.md#startup).
 
 ---
 
@@ -204,28 +144,20 @@ See full list: https://ollama.com/search?c=cloud
 npm run build
 npm run test:regional
 npm run test:streamlit
-npm run phase4:gate
+npm run local-first:gate
 ```
 
 ---
 
 ## Environment Variables
 
-### React/Vite (.env.local)
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VITE_OLLAMA_API_KEY` | — | Optional browser-visible Ollama key for local/session use; prefer server-side `OLLAMA_API_KEY` in Vercel |
-| `VITE_OLLAMA_HOST` | `https://ollama.com` | Ollama Cloud base URL |
-| `VITE_OLLAMA_MODEL` | `gpt-oss:120b-cloud` | Model name |
-| `VITE_NYC_OPEN_DATA_APP_TOKEN` | — | Optional browser-visible Socrata app token for Phase 4 NYC Open Data requests |
-| `VITE_CARTO_API_KEY` | — | Optional browser-visible CARTO basemap key; OpenStreetMap fallback is used when absent |
+All Ollama settings are server-only. See the [configuration contract](docs/long-island/local-first-ollama-implementation.md#configuration-contract)
+and `.env.example`. Defaults are local-first, `qwen3:8b` locally, and
+`gpt-oss:120b-cloud` in cloud. Vercel forces cloud-only.
 
-For Vercel deployments, prefer the server-side `OLLAMA_API_KEY`, `OLLAMA_HOST`,
-and `OLLAMA_MODEL` variables used by `api/chat.js`. A `VITE_OLLAMA_API_KEY`
-value is browser-visible and should not be treated as a production secret.
-
-### Streamlit (secrets or env)
-Same keys without the `VITE_` prefix: `OLLAMA_API_KEY`, `OLLAMA_HOST`, `OLLAMA_MODEL`.
+React's optional `VITE_NYC_OPEN_DATA_APP_TOKEN` (Socrata) and `VITE_CARTO_API_KEY`
+(basemap) remain browser-visible build-time settings. They are unrelated to
+Ollama credentials. Never use `VITE_OLLAMA_API_KEY`.
 
 ---
 

@@ -17,6 +17,10 @@ This guide walks you through forking the repository, configuring it for your jur
 
 ---
 
+For local native Ollama, Docker, routing modes, and the current configuration
+contract, use the [local-first setup guide](docs/long-island/local-first-ollama-implementation.md).
+The hosted steps below use cloud-only routing.
+
 ## Prerequisites
 
 You will need:
@@ -26,7 +30,7 @@ You will need:
 - A **Streamlit Cloud account** — [share.streamlit.io](https://share.streamlit.io) (free, sign in with GitHub)
 - An **Ollama Cloud API key** — [ollama.com/settings/keys](https://ollama.com/settings/keys) (free)
 - **Git** installed on your computer — [git-scm.com](https://git-scm.com)
-- **Node.js 18+** installed — [nodejs.org](https://nodejs.org) (only needed if running locally)
+- **Node.js 20+** installed — [nodejs.org](https://nodejs.org) (only needed if running locally)
 
 ---
 
@@ -221,8 +225,8 @@ Vercel is a free hosting platform that auto-deploys from GitHub. Every time you 
 | Name | Value |
 |------|-------|
 | `OLLAMA_API_KEY` | `sk-your_key_here` |
-| `OLLAMA_HOST` | `https://ollama.com` |
-| `OLLAMA_MODEL` | `gpt-oss:120b-cloud` |
+| `OLLAMA_MODE` | `cloud-only` |
+| `OLLAMA_CLOUD_MODEL` | `gpt-oss:120b-cloud` |
 
 4. Click **Save** on each one
 
@@ -272,8 +276,8 @@ Click **Advanced settings** before deploying. In the **Secrets** section, paste:
 
 ```toml
 OLLAMA_API_KEY = "sk-your_key_here"
-OLLAMA_HOST    = "https://ollama.com"
-OLLAMA_MODEL   = "gpt-oss:120b-cloud"
+OLLAMA_MODE = "cloud-only"
+OLLAMA_CLOUD_MODEL = "gpt-oss:120b-cloud"
 CARTO_API_KEY  = "your_carto_key_here"
 ```
 
@@ -394,7 +398,7 @@ All data sources used by EMBER are free and require no API key:
 | [ArcGIS Online](https://www.arcgis.com) | Public feature layers, Living Atlas datasets |
 | [Socrata SODA API](https://dev.socrata.com) | City-specific open data (311, incidents, facilities) |
 
-The AI backend uses **Ollama Cloud** (`gpt-oss:120b-cloud`). A free account includes sufficient quota for typical emergency management use. See [ollama.com/pricing](https://ollama.com/pricing) for details.
+The hosted AI backend uses **Ollama Cloud** (`gpt-oss:120b-cloud`); local development defaults to native Ollama (`qwen3:8b`). Check current account limits before using cloud inference. See [ollama.com/pricing](https://ollama.com/pricing) for details.
 
 ---
 

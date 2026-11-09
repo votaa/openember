@@ -14,7 +14,11 @@
     "phase3:gate": "npm run validate-config && npm run test:regional && npm run test:streamlit && npm run build && node scripts/validate-phase-3.js && PYTHONPYCACHEPREFIX=/private/tmp/openember-phase3-pycache python3 -m py_compile streamlit/config_loader.py streamlit/copilot_prompt.py streamlit/map_interaction.py streamlit/regional_normalization.py streamlit/regional_geography.py streamlit/regional_observations.py streamlit/tidal_gauges.py streamlit/app.py && git diff --check",
     "phase4:gate": "npm run phase3:gate && node scripts/validate-phase-4.js && PYTHONPYCACHEPREFIX=/private/tmp/openember-phase4-pycache python3 -m py_compile streamlit/arcgis_map_layers.py streamlit/map_layer_evidence.py streamlit/phase4_sources.py streamlit/map_builder_filters.py streamlit/map_builder_state.py && git diff --check",
     "prebuild": "npm run build-config",
-    "predev": "npm run build-config"
+    "predev": "npm run build-config",
+    "start": "node server.js",
+    "test:ollama": "node --test tests/ollama.test.js tests/ollama-node.test.js && python3 -m unittest tests/test_ollama_provider.py",
+    "test:ollama:local": "node scripts/test-ollama-local.js",
+    "local-first:gate": "npm run phase4:gate && npm run test:ollama && python3 -m py_compile streamlit/ollama_provider.py && git diff --check"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

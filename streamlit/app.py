@@ -1,10 +1,10 @@
 """
 EMBER — Emergency Management Body of Evidence & Resources
-Streamlit version · Ollama Cloud · configurable jurisdiction
+Streamlit version · local-first Ollama · configurable jurisdiction
 
 Run:
     pip install -r requirements.txt
-    export OLLAMA_API_KEY=your_key_here
+    ollama pull qwen3:8b  # native Ollama; cloud key is optional
     streamlit run streamlit/app.py
 """
 
@@ -14,7 +14,6 @@ import json, os, re, time as _time, datetime as _dt
 from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
 import folium, requests, streamlit as st
-from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit.errors import StreamlitSecretNotFoundError
 from streamlit_folium import st_folium
 from streamlit_autorefresh import st_autorefresh
@@ -41,6 +40,7 @@ from phase4_sources import (
     phase4_source_card,
     unavailable_phase4_result,
 )
+from ollama_provider import configuration, provider_status, provider_label, stream_chat
 from chat_state import (
     background_refresh_allowed,
     begin_chat_response,
@@ -112,12 +112,9 @@ def _setting(name: str, default: str = "") -> str:
     return str(value) if value not in (None, "") else os.environ.get(name, default)
 
 
-OLLAMA_API_KEY = _setting("OLLAMA_API_KEY")
-OLLAMA_HOST    = _setting("OLLAMA_HOST", "https://ollama.com")
-OLLAMA_MODEL   = _setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")
+OLLAMA_CONFIG = configuration(_setting)
 CARTO_API_KEY  = _setting("CARTO_API_KEY")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
-OLLAMA_HEADERS = {"Content-Type": "application/json", "Authorization": f"Bearer {OLLAMA_API_KEY}"}
 GAUGE_STATION_IDS = tuple(CFG.flood_thresholds_dict.keys()) or tuple(FLOOD_THRESHOLDS.keys())
 
 
@@ -284,14 +281,6 @@ ITEM_TYPES = ["", "Feature Layer", "Map Service", "Image Service",
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER FUNCTIONS — all defined at module level before any UI code
 # ═══════════════════════════════════════════════════════════════════════════════
-
-def ping_ollama():
-    if not OLLAMA_API_KEY: return "no-key"
-    try:
-        r = requests.get(f"{OLLAMA_HOST}/api/tags", headers=OLLAMA_HEADERS, timeout=5)
-        return r.ok
-    except:
-        return False
 
 def fetch_live(ep):
     try:
@@ -934,28 +923,6 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         for item in esri_items: ctx += item["content"] + "\n\n"
     return ctx
 
-def stream_ollama(messages, context):
-    if not OLLAMA_API_KEY:
-        yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
-        return
-    system_prompt = build_copilot_system_prompt(CFG.name, context)
-    payload = {"model": OLLAMA_MODEL, "stream": True,
-               "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
-    try:
-        with requests.post(f"{OLLAMA_HOST}/api/chat", json=payload,
-                           headers=OLLAMA_HEADERS, stream=True, timeout=90) as resp:
-            resp.raise_for_status()
-            for line in resp.iter_lines():
-                if line:
-                    obj   = json.loads(line)
-                    token = obj.get("message", {}).get("content", "")
-                    if token: yield token
-                    if obj.get("done"): return
-    except requests.exceptions.HTTPError as e:
-        yield f"\n\n⚠ Ollama Cloud error {e.response.status_code}: {e.response.text[:200]}"
-    except Exception as e:
-        yield f"\n\n⚠ Connection error: {e}"
-
 def search_agol(query, filter_expr="", item_type="", num=8, start=1):
     q      = query.strip() or "*"
     scope  = ["access:public"]
@@ -1236,7 +1203,7 @@ def add_map_builder_feature_layer(item_id: str, item_title: str, layer_choice: d
 for k, v in [
     ("messages",     [{"role": "assistant", "content":
                         f"EMBER initialized — Emergency Management Body of Evidence & Resources\n"
-                        f"Backend: Ollama Cloud · {OLLAMA_MODEL}\nJurisdiction: {CFG.name}\n\n"
+                        f"Backend: {OLLAMA_CONFIG['mode']}\nJurisdiction: {CFG.name}\n\n"
                         f"Knowledge base loaded · NOAA feeds auto-fetching · Radar & wind on by default\n"
                         f"Tidal gauges: fetching live CO-OPS water levels for all NY stations\n"
                         f"Click a map marker or type a query to begin."}]),
@@ -1497,16 +1464,21 @@ st.session_state.known_ready_regions = ready_regions
 
 with st.sidebar:
     st.markdown(f"## {CFG.logo_emoji} {CFG.app_title}")
-    st.caption(f"Ollama Cloud · {OLLAMA_MODEL} · {CFG.name}")
+    st.caption(f"Ollama · {OLLAMA_CONFIG['mode']} · {CFG.name}")
+    @st.cache_data(ttl=30, show_spinner=False)
+    def cached_provider_status(cfg):
+        return provider_status(cfg)
+    status = cached_provider_status(OLLAMA_CONFIG)
+    st.caption(provider_label(status))
+    st.caption(status["message"])
+    if st.button("Refresh provider status"):
+        cached_provider_status.clear()
+        st.rerun()
+    if st.session_state.get("ollama_provider"):
+        st.caption("Last response: " + provider_label(st.session_state.ollama_provider))
 
-    status = ping_ollama()
-    if status == "no-key":
-        st.markdown('<span class="pill p-yellow">⚠ NO API KEY</span>', unsafe_allow_html=True)
-        st.info("Set OLLAMA_API_KEY. Get one at ollama.com/settings/keys")
-    elif status is True:
-        st.markdown('<span class="pill p-green">● OLLAMA CLOUD OK</span>', unsafe_allow_html=True)
-    else:
-        st.markdown('<span class="pill p-red">● CLOUD UNREACHABLE</span>', unsafe_allow_html=True)
+    if st.session_state.get("ollama_error"):
+        st.warning(st.session_state.ollama_error["message"])
 
     st.divider()
     st.markdown("**KNOWLEDGE BASE**")
@@ -2455,15 +2427,33 @@ with tab_chat:
         with st.chat_message("assistant"):
             placeholder = st.empty()
             full = ""
+            response_metadata = None
+            st.session_state.pop("ollama_error", None)
             try:
-                for token in stream_ollama(msgs, ctx):
+                payload = [{"role": "system", "content": build_copilot_system_prompt(CFG.name, ctx)}] + msgs[-10:]
+                for frame in stream_chat(payload, OLLAMA_CONFIG):
+                    if frame.get("provider"):
+                        response_metadata = frame["provider"]
+                        st.session_state.ollama_provider = frame["provider"]
+                        st.session_state.messages[assistant_index]["provider"] = frame["provider"]
+                        st.caption(provider_label(frame["provider"]))
+                        continue
+                    if frame.get("error"):
+                        full += "\n\n⚠ " + frame["error"]["message"]
+                        st.session_state.ollama_error = frame["error"]
+                    token = frame.get("message", {}).get("content", "")
                     full += token
                     update_chat_response(st.session_state.messages, assistant_index, full)
+                    if response_metadata:
+                        st.session_state.messages[assistant_index]["provider"] = response_metadata
                     placeholder.markdown(full + "▋")
             except Exception as exc:
                 full += f"\n\n⚠ Chat response interrupted: {exc}"
             finally:
+                metadata = response_metadata
                 finish_chat_response(st.session_state.messages, assistant_index, full)
+                if metadata:
+                    st.session_state.messages[assistant_index]["provider"] = metadata
                 st.session_state.chat_response_pending = False
             placeholder.markdown(full)
         st.rerun()

@@ -1,0 +1,24 @@
+x-ollama-env: &ollama-env
+  OLLAMA_MODE: ${OLLAMA_MODE:-local-first}
+  OLLAMA_LOCAL_HOST: http://host.docker.internal:11434
+  OLLAMA_LOCAL_MODEL: ${OLLAMA_LOCAL_MODEL:-qwen3:8b}
+  OLLAMA_CLOUD_MODEL: ${OLLAMA_CLOUD_MODEL:-gpt-oss:120b-cloud}
+  OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+  OLLAMA_PROBE_TIMEOUT_MS: ${OLLAMA_PROBE_TIMEOUT_MS:-3000}
+  OLLAMA_STREAM_TIMEOUT_MS: ${OLLAMA_STREAM_TIMEOUT_MS:-90000}
+services:
+  react:
+    build:
+      context: .
+      target: react
+    ports: ["127.0.0.1:3000:3000"]
+    environment: *ollama-env
+    init: true
+  streamlit:
+    profiles: [streamlit]
+    build:
+      context: .
+      target: streamlit
+    ports: ["127.0.0.1:8501:8501"]
+    environment: *ollama-env
+    init: true
