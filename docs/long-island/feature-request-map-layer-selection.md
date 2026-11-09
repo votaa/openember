@@ -127,3 +127,17 @@ Local validation:
 - Chrome checks on a local Streamlit harness using the actual application map function and callbacks passed all/off/all, Folium-to-sidebar visibility synchronization, mixed state recovery, OSM/CARTO selector round trips, and preservation of a changed center/zoom through these actions. The harness used fixture regional and user data with a synthetic CARTO configuration; CARTO provider authorization and live feed availability are not established by these checks.
 
 Production deployment and live acceptance on Vercel and Streamlit remain pending. This work does not commit, push, publish, or deploy the implementation.
+
+
+## React basemap parity follow-up — November 9, 2026
+
+The October basemap requirement targeted Streamlit; React retained hardcoded
+CARTO tiles. The local-first branch now adds a Basemap selector to React's main
+control rail, defaults to OpenStreetMap, and offers CARTO Dark Matter only when
+`VITE_CARTO_API_KEY` is configured. Changing basemap updates the existing tile
+layer without recreating the map or changing overlay selections or viewport.
+The shared React helper also falls back to OpenStreetMap for an unavailable
+CARTO selection. Streamlit behavior is unchanged.
+
+Validation: shared basemap selection/fallback test, existing map tests, full
+local-first gate, and production build. Browser acceptance checked separately.

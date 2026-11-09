@@ -18,7 +18,7 @@ import {
   BRANDING      as _BR_raw,
   COOPS_STATIONS as _COOPS_raw,
 } from "./config/jurisdiction.js"
-import { appendCartoApiKey } from "./utils/carto.js"
+import { basemapConfig, basemapOptions, BASEMAP_OSM } from "./utils/carto.js"
 import {
   ROCKAWAY_SOURCE_IDS,
 } from "./data/regional/rockawaySources.js"
@@ -85,10 +85,7 @@ const NWS_FORECAST_URL = _NWS.forecast_url || `https://api.weather.gov/gridpoint
 const SOCRATA_DOMAIN   = _SOC.domain       || "data.cityofnewyork.us"
 
 const NYC_OPEN_DATA_TOKEN_ENV = import.meta.env?.VITE_NYC_OPEN_DATA_APP_TOKEN || ""
-const CARTO_TILE_URL     = appendCartoApiKey(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  import.meta.env.VITE_CARTO_API_KEY,
-)
+const CARTO_API_KEY = import.meta.env.VITE_CARTO_API_KEY || ""
 
 // ── localStorage config — persists across sessions, overrides build-time defaults ──
 const LS_KEY = "ember_config_v1"
@@ -370,12 +367,13 @@ function escapeMapHtml(value) {
   })[char])
 }
 
-function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
+function MapPanel({ basemap = BASEMAP_OSM, activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
   const layerRefs = useRef({})
   const regionalLayerRefs = useRef({})
+  const basemapRef = useRef(null)
   const radarRef  = useRef(null)
   const windRef   = useRef(null)
   const [ready, setReady] = useState(false)
@@ -392,9 +390,8 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
     if (leafRef.current) return
     import("leaflet").then(({default: L}) => {
       const map = L.map(mapRef.current, { center: CFG.center, zoom: CFG.zoom, zoomControl:true })
-      L.tileLayer(CARTO_TILE_URL, {
-        attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19, subdomains:"abcd"
-      }).addTo(map)
+      const tiles = basemapConfig(CARTO_API_KEY, basemap)
+      basemapRef.current = L.tileLayer(tiles.url, tiles.options).addTo(map)
       if (CFG.bbox) {
         map.fitBounds([
           [CFG.bbox.south, CFG.bbox.west],
@@ -450,6 +447,17 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
       setReady(true)
     }).catch(e => console.error("Leaflet init failed:", e))
   }, [])
+
+  useEffect(() => {
+    if (!ready || !basemapRef.current) return
+    const tiles = basemapConfig(CARTO_API_KEY, basemap)
+    const layer = basemapRef.current
+    const map = leafRef.current
+    if (layer.options.attribution) map.attributionControl.removeAttribution(layer.options.attribution)
+    Object.assign(layer.options, tiles.options)
+    layer.setUrl(tiles.url)
+    map.attributionControl.addAttribution(tiles.options.attribution)
+  }, [basemap, ready])
 
   useEffect(() => {
     if (!leafRef.current) return
@@ -767,6 +775,7 @@ export default function App() {
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
+  const [basemap, setBasemap] = useState(BASEMAP_OSM)
   const [showRadar, setShowRadar]       = useState(true)
   const [showWind, setShowWind]         = useState(true)
   const [files, setFiles]               = useState([])
@@ -1063,6 +1072,12 @@ export default function App() {
 
       {/* Control rail */}
       <div style={{flexShrink:0,padding:"6px 18px",borderBottom:"1px solid #0f1218",background:"#090c12",display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
+        <label style={{fontSize:10,color:"#aab",display:"flex",alignItems:"center",gap:5}}>
+          Basemap
+          <select aria-label="Basemap" value={basemap} onChange={e=>setBasemap(e.target.value)} style={{background:"#111820",color:"#dde",border:"1px solid #2a2e3a",borderRadius:4,fontFamily:"inherit",fontSize:10,padding:3}}>
+            {basemapOptions(CARTO_API_KEY).map(name=><option key={name} value={name}>{name}</option>)}
+          </select>
+        </label>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>KB</span>
         {KB_MODULES.map(m => pill(m.label, activeKB.includes(m.id), ()=>setActiveKB(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id])))}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
@@ -1091,7 +1106,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
+          <MapPanel key={mapLayersVersion} basemap={basemap} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()

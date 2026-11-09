@@ -23,3 +23,16 @@ test("Phase 4 participates only after individual activation, independent of curr
   assert.deepEqual(participatingRegionalIds(ready, ["utilities"]), ["utilities"])
   assert.deepEqual(participatingRegionalIds(["boundaries"], ["utilities"]), [])
 })
+
+
+test("React basemap defaults and missing-key fallback match Streamlit", async () => {
+  const { basemapConfig, basemapOptions } = await import("../src/utils/carto.js")
+  assert.deepEqual(basemapOptions(""), ["OpenStreetMap"])
+  assert.deepEqual(basemapOptions("  "), ["OpenStreetMap"])
+  assert.equal(basemapConfig("configured-key").name, "OpenStreetMap")
+  assert.equal(basemapConfig("", "CARTO Dark Matter").url, "https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+  assert.deepEqual(basemapOptions("key"), ["OpenStreetMap", "CARTO Dark Matter"])
+  const carto = basemapConfig("a+b", "CARTO Dark Matter")
+  assert.equal(carto.name, "CARTO Dark Matter")
+  assert.match(carto.url, /key=a%2Bb$/)
+})
