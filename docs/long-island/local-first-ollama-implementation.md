@@ -368,3 +368,24 @@ Remaining acceptance before merge readiness:
 4. Review the final diff and existing dependency advisories, then decide readiness.
    No merge, commit, push, deployment, hosted configuration change, or paid cloud
    inference is authorized by these local checks.
+
+## Performance acceptance follow-up — November 9, 2026
+
+Testing of committed instrumentation (`a6cec13`) is recorded in
+[the performance and grounding report](local-performance-testing-2026-11-09.md)
+and [raw replay results](local-performance-results-2026-11-09.json).
+Actual native Ollama inference was exercised through both Docker interfaces;
+cloud credentials were empty and routing was local-only throughout.
+
+The context-limit issue is reproduced, not resolved: full React and Streamlit
+prompts were truncated to 2,050 input tokens in a 4,096-token runner. Weather
+answers failed grounding in both interfaces, and React lost supplied uploaded
+facts and visible map counts. A smaller retained-evidence diagnostic recovered
+those factual answers. Thinking disabled reduced generation delay but did not
+resolve full-prompt quality. Cache reuse strongly affected latency.
+
+The next implementation priority is request-aware evidence budgeting plus an
+explicit, hardware-tested local context allocation with output headroom. Keep
+merge readiness open until the same weather, document, map, missing-evidence,
+and time/citation acceptance cases pass without silent truncation. See the
+report for passing UI/transport behavior, measured timings, and remaining gates.
