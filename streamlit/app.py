@@ -41,7 +41,7 @@ from phase4_sources import (
     unavailable_phase4_result,
 )
 from ollama_provider import configuration, provider_status, provider_label
-from chat_job import ChatJob, sync_chat_job
+from chat_job import ChatJob, sync_chat_job, timing_label
 from chat_state import (
     background_refresh_allowed,
     begin_chat_response,
@@ -2385,6 +2385,7 @@ with tab_esri:
 # ── Chat Tab ──────────────────────────────────────────────────────────────────
 with tab_chat:
     def prepare_chat_job(prompt):
+        evidence_started = _time.monotonic()
         assistant_index = st.session_state.get("chat_preparation_index")
         if assistant_index is None:
             assistant_index = begin_chat_response(st.session_state.messages, prompt)
@@ -2403,7 +2404,8 @@ with tab_chat:
         ]
         payload = [{"role": "system", "content": build_copilot_system_prompt(CFG.name, ctx)}] + msgs[-10:]
         st.session_state.pop("ollama_error", None)
-        st.session_state.chat_job = ChatJob(payload, OLLAMA_CONFIG, assistant_index)
+        st.session_state.chat_job = ChatJob(payload, OLLAMA_CONFIG, assistant_index,
+            evidence_ms=(_time.monotonic() - evidence_started) * 1000)
         # The stored job is resumable even if a script rerun arrives here.
         sync_chat_job(st.session_state)
 
@@ -2411,7 +2413,8 @@ with tab_chat:
         if not st.session_state.chat_response_pending:
             st.session_state.chat_response_pending = True
             st.rerun()
-        prepare_chat_job(st.session_state.pending_query)
+        with st.spinner("Gathering evidence…"):
+            prepare_chat_job(st.session_state.pending_query)
 
     @st.fragment(run_every=0.5 if st.session_state.get("chat_job") else None)
     def render_chat_messages():
@@ -2419,6 +2422,8 @@ with tab_chat:
         for index, msg in enumerate(st.session_state.messages):
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
+                if msg.get("timing"):
+                    st.caption(timing_label(msg["timing"]))
                 job = st.session_state.get("chat_job")
                 if job and index == job.assistant_index:
                     snapshot = job.snapshot()

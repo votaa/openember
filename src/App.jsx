@@ -1,4 +1,4 @@
-import { streamChat, getProviderStatus, providerLabel } from './ollama-client.js'
+import { streamChat, getProviderStatus, providerLabel, timingLabel } from './ollama-client.js'
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
@@ -772,6 +772,7 @@ export default function App() {
     return () => controller.abort()
   }, [])
   const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
+  const [chatProgress, setChatProgress] = useState("")
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
@@ -983,37 +984,45 @@ export default function App() {
     const userMsg = {role:"user",content:q}
     setMessages(p=>[...p,userMsg])
     setStreaming(true)
+    setChatProgress("Gathering evidence…")
+    const evidenceStarted = performance.now()
     abortRef.current?.abort()
     abortRef.current = new AbortController()
-    // Refresh missing/stale weather before constructing this request, so the
-    // first ordinary question gets the same forecast evidence as Streamlit.
-    await initialNoaaFetchRef.current
-    const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
-      const cached = noaaCacheRef.current[ep.id]
-      return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
-    }).map(fetchNOAA))
-    refreshed.forEach(storeNOAA)
-    const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
-    refreshed.forEach(result => currentNoaa.push({content:result.ok
-      ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
-      : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
-    const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
-      .filter(layer => layer.visible !== false)
-      .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
-    const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
-      + mapLayerContext(loadedEvidence)
-      + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
-      + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
-    const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
     let full = ""
-    setMessages(p=>[...p,{role:"assistant",content:"▋"}])
+    let assistantAdded = false
     try {
+      // Refresh missing/stale weather before constructing this request, so the
+      // first ordinary question gets the same forecast evidence as Streamlit.
+      await initialNoaaFetchRef.current
+      const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
+        const cached = noaaCacheRef.current[ep.id]
+        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
+      }).map(fetchNOAA))
+      refreshed.forEach(storeNOAA)
+      const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
+      refreshed.forEach(result => currentNoaa.push({content:result.ok
+        ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
+        : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
+      const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
+        .filter(layer => layer.visible !== false)
+        .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
+      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
+        + mapLayerContext(loadedEvidence)
+        + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
+        + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
+      const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
+      const evidenceMs = performance.now() - evidenceStarted
+      abortRef.current.signal.throwIfAborted()
+      setMessages(p=>[...p,{role:"assistant",content:"▋"}])
+      assistantAdded = true
       for await (const token of streamChat(
         [{ role: "system", content: buildCopilotSystemPrompt(CFG_RT.name, ctx) }, ...msgs.slice(-10)],
-        { signal: abortRef.current.signal, onProvider: metadata => {
-          setProviderStatus({ ...metadata, available: true })
-          setMessages(p => [...p.slice(0,-1), { ...p.at(-1), provider: metadata }])
-        } },
+        { signal: abortRef.current.signal, onProgress: setChatProgress,
+          onTiming: timing => setMessages(p => [...p.slice(0,-1), { ...p.at(-1), timing: { ...timing, evidence_ms: evidenceMs } }]),
+          onProvider: metadata => {
+            setProviderStatus({ ...metadata, available: true })
+            setMessages(p => [...p.slice(0,-1), { ...p.at(-1), provider: metadata }])
+          } },
       )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full+"▋"}])
@@ -1024,7 +1033,8 @@ export default function App() {
         setProviderStatus(previous => ({ ...previous, available: false, message: e.message }))
       }
     }
-    setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full}])
+    if (assistantAdded) setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full}])
+    else if (full) setMessages(p=>[...p,{role:"assistant",content:full}])
     setStreaming(false)
   }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, CFG_RT.name])
 
@@ -1158,9 +1168,11 @@ export default function App() {
                     </div>
                     <div style={{flex:1,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
                       {m.content}
+                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{timingLabel(m.timing)}</div>}
                     </div>
                   </div>
                 ))}
+                {streaming && <div role="status" style={{fontSize:11,color:"#8899aa"}}>{chatProgress}</div>}
                 <div ref={endRef}/>
               </div>
 

@@ -36,6 +36,7 @@ All Ollama settings are **server-side**. No `VITE_*` Ollama settings are read.
 | `OLLAMA_MODE` | `local-first` | `local-first`, `local-only`, or `cloud-only` |
 | `OLLAMA_LOCAL_HOST` | `http://127.0.0.1:11434` | Native Ollama base URL; Compose sets `http://host.docker.internal:11434` |
 | `OLLAMA_LOCAL_MODEL` | `qwen3:8b` | Installed local model; provisional until hardware acceptance |
+| `OLLAMA_LOCAL_THINK` | `default` | Local thinking: `default`, `true`, or `false`; never forwarded to cloud |
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:120b-cloud` | Ollama Cloud model |
 | `OLLAMA_API_KEY` | empty | Optional cloud credential; runtime secret only |
 | `OLLAMA_PROBE_TIMEOUT_MS` | `3000` | Local model discovery/connect deadline |
@@ -294,3 +295,76 @@ answers. This rerun fix does not change prompt content, model settings, or
 provider fallback behavior. No paid cloud inference or hosted deployment was
 performed.
 See [the issue record](issue-streamlit-chat-refresh.md) for lifecycle limits.
+
+## Local optimization — November 9, 2026
+
+The first optimization increment adds timing instrumentation and configurable
+local thinking. `OLLAMA_LOCAL_THINK=default|true|false` is server-side and passed
+through Compose. `default` omits `think`, preserving the installed model's
+behavior. `false` sends a boolean to local requests only; cloud requests and
+fallbacks never receive this setting. Restart local services after changing it.
+Support depends on the installed model; this was tested with `qwen3:8b`.
+See Ollama's [thinking controls](https://docs.ollama.com/capabilities/thinking).
+
+Both interfaces retain response timing metadata and display a compact summary.
+React also shows gathering evidence, connecting/processing, thinking, and
+answering progress. Streamlit's existing background worker retains those phases
+across reruns. Raw thinking content is not added to chat history.
+
+Timing definitions:
+
+- Evidence: per-request evidence/context construction. React includes awaiting
+  initial weather and refreshing stale weather. Streamlit includes context/map
+  gathering inside preparation; feed refreshes earlier in the script run are
+  excluded. These values are not directly comparable across interfaces.
+- First output: request start to first observed thinking or answer chunk. Includes
+  routing, discovery, transport, loading and prompt evaluation; it is not a pure
+  model-processing measurement.
+- Thinking: first thinking chunk to first answer chunk (or completion).
+- Answer: first answer chunk to completion. Chunk arrival measurements include
+  transport and buffering, and are estimates rather than model-internal phases.
+- Native `load_duration`, `prompt_eval_duration`, `eval_duration`, total duration,
+  and prompt/generated token counts are captured from Ollama's final frame.
+  Durations remain nanoseconds in stored metadata; displayed values use seconds.
+  Native generation duration includes thinking and answer generation; it overlaps
+  the observed phases and must not be added to them. Interrupted React responses
+  retain partial answer text but do not receive a completed timing summary.
+
+Native local-only smoke results (one short request per setting, sequential,
+no model pull or cloud request):
+
+| Setting | Total | Load | Prompt processing | Generation | Input / generated tokens |
+| --- | --- | --- | --- | --- | --- |
+| `false` | 3.802 s | 0.098 s | 3.108 s | 0.120 s | 23 / 2 |
+| `default` | 16.291 s | 0.021 s | 1.188 s | 15.055 s | 17 / 115 |
+
+Both produced a nonempty answer. This is a connectivity/control smoke test,
+not a quality benchmark or a general speedup claim. Different token counts,
+cache state, and model templates affect comparison.
+
+Validation: `npm run local-first:gate` passed using `.venv` Python 3.11,
+including production build, provider tests (33 JavaScript and 19 Python, no
+skips), deterministic worker timing boundaries, local-only thinking controls,
+cloud fallback isolation, and real Streamlit fragment rerun coverage.
+Docker images rebuilt successfully. Existing running services were preserved;
+one-off React/Node and Streamlit/Python containers both successfully completed
+local-only native `qwen3:8b` requests through `host.docker.internal`, with
+`OLLAMA_LOCAL_THINK=false`, no fallback, and final native metrics. These transport
+checks do not establish UI or grounded-answer quality.
+
+Remaining acceptance before merge readiness:
+
+1. Use the new measurements on representative full prompts, including cold and
+   warm runs with thinking enabled/disabled. Inspect token counts and native logs
+   for truncation; the earlier 16,769-token prompt exceeding the active context
+   window remains unresolved. Choose evidence budgeting/context sizing separately.
+2. Verify answers in **both React and Streamlit** for current weather with source
+   time/attribution, visible versus hidden map-layer evidence, and an uploaded
+   document containing a unique verifiable fact. Check absent evidence produces
+   uncertainty rather than invented facts. Repeat with thinking disabled.
+3. Exercise progress, cancellation, completed timing display, and retained partial
+   answers in the browser with actual native inference. Streamlit rerun persistence
+   has regression coverage; this increment has no new manual browser acceptance.
+4. Review the final diff and existing dependency advisories, then decide readiness.
+   No merge, commit, push, deployment, hosted configuration change, or paid cloud
+   inference is authorized by these local checks.

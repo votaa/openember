@@ -4,7 +4,9 @@ export async function getProviderStatus({ fetcher = fetch, signal } = {}) {
   if (!response.ok) throw new Error('Provider status unavailable. Check server configuration.')
   return response.json()
 }
-export async function* streamChat(messages, { signal, onProvider = () => {}, fetcher = fetch } = {}) {
+export async function* streamChat(messages, { signal, onProvider = () => {}, onProgress = () => {}, onTiming = () => {}, fetcher = fetch } = {}) {
+  const started = performance.now(); let thinkingAt = null; let answerAt = null
+  onProgress('Connecting / processing prompt…')
   const response = await fetcher('/api/chat', { method: 'POST', signal,
     headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }) })
   if (!response.ok) {
@@ -26,7 +28,18 @@ export async function* streamChat(messages, { signal, onProvider = () => {}, fet
           const error = new Error(frame.error.message); error.code = frame.error.code; error.details = frame.error
           throw error
         }
-        if (frame.message?.content) yield frame.message.content
+        const now = performance.now()
+        if (frame.message?.thinking && thinkingAt === null) { thinkingAt = now; onProgress('Thinking…') }
+        if (frame.message?.content) {
+          if (answerAt === null) { answerAt = now; onProgress('Answering…') }
+          yield frame.message.content
+        }
+        if (frame.done) onTiming({ request_ms: now - started,
+          first_output_ms: (thinkingAt ?? answerAt ?? now) - started,
+          thinking_ms: thinkingAt === null ? 0 : (answerAt ?? now) - thinkingAt,
+          answer_ms: answerAt === null ? 0 : now - answerAt,
+          ...Object.fromEntries(['total_duration', 'load_duration', 'prompt_eval_duration', 'eval_duration', 'prompt_eval_count', 'eval_count']
+            .filter(key => Number.isFinite(frame[key])).map(key => [key, frame[key]])) })
         if (frame.done) { doneFrame = true; return }
       }
       if (chunk.done) break
@@ -38,4 +51,12 @@ export function providerLabel(status) {
   if (!status) return 'Checking Ollama providers…'
   if (!status.provider) return status.message || 'No provider available'
   return `${status.provider === 'local' ? 'Local' : 'Cloud'} · ${status.model} · ${status.mode}${status.fallback ? ' · fallback' : ''}`
+}
+
+export function timingLabel(timing) {
+  if (!timing) return ''
+  const seconds = ms => `${(ms / 1000).toFixed(1)}s`
+  return `Evidence ${seconds(timing.evidence_ms || 0)} · first output ${seconds(timing.first_output_ms)} · thinking ${seconds(timing.thinking_ms)} · answer ${seconds(timing.answer_ms)}`
+    + (Number.isFinite(timing.prompt_eval_duration) ? ` · prompt ${seconds(timing.prompt_eval_duration / 1e6)}` : '')
+    + (Number.isFinite(timing.load_duration) ? ` · load ${seconds(timing.load_duration / 1e6)}` : '')
 }

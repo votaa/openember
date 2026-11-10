@@ -1,6 +1,7 @@
 x-ollama-env: &ollama-env
   OLLAMA_MODE: ${OLLAMA_MODE:-local-first}
   OLLAMA_LOCAL_HOST: http://host.docker.internal:11434
+  OLLAMA_LOCAL_THINK: ${OLLAMA_LOCAL_THINK:-default}
   OLLAMA_LOCAL_MODEL: ${OLLAMA_LOCAL_MODEL:-qwen3:8b}
   OLLAMA_CLOUD_MODEL: ${OLLAMA_CLOUD_MODEL:-gpt-oss:120b-cloud}
   OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}

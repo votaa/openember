@@ -181,3 +181,27 @@ test('null bodies and null messages are normalized invalid requests', async () =
     assert.equal((await response.json()).error.code, 'invalid_request')
   }
 })
+
+test('local thinking controls are validated and never forwarded to cloud', async () => {
+  for (const value of ['default', 'true', 'false']) {
+    const m = mock(); await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_THINK: value }), m))
+    assert.equal(JSON.parse(m.calls[1].options.body).think, value === 'default' ? undefined : value === 'true')
+    const cloud = mock({ models: [] }); await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_THINK: value }), cloud))
+    assert.equal(JSON.parse(cloud.calls.at(-1).options.body).think, undefined)
+  }
+  assert.throws(() => cfg({ OLLAMA_LOCAL_THINK: 'off' }), /OLLAMA_LOCAL_THINK/)
+})
+test('browser progress separates thinking from answer and reports native metrics without reasoning', async () => {
+  const progress = []; let timing
+  const output = await collect(streamChat(messages, {
+    fetcher: async () => stream({ message: { thinking: 'private trace' } },
+      { message: { content: 'Answer' } }, { done: true, prompt_eval_duration: 123000000, eval_count: 3 }),
+    onProgress: value => progress.push(value), onTiming: value => { timing = value },
+  }))
+  assert.deepEqual(output, ['Answer'])
+  assert.deepEqual(progress, ['Connecting / processing prompt…', 'Thinking…', 'Answering…'])
+  assert.equal(timing.prompt_eval_duration, 123000000)
+  assert.ok(timing.request_ms >= timing.first_output_ms)
+  assert.ok(timing.thinking_ms >= 0 && timing.answer_ms >= 0)
+  assert.ok(!JSON.stringify(timing).includes('private trace'))
+})

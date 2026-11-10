@@ -4,6 +4,7 @@ Workers never call Streamlit or mutate session state. UI code copies locked
 snapshots into its own session state, so reruns cannot cancel or replay a turn.
 """
 from copy import deepcopy
+from time import monotonic
 from threading import Lock, Thread
 
 from chat_state import finish_chat_response, update_chat_response
@@ -11,7 +12,7 @@ from ollama_provider import stream_chat
 
 
 class ChatJob:
-    def __init__(self, messages, config, assistant_index, stream_factory=stream_chat):
+    def __init__(self, messages, config, assistant_index, stream_factory=stream_chat, evidence_ms=0):
         self.assistant_index = assistant_index
         self._messages = deepcopy(messages)
         self._config = dict(config)
@@ -19,6 +20,7 @@ class ChatJob:
         self._lock = Lock()
         self._thread = None
         self._state = {"content": "", "provider": None, "error": None,
+                       "timing": {"evidence_ms": evidence_ms},
                        "done": False, "phase": "Connecting to Ollama…"}
 
     def start(self):
@@ -40,12 +42,17 @@ class ChatJob:
             thread.join(timeout)
 
     def _run(self):
+        started = monotonic()
+        thinking_at = answer_at = None
         complete = False
         iterator = None
         try:
             iterator = self._stream_factory(self._messages, self._config)
             for frame in iterator:
+                now = monotonic()
                 with self._lock:
+                    timing = self._state["timing"]
+                    timing["request_ms"] = (now - started) * 1000
                     if frame.get("provider"):
                         self._state["provider"] = deepcopy(frame["provider"])
                         self._state["phase"] = "Waiting for the answer…"
@@ -54,10 +61,23 @@ class ChatJob:
                         self._state["content"] += "\n\n⚠ " + frame["error"]["message"]
                     message = frame.get("message", {})
                     if message.get("thinking"):
+                        if thinking_at is None:
+                            thinking_at = now
                         self._state["phase"] = "Thinking…"
                     if message.get("content"):
+                        if answer_at is None:
+                            answer_at = now
                         self._state["content"] += message["content"]
                         self._state["phase"] = "Answering…"
+                    timing.update({
+                        "first_output_ms": ((thinking_at if thinking_at is not None else answer_at if answer_at is not None else now) - started) * 1000,
+                        "thinking_ms": ((answer_at if answer_at is not None else now) - thinking_at) * 1000 if thinking_at is not None else 0,
+                        "answer_ms": (now - answer_at) * 1000 if answer_at is not None else 0,
+                    })
+                    for key in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration", "prompt_eval_count", "eval_count"):
+                        value = frame.get(key)
+                        if type(value) in (int, float) and value >= 0:
+                            timing[key] = value
                     if frame.get("done"):
                         complete = True
                         break
@@ -97,6 +117,7 @@ def sync_chat_job(state):
         finish_chat_response(state["messages"], index, snapshot["content"])
     else:
         update_chat_response(state["messages"], index, snapshot["content"])
+    state["messages"][index]["timing"] = snapshot["timing"]
     if snapshot["provider"]:
         state["messages"][index]["provider"] = snapshot["provider"]
         state["ollama_provider"] = snapshot["provider"]
@@ -106,3 +127,13 @@ def sync_chat_job(state):
     if snapshot["done"]:
         del state["chat_job"]
     return snapshot["done"]
+
+
+def timing_label(timing):
+    parts = [f"{label} {timing.get(key, 0) / 1000:.1f}s" for label, key in
+             (("Evidence", "evidence_ms"), ("First output", "first_output_ms"),
+              ("Thinking", "thinking_ms"), ("Answer", "answer_ms"))]
+    for label, key in (("Prompt", "prompt_eval_duration"), ("Load", "load_duration")):
+        if key in timing:
+            parts.append(f"{label} {timing[key] / 1e9:.1f}s")
+    return " · ".join(parts)

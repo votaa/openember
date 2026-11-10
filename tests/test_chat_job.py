@@ -6,7 +6,7 @@ from threading import Event
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "streamlit"))
-from chat_job import ChatJob, sync_chat_job
+from chat_job import ChatJob, sync_chat_job, timing_label
 from chat_state import begin_chat_response, recover_interrupted_responses
 
 PROVIDER = {"mode": "local-only", "provider": "local", "model": "qwen3:8b", "fallback": False}
@@ -18,6 +18,24 @@ class ChatJobTests(unittest.TestCase):
         index = begin_chat_response(state["messages"], "Question")
         state["chat_job"] = ChatJob([{"role": "user", "content": "Question"}], {}, index, factory)
         return state
+
+    def test_timing_boundaries_and_metrics_survive_completion(self):
+        from unittest.mock import patch
+        def frames(*_):
+            yield {"message": {"thinking": "hidden"}}
+            yield {"message": {"content": "Answer"}}
+            yield {"done": True, "prompt_eval_duration": 500000000, "eval_count": 3}
+        state = self.state(frames)
+        job = state["chat_job"]
+        with patch("chat_job.monotonic", side_effect=[10, 12, 15, 19]):
+            job._run()
+        timing = job.snapshot()["timing"]
+        self.assertEqual(timing["first_output_ms"], 2000)
+        self.assertEqual(timing["thinking_ms"], 3000)
+        self.assertEqual(timing["answer_ms"], 4000)
+        self.assertEqual(timing["request_ms"], 9000)
+        self.assertEqual(timing["prompt_eval_duration"], 500000000)
+        self.assertNotIn("hidden", str(job.snapshot()))
 
     def test_repeated_reruns_preserve_partial_without_replaying_request(self):
         release, partial = Event(), Event()
@@ -121,7 +139,7 @@ class ChatJobTests(unittest.TestCase):
 sys.path.insert(0, {str(ROOT / 'streamlit')!r})
 import streamlit as st
 from threading import Event
-from chat_job import ChatJob, sync_chat_job
+from chat_job import ChatJob, sync_chat_job, timing_label
 from chat_state import begin_chat_response
 from ollama_provider import provider_label
 if 'messages' not in st.session_state:

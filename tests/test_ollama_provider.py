@@ -37,6 +37,18 @@ def mock(models=None, local=None, cloud=None):
 
 
 class OllamaTests(unittest.TestCase):
+    def test_local_thinking_controls(self):
+        for value in ('default', 'true', 'false'):
+            http = mock()
+            list(stream_chat(MESSAGES, config(OLLAMA_LOCAL_THINK=value), http))
+            self.assertEqual(http.post.call_args.kwargs['json'].get('think'),
+                             None if value == 'default' else value == 'true')
+            http = mock(models=[])
+            list(stream_chat(MESSAGES, config(OLLAMA_LOCAL_THINK=value), http))
+            self.assertNotIn('think', http.post.call_args.kwargs['json'])
+        with self.assertRaises(ProviderError):
+            config(OLLAMA_LOCAL_THINK='off')
+
     def test_configuration(self):
         self.assertEqual(config()['mode'], 'local-first')
         self.assertEqual(config(OLLAMA_CLOUD_MODEL='custom')['cloud_model'], 'custom')
