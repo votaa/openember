@@ -114,12 +114,13 @@ def sync_chat_job(state):
     job.start()
     snapshot = job.snapshot()
     index = job.assistant_index
+    # Message helpers replace the dictionary; retain the first handoff before that.
+    previous = state["messages"][index].get("timing", {})
     if snapshot["done"]:
         finish_chat_response(state["messages"], index, snapshot["content"])
     else:
         update_chat_response(state["messages"], index, snapshot["content"])
     timing = snapshot["timing"]
-    previous = state["messages"][index].get("timing", {})
     if "ui_delivery_ms" in previous:
         timing["ui_delivery_ms"] = previous["ui_delivery_ms"]
     elif snapshot["answer_received_at"] is not None:

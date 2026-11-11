@@ -1,0 +1,17 @@
+# Opt-in local tuning profile. Retain compose.yaml's accepted full-context defaults.
+# docker compose -f compose.yaml -f compose.performance.yaml --profile streamlit up --build -d
+services:
+  react:
+    environment:
+      OLLAMA_MODE: local-only
+      OLLAMA_API_KEY: ""
+      OLLAMA_LOCAL_NUM_CTX: "24576"
+      OLLAMA_LOCAL_THINK: "false"
+      OLLAMA_LOCAL_KEEP_ALIVE: "0"
+  streamlit:
+    environment:
+      OLLAMA_MODE: local-only
+      OLLAMA_API_KEY: ""
+      OLLAMA_LOCAL_NUM_CTX: "24576"
+      OLLAMA_LOCAL_THINK: "false"
+      OLLAMA_LOCAL_KEEP_ALIVE: "0"

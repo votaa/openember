@@ -37,6 +37,27 @@ def mock(models=None, local=None, cloud=None):
 
 
 class OllamaTests(unittest.TestCase):
+    def test_local_context_is_validated_and_isolated_from_cloud_fallback(self):
+        self.assertIsNone(config()["local_num_ctx"])
+        self.assertIsNone(config(OLLAMA_LOCAL_NUM_CTX="")["local_num_ctx"])
+        self.assertEqual(config(OLLAMA_LOCAL_NUM_CTX="24576")["local_num_ctx"], 24576)
+        for value in ("0", "2048", "131073", "8192.5", "Infinity", "-8192", "8k", " 8192", "٨١٩٢"):
+            with self.assertRaises(ProviderError):
+                config(OLLAMA_LOCAL_NUM_CTX=value)
+        http = Mock()
+        http.get.return_value = Response(models=[{"name": "qwen3:8b"}])
+        http.post.side_effect = [Response(status=503), Response([ANSWER])]
+        list(stream_chat(MESSAGES, config(OLLAMA_LOCAL_NUM_CTX="24576"), http))
+        local, cloud = [call.kwargs["json"] for call in http.post.call_args_list]
+        self.assertEqual(local["options"], {"num_ctx": 24576})
+        self.assertEqual(local["messages"], MESSAGES)
+        self.assertNotIn("options", cloud)
+        self.assertEqual(cloud["messages"], MESSAGES)
+        http.post.side_effect = None
+        http.post.return_value = Response([ANSWER])
+        list(stream_chat(MESSAGES, config(), http))
+        self.assertNotIn("options", http.post.call_args.kwargs["json"])
+
     def test_separate_local_timeout_and_wrapped_read_timeout(self):
         import requests
         from urllib3.exceptions import ReadTimeoutError

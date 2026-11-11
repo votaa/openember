@@ -50,6 +50,27 @@ class ChatJobTests(unittest.TestCase):
         self.assertEqual(state["messages"][1]["timing"]["ui_delivery_ms"], 8000)
         self.assertIn("UI sync 8.0s", timing_label(state["messages"][1]["timing"]))
 
+    def test_first_ui_sync_metric_survives_partial_updates_and_completion(self):
+        from unittest.mock import patch
+        state = self.state(lambda *_: iter([]))
+        job = state["chat_job"]
+        snapshot = dict(content="Partial", done=False, error=None, provider=PROVIDER,
+                        timing={}, answer_received_at=10)
+        with patch.object(job, "start"), patch.object(job, "snapshot", side_effect=[
+            snapshot, {**snapshot, "content": "More partial", "timing": {}},
+            {**snapshot, "content": "Completed answer", "done": True, "timing": {}},
+        ]), patch("chat_job.monotonic", return_value=12) as now:
+            self.assertFalse(sync_chat_job(state))
+            self.assertEqual(state["messages"][1]["timing"]["ui_delivery_ms"], 2000)
+            now.return_value = 20
+            self.assertFalse(sync_chat_job(state))
+            self.assertEqual(state["messages"][1]["timing"]["ui_delivery_ms"], 2000)
+            now.return_value = 30
+            self.assertTrue(sync_chat_job(state))
+            self.assertEqual(state["messages"][1]["timing"]["ui_delivery_ms"], 2000)
+            self.assertEqual(state["messages"][1]["content"], "Completed answer")
+            self.assertFalse(state["chat_response_pending"])
+
     def test_repeated_reruns_preserve_partial_without_replaying_request(self):
         release, partial = Event(), Event()
         calls = []

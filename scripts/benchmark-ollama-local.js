@@ -3,6 +3,7 @@
  * OLLAMA_LOCAL_THINK=default|true|false controls thinking. No cloud or model pulls.
  * Input/output can contain document text; keep private captures outside Git.
  */
+import { createHash } from 'node:crypto'
 import { readFile, writeFile } from 'node:fs/promises'
 import { configuration, probeLocal, routeChat } from '../lib/ollama.js'
 import { nodeOllamaFetch } from '../lib/node-ollama-fetch.js'
@@ -29,7 +30,9 @@ if (cold) {
 }
 const started = performance.now()
 let first = null, thinking = null, answer = null
-const result = { model: cfg.localModel, think: cfg.localThink, cold: !!cold,
+const result = { started_at: new Date().toISOString(),
+  messages_sha256: createHash('sha256').update(JSON.stringify(messages)).digest('hex'),
+  num_ctx: cfg.localNumCtx, keep_alive: cfg.localKeepAlive, model: cfg.localModel, think: cfg.localThink, cold: !!cold,
   input_characters: messages.reduce((n, m) => n + m.content.length, 0),
   answer: '', complete: false }
 try {
@@ -41,8 +44,9 @@ try {
     if (frame.message?.thinking) thinking ??= now
     if (frame.message?.content) { answer ??= now; result.answer += frame.message.content }
     if (frame.done && !frame.error) {
-      result.complete = true
-      for (const key of ['total_duration', 'load_duration', 'prompt_eval_duration', 'eval_duration', 'prompt_eval_count', 'eval_count']) {
+      result.done_reason = frame.done_reason ?? null
+      result.complete = frame.done_reason !== 'length'
+      for (const key of ['total_duration', 'load_duration', 'prompt_eval_duration', 'eval_duration', 'prompt_eval_count', 'prompt_eval_cached_count', 'eval_count']) {
         if (Number.isFinite(frame[key])) result[key] = frame[key]
       }
     }

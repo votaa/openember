@@ -249,3 +249,22 @@ test('local memory cleanup is validated and never forwarded to cloud', async () 
   }
   assert.throws(() => cfg({ OLLAMA_LOCAL_KEEP_ALIVE: '-1' }), /OLLAMA_LOCAL_KEEP_ALIVE/)
 })
+
+test('local context is validated, opt-in, and isolated from cloud fallback', async () => {
+  assert.equal(cfg().localNumCtx, null)
+  assert.equal(cfg({ OLLAMA_LOCAL_NUM_CTX: '24576' }).localNumCtx, 24576)
+  for (const value of ['0', '2048', '131073', '8192.5', 'Infinity', '-8192', '8k', ' 8192']) {
+    assert.throws(() => cfg({ OLLAMA_LOCAL_NUM_CTX: value }), /OLLAMA_LOCAL_NUM_CTX/)
+  }
+  const m = mock({ local: () => new Response('', { status: 503 }) })
+  await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_NUM_CTX: '24576' }), m))
+  const local = JSON.parse(m.calls[1].options.body)
+  const cloud = JSON.parse(m.calls[2].options.body)
+  assert.deepEqual(local.options, { num_ctx: 24576 })
+  assert.deepEqual(local.messages, messages)
+  assert.equal(cloud.options, undefined)
+  assert.deepEqual(cloud.messages, messages)
+  const unchanged = mock()
+  await collect(routeChat(messages, cfg(), unchanged))
+  assert.equal(JSON.parse(unchanged.calls[1].options.body).options, undefined)
+})

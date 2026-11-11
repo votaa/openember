@@ -32,12 +32,18 @@ def configuration(setting=None):
     local_keep_alive = setting("OLLAMA_LOCAL_KEEP_ALIVE", "default")
     if local_keep_alive not in ("default", "0"):
         raise ProviderError("invalid_config", "OLLAMA_LOCAL_KEEP_ALIVE must be default or 0.")
+    context_setting = setting("OLLAMA_LOCAL_NUM_CTX", "default") or "default"
+    local_num_ctx = None
+    if context_setting != "default":
+        if not context_setting.isascii() or not context_setting.isdecimal() or not 4096 <= int(context_setting) <= 131072:
+            raise ProviderError("invalid_config", "OLLAMA_LOCAL_NUM_CTX must be default or an integer from 4096 to 131072.")
+        local_num_ctx = int(context_setting)
     from urllib.parse import urlsplit
     host = setting("OLLAMA_LOCAL_HOST", "http://127.0.0.1:11434").rstrip("/")
     url = urlsplit("http://127.0.0.1:11434" if mode == "cloud-only" else host)
     if url.scheme not in ("http", "https") or not url.netloc or url.username or url.password or url.query or url.fragment:
         raise ProviderError("invalid_config", "Invalid OLLAMA_LOCAL_HOST.")
-    return {"mode": mode, "local_host": host, "local_think": local_think, "local_keep_alive": local_keep_alive,
+    return {"mode": mode, "local_host": host, "local_think": local_think, "local_keep_alive": local_keep_alive, "local_num_ctx": local_num_ctx,
             "local_model": setting("OLLAMA_LOCAL_MODEL", "qwen3:8b"),
             "cloud_model": setting("OLLAMA_CLOUD_MODEL", setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")),
             "api_key": setting("OLLAMA_API_KEY"),
@@ -127,6 +133,8 @@ def stream_chat(messages, cfg, http=requests):
                 headers["Authorization"] = "Bearer " + cfg["api_key"]
             host = cfg["local_host"] if provider == "local" else "https://ollama.com"
             payload = {"model": model, "messages": messages, "stream": True}
+            if provider == "local" and cfg.get("local_num_ctx") is not None:
+                payload["options"] = {"num_ctx": cfg["local_num_ctx"]}
             if provider == "local" and cfg.get("local_keep_alive") == "0":
                 payload["keep_alive"] = 0
             if provider == "local" and cfg.get("local_think", "default") != "default":
