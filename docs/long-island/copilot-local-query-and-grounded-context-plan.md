@@ -210,7 +210,7 @@ All cloud tests can first use recording/mock providers without credentials or sp
 ### Deterministic and parity checks
 
 - Run shared fixtures through the JavaScript and Python planners, handlers and context builders. Compare values, scope, source identities and execution modes, allowing presentation-only differences.
-- Record provider generation **and discovery** calls. Supported local queries, clarifications and unsupported-population results must make zero calls, even when the provider is configured and available. A synthesis case calls the provider once and receives the expected bounded context and prompt version.
+- Record provider generation **and discovery** calls. Supported local queries, clarifications and unsupported-population results must make zero calls, even when the provider is configured and available. A synthesis case makes one generation request per permitted provider attempt, with the expected provider-specific context and prompt version. A local-first pre-stream failure may proceed to one cloud attempt under the configured provider policy; no attempt may be duplicated.
 - Exercise route precedence, paraphrases, negation, quoted instructions in documents, selected-feature references, multi-part requests and follow-ups. Arbitrary uploaded text is data and cannot choose the provider or change routing policy.
 - Verify day/night forecasts, full wind ranges, original UTC offsets, first versus later period, explicit geography and outside-coverage times. Distinguish hourly temperature from daily highs/lows.
 - Verify zero versus unavailable, partial versus complete counts, multiple layers, changed filters, removed/hidden layers, and feature-versus-department distinctions.
