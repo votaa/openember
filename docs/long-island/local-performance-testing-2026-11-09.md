@@ -1,5 +1,9 @@
 # Local model performance and grounding acceptance — November 9, 2026
 
+November 10 follow-up: [full-context baseline and extended local timeout](local-baseline-2026-11-10.md).
+The replay script now has a 20-minute total safety deadline; the 180-second
+deadline described below records the November 9 test configuration.
+
 **Decision: not ready to merge as an accepted local-model experience.** Real
 native inference and both Docker transports work. Thinking can be disabled and
 progress is useful, but full application prompts lose evidence at the active

@@ -40,7 +40,8 @@ All Ollama settings are **server-side**. No `VITE_*` Ollama settings are read.
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:120b-cloud` | Ollama Cloud model |
 | `OLLAMA_API_KEY` | empty | Optional cloud credential; runtime secret only |
 | `OLLAMA_PROBE_TIMEOUT_MS` | `3000` | Local model discovery/connect deadline |
-| `OLLAMA_STREAM_TIMEOUT_MS` | `90000` | Chat connection/idle-read timeout |
+| `OLLAMA_STREAM_TIMEOUT_MS` | `90000` | Cloud response-header wait and stream inactivity limit |
+| `OLLAMA_LOCAL_STREAM_TIMEOUT_MS` | `900000` | Local response-header wait and stream inactivity limit (15 minutes) |
 
 `OLLAMA_MODEL` remains a legacy cloud-model alias; explicit `OLLAMA_CLOUD_MODEL`
 wins. Legacy `OLLAMA_HOST`, `VITE_OLLAMA_HOST`, `VITE_OLLAMA_MODEL`,
@@ -389,3 +390,35 @@ explicit, hardware-tested local context allocation with output headroom. Keep
 merge readiness open until the same weather, document, map, missing-evidence,
 and time/citation acceptance cases pass without silent truncation. See the
 report for passing UI/transport behavior, measured timings, and remaining gates.
+
+## November 10: full-context local baseline
+
+Before evidence optimization, local inference now allows 15 minutes waiting for
+response headers or the next stream chunk. This is an inactivity limit, not a
+15-minute total request cap: an actively streaming response may run longer. A 600-second Streamlit test reached
+its wait limit at the end of prompt processing, so the baseline allowance was
+raised to 900 seconds before retesting.
+Model discovery and Python TCP connection establishment retain their short
+`OLLAMA_PROBE_TIMEOUT_MS` limit. Cloud retains its existing 90-second setting.
+
+Set `OLLAMA_LOCAL_STREAM_TIMEOUT_MS=900000` and restart local processes or
+recreate Compose services. The local setting is separate from existing
+`OLLAMA_STREAM_TIMEOUT_MS` overrides, so a previous 90000 value does not shorten
+local inference. No prompt, evidence budget, context allocation, model or
+thinking-default changes accompany this baseline. Keep Ollama's 32K setting
+for comparison and inspect native logs for input truncation.
+
+The Node/Vite local transport uses Node HTTP streaming with routing-controlled
+abort and idle timers, avoiding native fetch's independent header-wait limit.
+Vercel and cloud transport retain native fetch. Local-only timeout errors identify
+whether the model had emitted a valid frame; they no longer display only
+“No provider available.” Streamed Python read timeouts are normalized even when
+Requests wraps them in a connection error.
+
+React retains its Stop button and partial answer behavior, including cancellation
+before the first output. Streamlit retains its rerun-safe worker and progress
+phases; it does not currently provide a per-turn Stop button. Local waiting
+should therefore be bounded even during baseline tests.
+
+The replay benchmark uses the same local transport and a separate 20-minute
+total safety deadline. Private prompt captures belong outside Git.

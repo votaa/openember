@@ -39,14 +39,20 @@ def configuration(setting=None):
             "cloud_model": setting("OLLAMA_CLOUD_MODEL", setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")),
             "api_key": setting("OLLAMA_API_KEY"),
             "probe_timeout": seconds("OLLAMA_PROBE_TIMEOUT_MS", 3000),
-            "stream_timeout": seconds("OLLAMA_STREAM_TIMEOUT_MS", 90000)}
+            "stream_timeout": seconds("OLLAMA_STREAM_TIMEOUT_MS", 90000),
+            "local_stream_timeout": seconds("OLLAMA_LOCAL_STREAM_TIMEOUT_MS", 900000)}
 
 
 def normalize(exc, provider):
     if isinstance(exc, ProviderError):
         exc.provider = exc.provider or provider
         return exc
-    return ProviderError("timeout" if isinstance(exc, requests.exceptions.Timeout) else "unreachable",
+    # requests wraps streamed read timeouts in ConnectionError(ReadTimeoutError).
+    from urllib3.exceptions import ReadTimeoutError
+    timed_out = isinstance(exc, requests.exceptions.Timeout) or (
+        isinstance(exc, requests.exceptions.ConnectionError) and
+        any(isinstance(arg, ReadTimeoutError) for arg in exc.args))
+    return ProviderError("timeout" if timed_out else "unreachable",
                          provider + " Ollama connection failed or timed out.", provider)
 
 
@@ -104,12 +110,15 @@ def stream_chat(messages, cfg, http=requests):
     attempts = []
     for provider in providers:
         started = False
+        probing = provider == "local"
+        timeout = cfg["local_stream_timeout"] if provider == "local" else cfg["stream_timeout"]
         model = cfg["local_model"] if provider == "local" else cfg["cloud_model"]
         try:
             if provider == "local":
                 probe_local(cfg, http)
             elif not cfg["api_key"]:
                 raise ProviderError("missing_key", "Cloud requires server-side OLLAMA_API_KEY.", "cloud")
+            probing = False
             headers = {"Content-Type": "application/json"}
             if provider == "cloud":
                 headers["Authorization"] = "Bearer " + cfg["api_key"]
@@ -118,7 +127,7 @@ def stream_chat(messages, cfg, http=requests):
             if provider == "local" and cfg.get("local_think", "default") != "default":
                 payload["think"] = cfg["local_think"] == "true"
             with http.post(host + "/api/chat", json=payload,
-                           headers=headers, stream=True, timeout=(cfg["probe_timeout"], cfg["stream_timeout"]),
+                           headers=headers, stream=True, timeout=(cfg["probe_timeout"], timeout),
                            allow_redirects=False) as response:
                 check_http(response, provider)
                 for line in response.iter_lines(chunk_size=1):
@@ -143,10 +152,21 @@ def stream_chat(messages, cfg, http=requests):
                         return
                 raise ProviderError("interrupted", "Ollama stream ended before completion.", provider)
         except Exception as exc:
-            error = normalize(exc, provider).as_dict()
+            normalized = normalize(exc, provider)
+            if provider == "local" and normalized.code == "timeout":
+                phase = "while waiting for more output" if started else "before its first output (connecting / processing prompt)"
+                setting = "OLLAMA_LOCAL_STREAM_TIMEOUT_MS" if provider == "local" else "OLLAMA_STREAM_TIMEOUT_MS"
+                message = (f"Local Ollama model discovery timed out after {cfg['probe_timeout']:g} seconds. Check that Ollama is responding." if probing else
+                           f"Local Ollama timed out {phase}. The response wait limit is {timeout:g} seconds; the connection limit is {cfg['probe_timeout']:g} seconds. You can retry or increase {setting}.")
+                normalized = ProviderError("timeout", message, provider)
+            error = normalized.as_dict()
             attempts.append(error)
             if started:
                 yield {"error": {**error, "partial": True}, "done": True}
                 return
+    local_timeout = next((a for a in attempts if a["provider"] == "local" and a["code"] == "timeout"), None)
+    if local_timeout and (cfg["mode"] == "local-only" or not cfg["api_key"]):
+        yield {"error": {**local_timeout, "attempts": attempts}, "done": True}
+        return
     yield {"error": {"code": "no_provider", "message": "No provider available. Check local Ollama/model or server-side cloud credentials.",
                      "attempts": attempts}, "done": True}

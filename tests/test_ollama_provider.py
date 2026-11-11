@@ -37,6 +37,68 @@ def mock(models=None, local=None, cloud=None):
 
 
 class OllamaTests(unittest.TestCase):
+    def test_separate_local_timeout_and_wrapped_read_timeout(self):
+        import requests
+        from urllib3.exceptions import ReadTimeoutError
+        self.assertEqual(config()['local_stream_timeout'], 900)
+        self.assertEqual(config()['stream_timeout'], 90)
+        with self.assertRaises(ProviderError):
+            config(OLLAMA_LOCAL_STREAM_TIMEOUT_MS='0')
+        for mode, expected in [('local-only', 900), ('cloud-only', 90)]:
+            http = mock()
+            list(stream_chat(MESSAGES, config(OLLAMA_MODE=mode), http))
+            self.assertEqual(http.post.call_args.kwargs['timeout'], (3, expected))
+        for exc in (requests.exceptions.ReadTimeout(), requests.exceptions.ConnectionError(ReadTimeoutError(None, '/', 'private'))):
+            http = mock(local=Response([exc]))
+            result = list(stream_chat(MESSAGES, config(OLLAMA_MODE='local-only'), http))
+            self.assertEqual(result[-1]['error']['code'], 'timeout')
+            self.assertIn('before its first output', result[-1]['error']['message'])
+            self.assertNotIn('private', json.dumps(result))
+            http = mock(local=Response([{'message': {'content': 'partial'}}, exc]))
+            result = list(stream_chat(MESSAGES, config(OLLAMA_MODE='local-only'), http))
+            self.assertTrue(result[-1]['error']['partial'])
+            self.assertIn('more output', result[-1]['error']['message'])
+
+    def test_real_http_slow_local_headers_and_stream_timeout(self):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        from threading import Thread
+        from time import sleep
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *_): pass
+            def do_GET(self):
+                self.send_response(200); self.end_headers()
+                self.wfile.write(json.dumps({'models': [{'name': 'qwen3:8b'}]}).encode())
+            def do_POST(self):
+                self.rfile.read(int(self.headers['Content-Length']))
+                sleep(0.05)
+                self.send_response(200); self.end_headers()
+                self.wfile.write(b'{"message":{"content":"partial"}}\n'); self.wfile.flush()
+                sleep(0.05)
+                self.wfile.write(b'{"done":true}\n')
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        worker = Thread(target=server.serve_forever, daemon=True); worker.start()
+        try:
+            settings = config(OLLAMA_MODE='local-only', OLLAMA_API_KEY='',
+                              OLLAMA_LOCAL_HOST=f'http://127.0.0.1:{server.server_port}',
+                              OLLAMA_STREAM_TIMEOUT_MS='10', OLLAMA_LOCAL_STREAM_TIMEOUT_MS='500')
+            result = list(stream_chat(MESSAGES, settings))
+            self.assertEqual(result[0]['provider']['provider'], 'local')
+            self.assertTrue(result[-1]['done'])
+            settings['local_stream_timeout'] = 0.08
+            # Headers and first output fit; a later socket read stall times out.
+            def stalled(handler):
+                handler.rfile.read(int(handler.headers['Content-Length']))
+                handler.send_response(200); handler.end_headers()
+                handler.wfile.write(b'{"message":{"content":"partial"}}\n'); handler.wfile.flush()
+                sleep(0.15)
+            Handler.do_POST = stalled
+            result = list(stream_chat(MESSAGES, settings))
+            self.assertEqual(result[-1]['error']['code'], 'timeout')
+            self.assertTrue(result[-1]['error']['partial'])
+            self.assertIn('more output', result[-1]['error']['message'])
+        finally:
+            server.shutdown(); server.server_close(); worker.join(1)
+
     def test_local_thinking_controls(self):
         for value in ('default', 'true', 'false'):
             http = mock()

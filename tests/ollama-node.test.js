@@ -29,3 +29,29 @@ test('real HTTP browser → Node adapter → mocked Ollama → browser streaming
     assert.equal((await fetch(base + '/api/chat', { method: 'POST', body: 'bad' })).status, 400)
   } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)) }
 })
+
+test('Node local transport streams, enforces routed timeout and cancels before headers', async () => {
+  const { nodeOllamaFetch } = await import('../lib/node-ollama-fetch.js')
+  const { configuration, routeChat } = await import('../lib/ollama.js')
+  const upstream = createServer((req, res) => {
+    if (req.url === '/api/tags') { res.end(JSON.stringify({ models: [{ name: 'qwen3:8b' }] })); return }
+    // Intentionally leave the local model processing before sending any headers.
+    const timer = setTimeout(() => res.end('{"message":{"content":"late"},"done":true}\n'), 80)
+    res.on('close', () => clearTimeout(timer))
+  })
+  await new Promise(resolve => upstream.listen(0, '127.0.0.1', resolve))
+  const env = { OLLAMA_MODE: 'local-only', OLLAMA_LOCAL_HOST: `http://127.0.0.1:${upstream.address().port}`,
+    OLLAMA_STREAM_TIMEOUT_MS: '10', OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '300' }
+  try {
+    const output = []
+    for await (const frame of routeChat([{ role: 'user', content: 'hello' }], configuration(env), { fetcher: nodeOllamaFetch })) output.push(frame)
+    assert.equal(output.at(-1).message.content, 'late')
+    const errors = []
+    for await (const frame of routeChat([{ role: 'user', content: 'hello' }], configuration({ ...env, OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '15' }), { fetcher: nodeOllamaFetch })) errors.push(frame)
+    assert.equal(errors.at(-1).error.code, 'timeout')
+    const signal = AbortSignal.timeout(20)
+    await assert.rejects(async () => {
+      for await (const frame of routeChat([{ role: 'user', content: 'hello' }], configuration(env), { fetcher: nodeOllamaFetch, signal })) {}
+    }, { name: 'TimeoutError' })
+  } finally { upstream.closeAllConnections(); await new Promise(resolve => upstream.close(resolve)) }
+})

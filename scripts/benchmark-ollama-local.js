@@ -5,6 +5,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises'
 import { configuration, probeLocal, routeChat } from '../lib/ollama.js'
+import { nodeOllamaFetch } from '../lib/node-ollama-fetch.js'
 
 const [input, output, cold] = process.argv.slice(2)
 if (!input || !output || (cold && cold !== '--cold')) {
@@ -15,7 +16,7 @@ if (!Array.isArray(messages) || !messages.length || messages.some(m => !['system
   throw new Error('Input must contain nonempty messages with role and content.')
 }
 const cfg = configuration({ ...process.env, OLLAMA_MODE: 'local-only', OLLAMA_API_KEY: '' })
-await probeLocal(cfg)
+await probeLocal(cfg, nodeOllamaFetch)
 if (cold) {
   // Evict only the selected local model, after verifying it is not cloud-backed.
   const response = await fetch(`${cfg.localHost}/api/generate`, {
@@ -32,7 +33,7 @@ const result = { model: cfg.localModel, think: cfg.localThink, cold: !!cold,
   input_characters: messages.reduce((n, m) => n + m.content.length, 0),
   answer: '', complete: false }
 try {
-  for await (const frame of routeChat(messages, cfg, { signal: AbortSignal.timeout(180000) })) {
+  for await (const frame of routeChat(messages, cfg, { fetcher: nodeOllamaFetch, signal: AbortSignal.timeout(1200000) })) {
     const now = performance.now() - started
     if (frame.provider) result.provider = frame.provider
     if (frame.error) result.error = frame.error
@@ -47,7 +48,7 @@ try {
     }
   }
 } catch (error) {
-  result.error = { code: error.name, message: 'Local benchmark interrupted or exceeded its 180-second deadline.' }
+  result.error = { code: error.name, message: 'Local benchmark interrupted or exceeded its 20-minute total deadline.' }
 }
 const elapsed = performance.now() - started
 Object.assign(result, { request_ms: elapsed, first_output_ms: first, first_answer_ms: answer,

@@ -21,7 +21,7 @@ class ChatJob:
         self._thread = None
         self._state = {"content": "", "provider": None, "error": None,
                        "timing": {"evidence_ms": evidence_ms},
-                       "done": False, "phase": "Connecting to Ollama…"}
+                       "done": False, "phase": "Connecting / processing prompt…"}
 
     def start(self):
         """Idempotent across full-app and fragment reruns."""

@@ -82,7 +82,7 @@ test('cancel before request never triggers fallback', async () => {
 })
 test('read timeout after frame returns normalized partial error, no cloud', async () => {
   const m = mock({ local: () => new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(JSON.stringify({ message: { content: 'p' } }) + '\n')) } })) })
-  const result = await collect(routeChat(messages, cfg({ OLLAMA_STREAM_TIMEOUT_MS: '10' }), m))
+  const result = await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '10' }), m))
   assert.equal(result.at(-1).error.code, 'timeout'); assert.equal(m.calls.length, 2)
 })
 test('status probes only local and does not expose keys or infer cloud readiness', async () => {
@@ -204,4 +204,37 @@ test('browser progress separates thinking from answer and reports native metrics
   assert.ok(timing.request_ms >= timing.first_output_ms)
   assert.ok(timing.thinking_ms >= 0 && timing.answer_ms >= 0)
   assert.ok(!JSON.stringify(timing).includes('private trace'))
+})
+
+test('local timeout is separate from cloud, including hosted configuration', () => {
+  assert.equal(cfg().localStreamMs, 900000)
+  assert.equal(cfg().streamMs, 90000)
+  assert.equal(configuration({ OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '700000' }, true).streamMs, 90000)
+  assert.throws(() => cfg({ OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '-1' }))
+})
+test('slow local headers survive shorter cloud limit, timeout and Stop remain effective', async () => {
+  const m = mock({ local: async () => { await new Promise(r => setTimeout(r, 40)); return stream(answer) } })
+  const result = await collect(routeChat(messages, cfg({ OLLAMA_STREAM_TIMEOUT_MS: '10', OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '200' }), m))
+  assert.equal(result[0].provider.provider, 'local')
+  const stalled = mock({ local: ({ signal }) => new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true })) })
+  const settings = cfg({ OLLAMA_MODE: 'local-only', OLLAMA_LOCAL_STREAM_TIMEOUT_MS: '10' })
+  const failure = await collect(routeChat(messages, settings, stalled))
+  assert.equal(failure.at(-1).error.code, 'timeout')
+  assert.match(failure.at(-1).error.message, /before its first output/)
+  const controller = new AbortController()
+  const pending = collect(routeChat(messages, cfg(), { ...stalled, signal: controller.signal }))
+  setTimeout(() => controller.abort(), 10)
+  await assert.rejects(pending, { name: 'AbortError' })
+})
+
+test('local-first without a cloud key preserves local timeout and discovery deadline', async () => {
+  const m = mock({ local: () => { throw new DOMException('Timed out', 'TimeoutError') } })
+  const result = await collect(routeChat(messages, cfg({ OLLAMA_API_KEY: '' }), m))
+  assert.equal(result.at(-1).error.code, 'timeout')
+  assert.match(result.at(-1).error.message, /900 seconds/)
+  assert.equal(m.calls.length, 2)
+  const discovery = await collect(routeChat(messages, cfg({ OLLAMA_MODE: 'local-only' }), {
+    fetcher: async () => { throw new DOMException('Timed out', 'TimeoutError') },
+  }))
+  assert.match(discovery.at(-1).error.message, /discovery timed out after 3 seconds/)
 })
