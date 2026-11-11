@@ -37,6 +37,19 @@ class ChatJobTests(unittest.TestCase):
         self.assertEqual(timing["prompt_eval_duration"], 500000000)
         self.assertNotIn("hidden", str(job.snapshot()))
 
+    def test_ui_sync_delay_measures_worker_to_script_handoff(self):
+        from unittest.mock import patch
+        state = self.state(lambda *_: iter([
+            {"message": {"content": "Answer"}}, {"done": True},
+        ]))
+        job = state["chat_job"]
+        with patch("chat_job.monotonic", side_effect=[10, 12, 13]):
+            job._run()
+        with patch.object(job, "start"), patch("chat_job.monotonic", return_value=20):
+            sync_chat_job(state)
+        self.assertEqual(state["messages"][1]["timing"]["ui_delivery_ms"], 8000)
+        self.assertIn("UI sync 8.0s", timing_label(state["messages"][1]["timing"]))
+
     def test_repeated_reruns_preserve_partial_without_replaying_request(self):
         release, partial = Event(), Event()
         calls = []
@@ -128,55 +141,52 @@ class ChatJobTests(unittest.TestCase):
         self.assertFalse(second_job.snapshot()["done"])
         self.assertEqual(second_job.snapshot()["content"], "")
 
-    def test_real_streamlit_fragment_survives_full_page_widget_rerun(self):
-        try:
-            from streamlit.testing.v1 import AppTest
-        except ImportError:
-            self.skipTest("Requires Streamlit AppTest runtime")
+    def test_real_streamlit_renderer_delivers_without_browser_timer_or_manual_rerun(self):
+        from streamlit.testing.v1 import AppTest
         tree = ast.parse((ROOT / "streamlit/app.py").read_text())
         render = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == "render_chat_messages")
-        script = f'''import sys
+        script = f'''import sys,time
+from types import SimpleNamespace
 sys.path.insert(0, {str(ROOT / 'streamlit')!r})
 import streamlit as st
-from threading import Event
 from chat_job import ChatJob, sync_chat_job, timing_label
 from chat_state import begin_chat_response
 from ollama_provider import provider_label
 if 'messages' not in st.session_state:
  st.session_state.messages=[]
- st.session_state.release=Event()
- st.session_state.partial=Event()
  st.session_state.calls=[]
- release, partial, calls=st.session_state.release, st.session_state.partial, st.session_state.calls
+ calls=st.session_state.calls
  def frames(*_):
   calls.append(1)
+  time.sleep(0.15)
   yield {{'message':{{'content':'Partial '}}}}
-  partial.set()
-  release.wait(5)
+  time.sleep(0.35)
   yield {{'message':{{'content':'answer'}}, 'done':True}}
  index=begin_chat_response(st.session_state.messages,'Question')
  st.session_state.chat_job=ChatJob([],{{}},index,frames)
  st.session_state.chat_response_pending=True
- st.session_state.chat_job.start()
-st.button('Rerun page')
+ st.session_state.poll_reruns=0
+def poll_sleep(seconds):
+ time.sleep(seconds)
+ if not st.session_state.poll_reruns and st.session_state.messages[1]['content'].startswith('Partial'):
+  st.session_state.poll_reruns+=1
+  st.rerun()
+_time=SimpleNamespace(sleep=poll_sleep)
 {ast.unparse(render)}
 render_chat_messages()
+st.button('Send',disabled=st.session_state.chat_response_pending)
 '''
-        app = AppTest.from_string(script).run()
-        job = app.session_state.chat_job
-        try:
-            self.assertTrue(app.session_state.partial.wait(1))
-            app.button[0].click().run()
-            self.assertFalse(app.exception)
-            self.assertEqual(app.session_state.messages[1]["content"], "Partial ▋")
-            app.button[0].click().run()
-            self.assertEqual(app.session_state.calls, [1])
-            app.session_state.release.set(); job.wait(1); app.run()
-            self.assertFalse(app.exception)
-            self.assertEqual(app.session_state.messages[1]["content"], "Partial answer")
-            self.assertFalse(app.session_state.chat_response_pending)
-        finally:
-            app.session_state.release.set(); job.wait(1)
+        # AppTest has no browser timer: one run must poll through completion.
+        app = AppTest.from_string(script).run(timeout=15)
+        self.assertFalse(app.exception)
+        self.assertEqual(app.session_state.messages[1]["content"], "Partial answer")
+        self.assertFalse(app.session_state.chat_response_pending)
+        self.assertFalse(app.button[0].disabled)
+        self.assertEqual(app.session_state.calls, [1])
+        self.assertEqual(app.session_state.poll_reruns, 1)
+        self.assertGreaterEqual(app.session_state.messages[1]["timing"]["ui_delivery_ms"], 0)
+        app.run()
+        self.assertEqual(app.session_state.calls, [1])
 
 
 if __name__ == "__main__": unittest.main()

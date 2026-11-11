@@ -21,7 +21,7 @@ class ChatJob:
         self._thread = None
         self._state = {"content": "", "provider": None, "error": None,
                        "timing": {"evidence_ms": evidence_ms},
-                       "done": False, "phase": "Connecting / processing prompt…"}
+                       "answer_received_at": None, "done": False, "phase": "Connecting / processing prompt…"}
 
     def start(self):
         """Idempotent across full-app and fragment reruns."""
@@ -67,6 +67,7 @@ class ChatJob:
                     if message.get("content"):
                         if answer_at is None:
                             answer_at = now
+                            self._state["answer_received_at"] = now
                         self._state["content"] += message["content"]
                         self._state["phase"] = "Answering…"
                     timing.update({
@@ -117,7 +118,13 @@ def sync_chat_job(state):
         finish_chat_response(state["messages"], index, snapshot["content"])
     else:
         update_chat_response(state["messages"], index, snapshot["content"])
-    state["messages"][index]["timing"] = snapshot["timing"]
+    timing = snapshot["timing"]
+    previous = state["messages"][index].get("timing", {})
+    if "ui_delivery_ms" in previous:
+        timing["ui_delivery_ms"] = previous["ui_delivery_ms"]
+    elif snapshot["answer_received_at"] is not None:
+        timing["ui_delivery_ms"] = max(0, (monotonic() - snapshot["answer_received_at"]) * 1000)
+    state["messages"][index]["timing"] = timing
     if snapshot["provider"]:
         state["messages"][index]["provider"] = snapshot["provider"]
         state["ollama_provider"] = snapshot["provider"]
@@ -133,6 +140,8 @@ def timing_label(timing):
     parts = [f"{label} {timing.get(key, 0) / 1000:.1f}s" for label, key in
              (("Evidence", "evidence_ms"), ("First output", "first_output_ms"),
               ("Thinking", "thinking_ms"), ("Answer", "answer_ms"))]
+    if "ui_delivery_ms" in timing:
+        parts.append(f"UI sync {timing['ui_delivery_ms'] / 1000:.1f}s")
     for label, key in (("Prompt", "prompt_eval_duration"), ("Load", "load_duration")):
         if key in timing:
             parts.append(f"{label} {timing[key] / 1e9:.1f}s")

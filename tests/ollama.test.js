@@ -238,3 +238,14 @@ test('local-first without a cloud key preserves local timeout and discovery dead
   }))
   assert.match(discovery.at(-1).error.message, /discovery timed out after 3 seconds/)
 })
+
+
+test('local memory cleanup is validated and never forwarded to cloud', async () => {
+  for (const value of ['default', '0']) {
+    const m = mock(); await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_KEEP_ALIVE: value }), m))
+    assert.equal(JSON.parse(m.calls[1].options.body).keep_alive, value === '0' ? 0 : undefined)
+    const cloud = mock({ models: [] }); await collect(routeChat(messages, cfg({ OLLAMA_LOCAL_KEEP_ALIVE: value }), cloud))
+    assert.equal(JSON.parse(cloud.calls.at(-1).options.body).keep_alive, undefined)
+  }
+  assert.throws(() => cfg({ OLLAMA_LOCAL_KEEP_ALIVE: '-1' }), /OLLAMA_LOCAL_KEEP_ALIVE/)
+})

@@ -29,12 +29,15 @@ def configuration(setting=None):
     local_think = setting("OLLAMA_LOCAL_THINK", "default")
     if local_think not in ("default", "true", "false"):
         raise ProviderError("invalid_config", "OLLAMA_LOCAL_THINK must be default, true or false.")
+    local_keep_alive = setting("OLLAMA_LOCAL_KEEP_ALIVE", "default")
+    if local_keep_alive not in ("default", "0"):
+        raise ProviderError("invalid_config", "OLLAMA_LOCAL_KEEP_ALIVE must be default or 0.")
     from urllib.parse import urlsplit
     host = setting("OLLAMA_LOCAL_HOST", "http://127.0.0.1:11434").rstrip("/")
     url = urlsplit("http://127.0.0.1:11434" if mode == "cloud-only" else host)
     if url.scheme not in ("http", "https") or not url.netloc or url.username or url.password or url.query or url.fragment:
         raise ProviderError("invalid_config", "Invalid OLLAMA_LOCAL_HOST.")
-    return {"mode": mode, "local_host": host, "local_think": local_think,
+    return {"mode": mode, "local_host": host, "local_think": local_think, "local_keep_alive": local_keep_alive,
             "local_model": setting("OLLAMA_LOCAL_MODEL", "qwen3:8b"),
             "cloud_model": setting("OLLAMA_CLOUD_MODEL", setting("OLLAMA_MODEL", "gpt-oss:120b-cloud")),
             "api_key": setting("OLLAMA_API_KEY"),
@@ -124,6 +127,8 @@ def stream_chat(messages, cfg, http=requests):
                 headers["Authorization"] = "Bearer " + cfg["api_key"]
             host = cfg["local_host"] if provider == "local" else "https://ollama.com"
             payload = {"model": model, "messages": messages, "stream": True}
+            if provider == "local" and cfg.get("local_keep_alive") == "0":
+                payload["keep_alive"] = 0
             if provider == "local" and cfg.get("local_think", "default") != "default":
                 payload["think"] = cfg["local_think"] == "true"
             with http.post(host + "/api/chat", json=payload,

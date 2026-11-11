@@ -269,7 +269,7 @@ function buildContext(files, apiResults, activeKB) {
   return buildContextRT(files, apiResults, activeKB, buildRuntimeKB(loadLocalConfig()), buildRuntimeConfig(loadLocalConfig()).name)
 }
 
-function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase4Results = {}) {
+function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase4Results = {}, sources = []) {
   let ctx = `=== ${(jurisdictionName||"MY CITY").toUpperCase()} EMERGENCY MANAGEMENT KNOWLEDGE BASE ===\n\n`
   for (const [key, mod] of Object.entries(kb)) {
     if (activeKB.includes(key)) ctx += `--- ${mod.label} [${mod.source}] ---\n${mod.data}\n\n`
@@ -283,6 +283,10 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   if (hazardResult) {
     ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES · PAST 7 DAYS ONLY ---\n"
     ctx += reportWindowMessage({ rolling_window_days: 7 }, hazardResult) + "\n"
+    const source = sources.find(source => source.id === "nyc_311_electric_hazards_rockaway")
+    ctx += `Source: ${source?.name || "NYC 311"}\nSource URL: ${source?.endpoint || "unavailable"}\n`
+    ctx += `Fetched: ${hazardResult.fetched_at || "unavailable"}\nReport window: ${JSON.stringify(hazardResult.report_window || null)}\n`
+    ctx += `Active filter: ${source?.required_filter || "unavailable"}\n`
     ctx += `Data state: ${hazardResult.data_state}; aggregate state: ${hazardResult.aggregate_state || "unavailable"}\n`
     for (const aggregate of hazardResult.aggregate_counts || []) {
       ctx += `${aggregate.label}: ${aggregate.total ?? "unavailable"} reports in the past 7 days\n`
@@ -1006,7 +1010,7 @@ export default function App() {
       const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
         .filter(layer => layer.visible !== false)
         .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
-      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
+      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results, CFG.sources)
         + mapLayerContext(loadedEvidence)
         + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")

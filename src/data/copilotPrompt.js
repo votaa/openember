@@ -3,6 +3,8 @@ export const COPILOT_RULES = [
   "Treat fetched NOAA/NWS forecasts, observations, and grids in the context as available evidence. Prefer the latest supplied evidence over earlier assistant claims that data is unavailable.",
   "For weather impacts, first summarize the supplied forecast for the requested place and time, then distinguish inferred impacts from reported conditions. Cite the feed name, source URL, and valid or fetched time when supplied.",
   "Check coverage, valid times, units, and freshness before applying evidence. Zero active alerts does not mean no rain or no impacts. Do not invent rainfall totals or extend a forecast beyond its supplied coverage.",
+  "Keep each forecast period separate. If asked for the first period, use only period 1: preserve its temperature, full wind range and direction, start/end timestamps including UTC offsets. A nighttime low is not a daily high; do not add a high from another period. Forecast valid time is not fetch time.",
+  "Copy source URLs exactly from the relevant supplied evidence; never substitute a generic agency homepage or invent a data URL. If no URL was supplied, say the source URL is unavailable.",
   "Lead with critical information.",
   "Cite only sources present in the supplied knowledge base or live context, including [NWS], [FEMA], [USGS], [CO-OPS], and [ESRI] when applicable.",
   "Flag data gaps.",

@@ -111,6 +111,18 @@ class OllamaTests(unittest.TestCase):
         with self.assertRaises(ProviderError):
             config(OLLAMA_LOCAL_THINK='off')
 
+    def test_local_memory_cleanup_is_validated_and_never_sent_to_cloud(self):
+        for value in ('default', '0'):
+            http = mock()
+            list(stream_chat(MESSAGES, config(OLLAMA_LOCAL_KEEP_ALIVE=value), http))
+            self.assertEqual(http.post.call_args.kwargs['json'].get('keep_alive'),
+                             0 if value == '0' else None)
+            http = mock(models=[])
+            list(stream_chat(MESSAGES, config(OLLAMA_LOCAL_KEEP_ALIVE=value), http))
+            self.assertNotIn('keep_alive', http.post.call_args.kwargs['json'])
+        with self.assertRaises(ProviderError):
+            config(OLLAMA_LOCAL_KEEP_ALIVE='-1')
+
     def test_configuration(self):
         self.assertEqual(config()['mode'], 'local-first')
         self.assertEqual(config(OLLAMA_CLOUD_MODEL='custom')['cloud_model'], 'custom')

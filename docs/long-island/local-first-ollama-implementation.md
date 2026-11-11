@@ -36,6 +36,7 @@ All Ollama settings are **server-side**. No `VITE_*` Ollama settings are read.
 | `OLLAMA_MODE` | `local-first` | `local-first`, `local-only`, or `cloud-only` |
 | `OLLAMA_LOCAL_HOST` | `http://127.0.0.1:11434` | Native Ollama base URL; Compose sets `http://host.docker.internal:11434` |
 | `OLLAMA_LOCAL_MODEL` | `qwen3:8b` | Installed local model; provisional until hardware acceptance |
+| `OLLAMA_LOCAL_KEEP_ALIVE` | `default` outside Docker; `0` in Compose | `0` requests model unload after a local turn so native GPU memory does not keep the Docker VM stalled; `default` leaves residency to Ollama. Never sent to cloud. Reloading the model can make later turns slower. |
 | `OLLAMA_LOCAL_THINK` | `default` | Local thinking: `default`, `true`, or `false`; never forwarded to cloud |
 | `OLLAMA_CLOUD_MODEL` | `gpt-oss:120b-cloud` | Ollama Cloud model |
 | `OLLAMA_API_KEY` | empty | Optional cloud credential; runtime secret only |

@@ -1,5 +1,7 @@
 # Full-context local inference baseline — November 10, 2026
 
+Follow-up: [answer delivery and grounding fixes, diagnosis and final local acceptance](local-quality-fixes-2026-11-10.md). The historical failures below are retained as baseline evidence.
+
 ## Purpose and implementation
 
 Establish completion and grounding before optimizing local prompts. The new

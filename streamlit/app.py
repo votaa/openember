@@ -899,6 +899,11 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
     if hazard_result:
         ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES · PAST 7 DAYS ONLY ---\n"
         ctx += report_window_message({"rolling_window_days": 7}, hazard_result) + "\n"
+        source = CFG.source("nyc_311_electric_hazards_rockaway") or {}
+        ctx += f"Source: {source.get('name') or 'NYC 311'}\nSource URL: {source.get('endpoint') or 'unavailable'}\n"
+        ctx += f"Fetched: {hazard_result.get('fetched_at') or 'unavailable'}\n"
+        ctx += f"Report window: {json.dumps(hazard_result.get('report_window'))}\n"
+        ctx += f"Active filter: {source.get('required_filter') or 'unavailable'}\n"
         ctx += f"Data state: {hazard_result.get('data_state')}; aggregate state: {hazard_result.get('aggregate_state') or 'unavailable'}\n"
         for aggregate in hazard_result.get("aggregate_counts", []):
             total = aggregate.get("total") if aggregate.get("total") is not None else "unavailable"
@@ -2416,23 +2421,39 @@ with tab_chat:
         with st.spinner("Gathering evidence…"):
             prepare_chat_job(st.session_state.pending_query)
 
-    @st.fragment(run_every=0.5 if st.session_state.get("chat_job") else None)
+    @st.fragment
     def render_chat_messages():
-        completed = sync_chat_job(st.session_state)
-        for index, msg in enumerate(st.session_state.messages):
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-                if msg.get("timing"):
-                    st.caption(timing_label(msg["timing"]))
-                job = st.session_state.get("chat_job")
-                if job and index == job.assistant_index:
-                    snapshot = job.snapshot()
-                    st.caption(snapshot["phase"])
-                    if snapshot["provider"]:
-                        st.caption(provider_label(snapshot["provider"]))
-        if completed:
-            # Re-enable inputs, map events and the normal feed-refresh timer.
-            st.rerun()
+        # Poll on the server while a turn is active. Browser fragment timers can
+        # be delayed/throttled; a completed worker must not need a menu Rerun.
+        from copy import deepcopy
+        output = st.empty()
+        last_rendered = None
+        while True:
+            completed = sync_chat_job(st.session_state)
+            job = st.session_state.get("chat_job")
+            snapshot = job.snapshot() if job else None
+            view = (st.session_state.messages, snapshot["phase"] if snapshot else None)
+            # Send deltas only when something changed. Replacing unchanged
+            # messages during a long prompt wait can back up the browser queue.
+            if view != last_rendered:
+                with output.container():
+                    for index, msg in enumerate(st.session_state.messages):
+                        with st.chat_message(msg["role"]):
+                            st.markdown(msg["content"])
+                            if msg.get("timing"):
+                                st.caption(timing_label(msg["timing"]))
+                            if job and index == job.assistant_index:
+                                st.caption(snapshot["phase"])
+                                if snapshot["provider"]:
+                                    st.caption(provider_label(snapshot["provider"]))
+                last_rendered = deepcopy(view)
+            if completed:
+                # Re-enable inputs, map events and normal feed refresh. The
+                # completed message is already stored before this full rerun.
+                st.rerun()
+            if not st.session_state.get("chat_job"):
+                break
+            _time.sleep(0.1)
 
     render_chat_messages()
 
