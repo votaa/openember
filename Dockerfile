@@ -12,6 +12,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json server.js ./
 COPY --chown=node:node lib ./lib
+COPY --chown=node:node shared/copilot/contract.schema.json shared/copilot/policy.json ./shared/copilot/
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s CMD node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
@@ -23,6 +24,7 @@ COPY streamlit/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt && useradd --create-home app
 COPY --chown=app:app streamlit ./streamlit
 COPY --chown=app:app config ./config
+COPY --chown=app:app shared/copilot/contract.schema.json shared/copilot/policy.json ./shared/copilot/
 USER app
 EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=2)"

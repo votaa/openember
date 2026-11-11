@@ -1,0 +1,87 @@
+{
+  "version": "1.0",
+  "precedence": [
+    "explicit_model",
+    "follow_up",
+    "complete_supported_request",
+    "synthesis"
+  ],
+  "compound_separator": "\\s*;\\s*|\\s+and\\s+(?=(?:what |how many |break down |show |give me |explain |compare |draft |summarize ))",
+  "guards": "\\b(?:catalog|not|never|instead|except|exclude|excluding|without|explain|compare|draft|summari[sz]e|impact|affect|why|should|risk|rainfall|inches|departments|organizations|deduplicated)\\b",
+  "rules": [
+    {
+      "intent": "forecast_facts",
+      "patterns": [
+        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(tonight|today|tomorrow|first period)(?:'s)? (low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))?(?: in (.+))?",
+        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))? (?:for )?(tonight|today|tomorrow|first period)(?: in (.+))?"
+      ],
+      "captures": [
+        {
+          "period": 1,
+          "fields": [
+            2,
+            3
+          ],
+          "place": 4
+        },
+        {
+          "period": 3,
+          "fields": [
+            1,
+            2
+          ],
+          "place": 4
+        }
+      ]
+    },
+    {
+      "intent": "map_count",
+      "patterns": [
+        "how many (?:features|reports|facilities|stations|records) (?:are (?:shown |loaded )?)?(?:in|on) (.+)",
+        "(?:count|give me the count of) (?:features|reports|facilities|stations|records) (?:in|on) (.+)"
+      ],
+      "captures": [
+        {
+          "layer": 1
+        },
+        {
+          "layer": 1
+        }
+      ]
+    },
+    {
+      "intent": "reports_311",
+      "patterns": [
+        "(?:break down|count|show|give me)(?: the)?(?: available)?(?: nyc)? 311 (?:electrical-hazard|electric hazard|reported-hazard|hazard) (?:reports|complaints)(?: in (.+))?"
+      ],
+      "captures": [
+        {
+          "place": 1
+        }
+      ]
+    }
+  ],
+  "token_accounting": {
+    "method": "utf8_bytes_plus_template_reserve_v1",
+    "bytes_per_estimated_token": 1,
+    "per_message_reserve": 64,
+    "template_reserve": 1024,
+    "generation_reserve": 2048,
+    "safety_reserve": 1024,
+    "exact": false,
+    "requires_native_retention_check": true
+  },
+  "limits": {
+    "history_messages": 10,
+    "request_bytes": 8388608
+  },
+  "switch": {
+    "environment": "COPILOT_EXECUTION_MODE",
+    "default": "legacy",
+    "values": [
+      "legacy",
+      "hybrid"
+    ],
+    "hosted_default": "legacy"
+  }
+}

@@ -1,0 +1,526 @@
+{
+  "note": "Public config and synthetic fixtures. Captured before runtime refactoring; these are construction baselines, not live cloud answer acceptance.",
+  "jurisdiction": "Long Island",
+  "kb": {
+    "floodZones": {
+      "label": "Flood Zones",
+      "source": "FEMA / Local",
+      "data": "Zone AE (Special Flood Hazard): Long Beach (entire city), Atlantic Beach, Lido Beach, Island Park, Oceanside, Freeport waterfront, Merrick, Massapequa bay-front (Nassau); Lindenhurst, Copiague, Amityville Harbor, Bay Shore waterfront, Mastic Beach, Shirley, Patchogue, Westhampton Beach, Hampton Bays, Shinnecock Bay (Suffolk).\nZone VE (Coastal High-Hazard / wave action): Fire Island (entire barrier island), Jones Beach Island, Long Beach ocean side, Montauk Point, Breezy Point (Queens/NYC).\nZone X (moderate risk): Inland Nassau and Suffolk north of Southern State Pkwy.\nStorm Surge Zones A-D: ~220,000 LI residents (15%) in Zone A/B.\nPost-Sandy (2012): ~$5.5B LI damage; Nassau ~$3B, Suffolk ~$2.5B. FEMA maps substantially revised.\n"
+    },
+    "evacZones": {
+      "label": "Evacuation Zones",
+      "source": "Local OEM",
+      "data": "Zone A (highest): Barrier islands — mandatory evacuation ANY hurricane or tropical storm. Long Beach, Atlantic Beach, Lido Beach, Point Lookout, Island Park (Nassau); Fire Island, Mastic Beach, Shirley, Westhampton Beach oceanside, Hampton Bays oceanside, Montauk tip (Suffolk); Rockaways (NYC Zone 1).\nZone B: Low-lying bay-adjacent areas — evacuate Cat 1+.\nZone C: Moderate risk inland — evacuate Cat 2+.\nZone D: Lower risk — evacuate Cat 3+.\nNassau shelters: Nassau Community College (Garden City), Kellenberg Memorial HS (Uniondale), Carey HS (Franklin Square). Alert: text OneNassau to 888777.\nSuffolk: Fire Island — FERRY ONLY evacuation via Bay Shore, Sayville, Patchogue terminals. South shore mainland: Southern State Pkwy / Sunrise Hwy. Alert: text SuffolkAlerts to 67283.\nRockaway (NYC Zone 1): Cross Bay Veterans Memorial Bridge + Marine Pkwy Bridge egress. Nassau shelters available to NYC Zone 1 evacuees by agreement.\n"
+    },
+    "criticalInfrastructure": {
+      "label": "Critical Infrastructure",
+      "source": "Local OEM",
+      "data": "Hospitals — Nassau Level 1 Trauma (3): North Shore University Hospital (Manhasset, ACS + NYS DOH Regional L1); Nassau University Medical Center (East Meadow, NYS DOH L1); NYU Langone LI (Mineola, ACS L1).\nNassau Level 2: Mount Sinai South Nassau (Oceanside, formerly South Nassau Communities).\nSuffolk Level 1 Trauma (3): Stony Brook University Hospital (ACS + NYS DOH Regional L1, adult + peds); South Shore University Hospital (Bay Shore, ACS L1 Aug 2024, NYS DOH state designation pending); Good Samaritan University Hospital (West Islip, ACS L1 adult / L2 peds).\nSuffolk Level 2: NYU Langone Suffolk (East Patchogue, ACS-verified Jul 2025); Northwell Huntington Hospital.\nSuffolk Level 3 / East End: Southampton Hospital; Peconic Bay Medical Center (Riverhead).\nNOTE: No trauma center on Fire Island, Long Beach barrier island, or Rockaway Peninsula itself. South Shore University Hospital NYS state L1 designation still pending as of 2025.\nHelipads: North Shore UH (FAA 7NY3/6NK3), NUMC (FAA 0NK4), Stony Brook (FAA 6NY6), South Shore UH — critical for medevac routing decisions.\n"
+    },
+    "hazardProfiles": {
+      "label": "Hazard Profiles",
+      "source": "Local HMP",
+      "data": "HURRICANES: Sandy 2012 (Cat 1) — $5.5B LI damage, 13 LI deaths, ~1.1M without power. Primary risk: storm surge (6-10+ ft south shore), not wind. Barrier island overwash possible Cat 2+. 15 tropical systems impacted NYS since 2012; frequency doubled in 6 years (NYS DHSES 2024).\nCOASTAL FLOODING: Great South Bay avg 4ft depth — surge rises rapidly. Combined ocean surge + bay flooding traps south shore mainland. Active live gauges: Kings Point (8516945) and Montauk (8510560). Battery Park (8518750) and Sandy Hook (8531680) are regional references. Fire Island (8515186) and Bay Shore (8515102) are retired as live-water-level stations.\nEXTREME HEAT: Fewer cooling centers per capita than NYC. Nassau protocol at Heat Index >= 95F. Hempstead, Brentwood, Central Islip — reduced cooling access in affordable/senior housing.\nWINTER STORMS / NOREASTERS: Jonas 2016 — 25+ inches Suffolk. LIRR third-rail vulnerable. Route 27 and Route 25 single-road dependency for East End communities.\nHAZMAT: Brookhaven National Laboratory (DOE, Upton) — radiological. Bethpage Grumman groundwater plume (Nassau) — active CERCLA remediation 2025.\n"
+    },
+    "resources": {
+      "label": "Contacts & Resources",
+      "source": "Local OEM",
+      "data": "Nassau OEM: 516-573-9600 | 510 Grumman Rd W, Bethpage | nassaucountyny.gov/oem\nSuffolk OEM: 631-852-4900 | 30 Yaphank Ave, Yaphank | scoem.suffolkcountyny.gov\nNYC OEM (Rockaway coordination): 718-422-8700 | nyc.gov/oem\nNYS DHSES Region 1 (LI): 631-952-6599 | 30 Yaphank Ave, Yaphank\nFEMA Region 2: 212-680-3600 | 26 Federal Plaza, Manhattan\nNassau County PD: 516-573-8800 | Suffolk County PD: 631-852-6000\nNYU Langone LI (Level 1 Trauma): 516-663-0333\nStony Brook SUMC (Level 1 Trauma): 631-444-4000\nGood Samaritan (Level 1 Trauma): 631-376-3000\nPSEG Long Island (outages): 1-800-490-0075 | National Grid (gas): 1-800-930-5003\nNWS OKX (Upton): 631-924-0517 | USCG Emergency: VHF Ch 16\nNassau Nixle: text OneNassau to 888777\nSuffolkAlert: text SuffolkAlerts to 67283\nLIRR: 511 | mta.info/lirr\n"
+    },
+    "custom_extension": {
+      "label": "Synthetic extension",
+      "source": "Synthetic public fixture",
+      "data": "Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. Retained full KB coverage. LATE-KB-DELTA-19 is a synthetic extension marker."
+    }
+  },
+  "files": [
+    {
+      "name": "synthetic-plan.txt",
+      "content": "CEDAR-731: 47 amber cones.\nPublic synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. Public synthetic filler. \nLate fact: radio channel DELTA-19. No commander supplied. 🙂"
+    }
+  ],
+  "history": [
+    {
+      "role": "user",
+      "content": "Focus on Long Island."
+    },
+    {
+      "role": "assistant",
+      "content": "Prior synthetic discussion."
+    }
+  ],
+  "api_results": [
+    {
+      "success": true,
+      "fetched_at": "2026-11-11T15:00:00Z",
+      "data": {
+        "properties": {
+          "periods": [
+            {
+              "name": "Tonight",
+              "isDaytime": false,
+              "startTime": "2026-11-11T18:00:00-05:00",
+              "endTime": "2026-11-12T06:00:00-05:00",
+              "temperature": 44,
+              "temperatureUnit": "F",
+              "windSpeed": "7 to 10 mph",
+              "windDirection": "W",
+              "probabilityOfPrecipitation": {
+                "value": 20
+              }
+            },
+            {
+              "name": "Tomorrow",
+              "isDaytime": true,
+              "startTime": "2026-11-12T06:00:00-05:00",
+              "endTime": "2026-11-12T18:00:00-05:00",
+              "temperature": 58,
+              "temperatureUnit": "F",
+              "windSpeed": "8 to 12 mph",
+              "windDirection": "NW"
+            }
+          ]
+        }
+      },
+      "name": "NWS synthetic point forecast",
+      "type": "forecast",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+      "fetchedAt": "2026-11-11T15:00:00Z"
+    },
+    {
+      "success": true,
+      "type": "flood",
+      "name": "Synthetic USGS",
+      "data": {
+        "value": {
+          "timeSeries": [
+            {
+              "sourceInfo": {
+                "siteName": "Synthetic gauge"
+              },
+              "values": [
+                {
+                  "value": [
+                    {
+                      "value": "2.1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "success": true,
+      "type": "fema",
+      "name": "Synthetic FEMA",
+      "data": {
+        "DisasterDeclarationsSummaries": [
+          {
+            "incidentType": "Hurricane",
+            "declarationTitle": "Synthetic declaration"
+          }
+        ]
+      }
+    },
+    {
+      "success": true,
+      "type": "civic",
+      "name": "Synthetic civic",
+      "data": [
+        {
+          "complaint_type": "Street Condition",
+          "descriptor": "Synthetic blocked road",
+          "borough": "QUEENS"
+        }
+      ]
+    },
+    {
+      "success": false,
+      "type": "weather",
+      "name": "Unavailable alerts fixture",
+      "error": "synthetic offline"
+    }
+  ],
+  "phase4_results": {
+    "nyc_311_electric_hazards_rockaway": {
+      "data_state": "current",
+      "aggregate_state": "current",
+      "fetched_at": "2026-11-11T15:00:00Z",
+      "report_window": {
+        "start": "2026-11-04T10:00:00",
+        "end": "2026-11-11T10:00:00",
+        "timezone": "America/New_York"
+      },
+      "aggregate_counts": [
+        {
+          "key": "all_reported_hazards",
+          "label": "All included reports",
+          "total": 3
+        },
+        {
+          "key": "direct_electric",
+          "label": "Direct electrical reports",
+          "total": 0
+        },
+        {
+          "key": "electric_tree_or_wire",
+          "label": "Tree or wire reports",
+          "total": 1
+        },
+        {
+          "key": "road_blockage",
+          "label": "Road blockage reports",
+          "total": 2
+        }
+      ],
+      "records": []
+    }
+  },
+  "sources": [
+    {
+      "id": "nyc_311_electric_hazards_rockaway",
+      "name": "NYC 311 reported electric hazards and road blockages — Rockaway",
+      "owner": "NYC 311",
+      "geographies": [
+        "rockaway"
+      ],
+      "family": "socrata",
+      "endpoint": "https://data.cityofnewyork.us/resource/erm2-nwe9.json",
+      "format": "json",
+      "qualification": "qualified",
+      "enabled": true,
+      "rolling_window_days": 7,
+      "refresh_seconds": 300,
+      "stale_after_seconds": 900,
+      "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND latitude IS NOT NULL AND longitude IS NOT NULL AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')) OR (agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')) OR complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))",
+      "query_select": "unique_key,created_date,agency,complaint_type,descriptor,status,borough,community_board,incident_zip,latitude,longitude",
+      "query_order": "created_date DESC",
+      "query_limit": 500,
+      "aggregate_queries": [
+        {
+          "key": "all_reported_hazards",
+          "label": "All included reports",
+          "query_select": "count(*) as total",
+          "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')) OR (agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')) OR complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))"
+        },
+        {
+          "key": "direct_electric",
+          "label": "Direct electrical reports",
+          "query_select": "count(*) as total",
+          "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND ((agency = 'HPD' AND complaint_type IN ('ELECTRIC','Electric') AND descriptor IN ('POWER OUTAGE','Power Outage')) OR (agency = 'DOB' AND complaint_type = 'Electrical' AND descriptor IN ('Electrical Wiring Defective','Electrical Wiring Exposed')))"
+        },
+        {
+          "key": "electric_tree_or_wire",
+          "label": "Tree or wire reports",
+          "query_select": "count(*) as total",
+          "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND agency = 'DPR' AND descriptor IN ('Hitting Power Lines','Hitting Power/Phone Lines','Hitting Phone/Cable Lines')"
+        },
+        {
+          "key": "road_blockage",
+          "label": "Road blockage reports",
+          "query_select": "count(*) as total",
+          "required_filter": "borough = 'QUEENS' AND community_board = '14 QUEENS' AND (complaint_type IN ('Blocking Street','Blocked Road') OR (complaint_type = 'Street Condition' AND descriptor LIKE 'Blocked -%'))"
+        }
+      ],
+      "attribution": "NYC Open Data / NYC 311",
+      "disclaimer": "NYC 311 records are reported complaints, not utility-confirmed outages or verified restoration constraints.",
+      "operational_note": "Includes direct electrical reports, tree/wire reports, and any scoped blocked-road or blocked-street-condition reports because access constraints may affect restoration work.",
+      "display": {
+        "icon": "⚡",
+        "color": "#facc15",
+        "kind": "operational",
+        "map_capable": true
+      },
+      "source_timestamp_timezone": "America/New_York",
+      "normalization": {
+        "id_field": "unique_key",
+        "observed_at_field": "created_date",
+        "category_field": "complaint_type",
+        "title_field": "complaint_type",
+        "description_fields": [
+          "descriptor"
+        ],
+        "status_field": "status",
+        "severity_field": null,
+        "geometry": {
+          "kind": "point_fields",
+          "latitude_field": "latitude",
+          "longitude_field": "longitude"
+        },
+        "scope": {
+          "kind": "classification_rules",
+          "rules": [
+            {
+              "key": "direct_electric",
+              "label": "Direct electrical report",
+              "all": [
+                {
+                  "field": "agency",
+                  "values": [
+                    "HPD"
+                  ]
+                },
+                {
+                  "field": "complaint_type",
+                  "values": [
+                    "ELECTRIC",
+                    "Electric"
+                  ]
+                },
+                {
+                  "field": "descriptor",
+                  "values": [
+                    "POWER OUTAGE",
+                    "Power Outage"
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "direct_electric",
+              "label": "Direct electrical report",
+              "all": [
+                {
+                  "field": "agency",
+                  "values": [
+                    "DOB"
+                  ]
+                },
+                {
+                  "field": "complaint_type",
+                  "values": [
+                    "Electrical"
+                  ]
+                },
+                {
+                  "field": "descriptor",
+                  "values": [
+                    "Electrical Wiring Defective",
+                    "Electrical Wiring Exposed"
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "electric_tree_or_wire",
+              "label": "Tree or wire report",
+              "all": [
+                {
+                  "field": "agency",
+                  "values": [
+                    "DPR"
+                  ]
+                },
+                {
+                  "field": "descriptor",
+                  "values": [
+                    "Hitting Power Lines",
+                    "Hitting Power/Phone Lines",
+                    "Hitting Phone/Cable Lines"
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "road_blockage",
+              "label": "Road blockage report",
+              "all": [
+                {
+                  "field": "complaint_type",
+                  "values": [
+                    "Blocking Street",
+                    "Blocked Road"
+                  ]
+                }
+              ]
+            },
+            {
+              "key": "road_blockage",
+              "label": "Road blockage report",
+              "all": [
+                {
+                  "field": "complaint_type",
+                  "values": [
+                    "Street Condition"
+                  ]
+                },
+                {
+                  "field": "descriptor",
+                  "values": [
+                    "Blocked - Construction"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "audit_properties": [
+          "unique_key",
+          "agency",
+          "complaint_type",
+          "descriptor",
+          "borough",
+          "community_board",
+          "incident_zip"
+        ]
+      },
+      "failure_state": "unavailable"
+    }
+  ],
+  "map_evidence": [
+    {
+      "state": "complete",
+      "complete_count": 900,
+      "displayed_subset": 500,
+      "samples": [
+        {
+          "Name": "Example station"
+        }
+      ],
+      "summary": {
+        "state": "not_requested"
+      },
+      "filter": "operational",
+      "where": "ACTIVE=1",
+      "scope": "complete matching inventory; no browse cap",
+      "fetched_at": "2026-11-11T15:00:00Z",
+      "id": "fire",
+      "name": "Fire/EMS",
+      "url": "https://example.test/FeatureServer/2"
+    }
+  ],
+  "noaa_items": [
+    {
+      "content": "[NOAA: Synthetic tides]\nSource: https://example.test/tides\nFetched: 2026-11-11T15:00:00Z\n2.1 ft MLLW; rising."
+    },
+    {
+      "content": "[NOAA: Synthetic text product]\nSource: https://example.test/afd\nCoastal weather discussion."
+    }
+  ],
+  "esri_items": [
+    {
+      "content": "Synthetic Fire/EMS catalog metadata; no feature inventory."
+    }
+  ],
+  "gauge_data": {
+    "8516945": {
+      "level": {
+        "station_name": "Kings Point fixture",
+        "level_ft": 2.1,
+        "status": "normal",
+        "trend_str": "rising"
+      },
+      "next_high": {
+        "level_ft": 3.2,
+        "time": "2026-11-11T16:00:00-05:00"
+      },
+      "next_low": {
+        "level_ft": -0.1,
+        "time": "2026-11-11T22:00:00-05:00"
+      },
+      "fetched_at": "2026-11-11T15:00:00Z"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "module-floodZones",
+      "question": "Explain the supplied Flood Zones evidence.",
+      "enabled_modules": [
+        "floodZones"
+      ]
+    },
+    {
+      "id": "module-evacZones",
+      "question": "Explain the supplied Evacuation Zones evidence.",
+      "enabled_modules": [
+        "evacZones"
+      ]
+    },
+    {
+      "id": "module-criticalInfrastructure",
+      "question": "Explain the supplied Critical Infrastructure evidence.",
+      "enabled_modules": [
+        "criticalInfrastructure"
+      ]
+    },
+    {
+      "id": "module-hazardProfiles",
+      "question": "Explain the supplied Hazard Profiles evidence.",
+      "enabled_modules": [
+        "hazardProfiles"
+      ]
+    },
+    {
+      "id": "module-resources",
+      "question": "Explain the supplied Contacts & Resources evidence.",
+      "enabled_modules": [
+        "resources"
+      ]
+    },
+    {
+      "id": "module-custom_extension",
+      "question": "Explain the supplied Synthetic extension evidence.",
+      "enabled_modules": [
+        "custom_extension"
+      ]
+    },
+    {
+      "id": "whole-kb",
+      "question": "Summarize all enabled information for a briefing.",
+      "enabled_modules": [
+        "floodZones",
+        "evacZones",
+        "criticalInfrastructure",
+        "hazardProfiles",
+        "resources",
+        "custom_extension"
+      ]
+    },
+    {
+      "id": "cross-source",
+      "question": "Compare my uploaded plan, selected facility, KB and live evidence.",
+      "enabled_modules": [
+        "floodZones",
+        "evacZones",
+        "criticalInfrastructure",
+        "hazardProfiles",
+        "resources",
+        "custom_extension"
+      ]
+    },
+    {
+      "id": "disabled-modules",
+      "question": "Who should I contact in Suffolk?",
+      "enabled_modules": [
+        "resources"
+      ]
+    },
+    {
+      "id": "implicit-kb",
+      "question": "What do I need to know about evacuation?",
+      "enabled_modules": [
+        "floodZones",
+        "evacZones",
+        "criticalInfrastructure",
+        "hazardProfiles",
+        "resources",
+        "custom_extension"
+      ]
+    },
+    {
+      "id": "follow-up",
+      "question": "What about tomorrow?",
+      "enabled_modules": [
+        "floodZones",
+        "evacZones",
+        "criticalInfrastructure",
+        "hazardProfiles",
+        "resources",
+        "custom_extension"
+      ]
+    }
+  ]
+}

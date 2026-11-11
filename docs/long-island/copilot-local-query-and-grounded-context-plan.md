@@ -2,7 +2,7 @@
 
 Date: November 11, 2026
 
-Status: implementation plan; runtime changes have not started
+Status: phase 1 contracts, fixtures and pure planners implemented; application integration has not started. See [phase 1 inventory, contracts and baseline](copilot-phase-1-contracts-and-baseline.md).
 
 Reference: AIDA's current `CopilotService`, `CopilotContextBuilder`, response contract, and provider-bypass tests
 
