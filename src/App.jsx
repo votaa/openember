@@ -765,9 +765,17 @@ export default function App() {
     setLocalConfig(merged)
     if (!saveLocalConfig(merged)) console.warn("EMBER config could not be saved to localStorage")
   }
-  const [messages, setMessages]         = useState([{role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: checking Ollama provider status\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
+  const [messages, setMessages]         = useState([{id:"initialization",role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: checking Ollama provider status\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
   const [input, setInput]               = useState("")
   const [providerStatus, setProviderStatus] = useState(null)
+  const backendStatusText = providerStatus
+    ? `${providerLabel(providerStatus)}${providerStatus.provider && providerStatus.message ? ` — ${providerStatus.message}` : ""}`
+    : "checking Ollama provider status"
+  useEffect(() => {
+    setMessages(previous => previous.map(message => message.id === "initialization"
+      ? { ...message, content: message.content.replace(/^Backend:.*$/m, () => `Backend: ${backendStatusText}`) }
+      : message))
+  }, [backendStatusText])
   useEffect(() => {
     const controller = new AbortController()
     getProviderStatus({ signal: controller.signal }).then(setProviderStatus).catch(error => {
@@ -1080,7 +1088,7 @@ export default function App() {
       </div>
 
       <div role="status" style={{padding:"5px 18px",fontSize:10,color:providerStatus?.available === false ? "#f87171" : "#9ca3af"}}>
-        {providerLabel(providerStatus)}{providerStatus?.message ? ` — ${providerStatus.message}` : ""}
+        {backendStatusText}
         <button onClick={() => getProviderStatus().then(setProviderStatus).catch(error => setProviderStatus({available:false,message:error.message}))} style={{marginLeft:12,background:"#111820",color:"#aab",border:"1px solid #2a2e3a",borderRadius:4,fontFamily:"inherit",fontSize:10,cursor:"pointer"}}>Refresh provider status</button>
       </div>
 
