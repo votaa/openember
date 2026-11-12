@@ -1,4 +1,8 @@
-import { streamChat, getProviderStatus, providerLabel, timingLabel } from './ollama-client.js'
+import { fetchWithCancellation, waitForEvidence } from './data/copilotAcquisition.js'
+import { fetchRockawaySource } from './data/regional/rockawaySources.js'
+import { planRequest, adaptEvidence } from './data/copilotRuntime.js'
+import { makeCopilotRequest, withLegacyContext, layerCacheKey } from './data/copilotSnapshot.js'
+import { streamChat, getProviderStatus, getCopilotCapabilities, responseLabel, providerLabel, timingLabel } from './ollama-client.js'
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
@@ -117,6 +121,7 @@ function buildRuntimeConfig(local) {
   const j = local.jurisdiction || {}
   return {
     name:      j.name      || _J.name      || "New York City",
+    timezone: j.timezone || _J.timezone || "America/New_York",
     shortName: j.shortName || _J.short_name|| "NYC",
     state:     (j.state    || _J.state     || "NY").toUpperCase(),
     center:    j.center    || _J.center    || [40.7128, -74.006],
@@ -131,6 +136,7 @@ function buildRuntimeConfig(local) {
 function buildRuntimeKB(local) {
   const lkb = local.kb || {}
   return {
+    ..._KB,
     floodZones:             { label:"Flood Zones",             source:"FEMA / Local", data: lkb.floodZones             || _KB.floodZones?.data             || DEFAULT_KB_TEXT.floodZones },
     evacZones:              { label:"Evacuation Zones",        source:"Local OEM",    data: lkb.evacZones              || _KB.evacZones?.data              || DEFAULT_KB_TEXT.evacZones },
     criticalInfrastructure: { label:"Critical Infrastructure", source:"Local OEM",    data: lkb.criticalInfrastructure || _KB.criticalInfrastructure?.data  || DEFAULT_KB_TEXT.criticalInfrastructure },
@@ -350,9 +356,9 @@ function summarizeNOAA(result) {
   } catch(e) { return "parse error: " + e.message }
 }
 
-async function fetchNOAA(ep) {
+async function fetchNOAA(ep, {fetchImpl=fetch}={}) {
   try {
-    const response = await fetch(ep.url, {signal:AbortSignal.timeout(10000)})
+    const response = await fetchImpl(ep.url, {signal:AbortSignal.timeout(10000)})
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const isText = ep.text || (response.headers.get("content-type") || "").includes("text/plain")
     const data = isText ? await response.text() : await response.json()
@@ -768,6 +774,8 @@ export default function App() {
   const [messages, setMessages]         = useState([{id:"initialization",role:"assistant",content:`${BRANDING.appTitle} initialized — ${CFG_RT.name} (${CFG_RT.state})\nBackend: checking Ollama provider status\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.`}])
   const [input, setInput]               = useState("")
   const [providerStatus, setProviderStatus] = useState(null)
+  const [copilotCapabilities,setCopilotCapabilities] = useState(null)
+  const capabilitiesRef = useRef(null)
   const backendStatusText = providerStatus
     ? `${providerLabel(providerStatus)}${providerStatus.provider && providerStatus.message ? ` — ${providerStatus.message}` : ""}`
     : "checking Ollama provider status"
@@ -778,7 +786,12 @@ export default function App() {
   }, [backendStatusText])
   useEffect(() => {
     const controller = new AbortController()
-    getProviderStatus({ signal: controller.signal }).then(setProviderStatus).catch(error => {
+    capabilitiesRef.current = getCopilotCapabilities({signal:controller.signal}).catch(()=>({execution_mode:'legacy',request_versions:[]}))
+    capabilitiesRef.current.then(async caps => {
+      setCopilotCapabilities(caps)
+      if (caps.execution_mode === 'hybrid') return {available:null,message:'Local data queries ready · AI provider checked when analysis is requested'}
+      return getProviderStatus({signal:controller.signal})
+    }).then(setProviderStatus).catch(error => {
       if (!controller.signal.aborted) setProviderStatus({ available: false, message: error.message })
     })
     return () => controller.abort()
@@ -786,7 +799,7 @@ export default function App() {
   const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
   const [chatProgress, setChatProgress] = useState("")
   const [streaming, setStreaming]       = useState(false)
-  const [activeKB, setActiveKB]         = useState(["floodZones","evacZones","criticalInfrastructure","hazardProfiles","resources"])
+  const [activeKB, setActiveKB]         = useState(()=>Object.keys(KB_RT))
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
   const [basemap, setBasemap] = useState(BASEMAP_OSM)
   const [showRadar, setShowRadar]       = useState(true)
@@ -903,6 +916,7 @@ export default function App() {
     setNycOpenDataToken(nextToken)
     setNycOpenDataTokenState(nextToken)
   }
+  const mapEvidenceCacheRef = useRef({})
   const abortRef   = useRef(null)
   const fileInputRef = useRef(null)
   const endRef     = useRef(null)
@@ -1003,6 +1017,37 @@ export default function App() {
     let full = ""
     let assistantAdded = false
     try {
+      const caps = await capabilitiesRef.current
+      const hybrid = caps?.execution_mode === 'hybrid' && caps.request_versions.includes('1.0')
+      let structuredRequest = null
+      let legacyMessages = []
+      const source311 = CFG.sources.find(s=>s.id==='nyc_311_electric_hazards_rockaway')
+      const currentLayers = Object.values(evaluatedEsriMapLayers)
+      const cachedLayers = currentLayers.map(layer=>{const cached=mapEvidenceCacheRef.current[layer.id];return cached && cached.key===layerCacheKey(layer,geographyFilterRecords) && Date.now()-Date.parse(cached.evidence.fetched_at)<60000 ? cached.evidence : layer})
+      const snapshot = (layers=cachedLayers, forecast=noaaCacheRef.current.nws_forecast, reports=phase4ResultsRef.current.nyc_311_electric_hazards_rockaway) => makeCopilotRequest({question:q,history:messages,name:CFG_RT.name,timezone:CFG_RT.timezone,enabled:activeKB,forecast,layers,reports,reportSource:source311},adaptEvidence)
+      if (hybrid) {
+        let request = snapshot()
+        let plan = planRequest(request)
+        if (plan.outcome === 'local' && plan.operations.some(op=>op.status==='acquire')) {
+          const needForecast = plan.operations.some(op=>op.intent==='forecast_facts' && op.status==='acquire')
+          const needReports = plan.operations.some(op=>op.intent==='reports_311' && op.status==='acquire')
+          const layerIds = plan.operations.filter(op=>op.intent==='map_count' && op.status==='acquire').flatMap(op=>op.scope.layer_ids)
+          const signal=abortRef.current.signal
+          const scopedFetch=fetchWithCancellation(signal)
+          const [forecast, maps, reportResult] = await waitForEvidence(Promise.all([
+            needForecast ? fetchNOAA(weatherEndpoints.find(ep=>ep.id==='nws_forecast'),{fetchImpl:scopedFetch}) : Promise.resolve(noaaCacheRef.current.nws_forecast),
+            Promise.all(currentLayers.map(async layer=>{if(!layerIds.includes(layer.id)||layer.visible===false) return cachedLayers.find(l=>l.id===layer.id)||layer;const evidence=await fetchMapLayerEvidence(layer,geographyFilterRecords,{question:q,fetchImpl:scopedFetch});if(evidence.state==='complete') mapEvidenceCacheRef.current[layer.id]={key:layerCacheKey(layer,geographyFilterRecords),evidence};return evidence})),
+            needReports && source311 ? fetchRockawaySource(source311,{fetchImpl:scopedFetch,geographyRecords:geographyFilterRecords,appToken:nycOpenDataToken,previousResult:phase4ResultsRef.current[source311.id]}) : Promise.resolve(null),
+          ]),signal)
+          abortRef.current.signal.throwIfAborted()
+          if (needForecast && forecast) storeNOAA(forecast)
+          if (reportResult) { phase4ResultsRef.current={...phase4ResultsRef.current,[source311.id]:reportResult};setPhase4Results(phase4ResultsRef.current) }
+          request = snapshot(maps,forecast)
+          plan = planRequest(request)
+        }
+        if (plan.outcome !== 'synthesis') structuredRequest = request
+      }
+      if (!structuredRequest) {
       // Refresh missing/stale weather before constructing this request, so the
       // first ordinary question gets the same forecast evidence as Streamlit.
       await initialNoaaFetchRef.current
@@ -1023,13 +1068,16 @@ export default function App() {
         + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
+      legacyMessages = [{role:'system',content:buildCopilotSystemPrompt(CFG_RT.name,ctx)},...msgs.slice(-10)]
+      if (hybrid) structuredRequest=withLegacyContext(snapshot(loadedEvidence),ctx,adaptEvidence)
+      }
       const evidenceMs = performance.now() - evidenceStarted
       abortRef.current.signal.throwIfAborted()
       setMessages(p=>[...p,{role:"assistant",content:"▋"}])
       assistantAdded = true
       for await (const token of streamChat(
-        [{ role: "system", content: buildCopilotSystemPrompt(CFG_RT.name, ctx) }, ...msgs.slice(-10)],
-        { signal: abortRef.current.signal, onProgress: setChatProgress,
+        legacyMessages,
+        { structuredRequest, onResponse:response=>setMessages(p=>[...p.slice(0,-1),{...p.at(-1),response}]), signal: abortRef.current.signal, onProgress: setChatProgress,
           onTiming: timing => setMessages(p => [...p.slice(0,-1), { ...p.at(-1), timing: { ...timing, evidence_ms: evidenceMs } }]),
           onProvider: metadata => {
             setProviderStatus({ ...metadata, available: true })
@@ -1101,7 +1149,7 @@ export default function App() {
           </select>
         </label>
         <span style={{fontSize:8.5,color:"#2a2e3a",fontWeight:700,letterSpacing:"0.1em",marginRight:3}}>KB</span>
-        {KB_MODULES.map(m => pill(m.label, activeKB.includes(m.id), ()=>setActiveKB(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id])))}
+        {Object.entries(KB_RT).map(([id,mod])=>({id,label:mod.label})).map(m => pill(m.label, activeKB.includes(m.id), ()=>setActiveKB(p=>p.includes(m.id)?p.filter(x=>x!==m.id):[...p,m.id])))}
         <div style={{width:1,height:14,background:"#1a1e28",margin:"0 4px"}}/>
         <label title="Main map overlays, weather, added layers, and Phase 4 layers enabled during this session" style={{display:"flex",alignItems:"center",gap:4,color:overlayState === "Off" ? "#889" : "#22d3ee",fontSize:10,fontWeight:700,cursor:"pointer"}}>
           <input type="checkbox" checked={overlayState === "All"} ref={input => {if (input) input.indeterminate = overlayState === "Some"}} disabled={overlayState === "Unavailable"} aria-label={overlayState === "All" ? "Hide all map overlays" : "Select all map overlays"} aria-describedby="overlay-scope" onChange={()=>selectAllOverlays(overlayState !== "All")} />
@@ -1180,7 +1228,8 @@ export default function App() {
                     </div>
                     <div style={{flex:1,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
                       {m.content}
-                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{timingLabel(m.timing)}</div>}
+                      {m.role==='assistant' && m.id!=='initialization' && <div style={{fontSize:10,color:'#9ca3af'}}>{m.response ? responseLabel(m.response) : 'Legacy AI response'}</div>}
+                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{m.response?.execution_mode==='local_query' ? `Evidence ${((m.timing.evidence_ms||0)/1000).toFixed(2)}s · local query ${(m.timing.request_ms/1000).toFixed(2)}s` : timingLabel(m.timing)}</div>}
                     </div>
                   </div>
                 ))}

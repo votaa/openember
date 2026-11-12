@@ -30,7 +30,7 @@ from map_overlay_selection import (STANDARD_IDS, overlay_inventory, selection_st
 from operational_layer_control import OperationalLayerControl
 from report_window import report_window_message
 from regional_normalization import (
-    ROCKAWAY_SOURCE_IDS,
+    ROCKAWAY_SOURCE_IDS, fetch_rockaway_source,
 )
 from phase4_sources import (
     PHASE4_GEOGRAPHY_SOURCE_IDS,
@@ -41,7 +41,11 @@ from phase4_sources import (
     unavailable_phase4_result,
 )
 from ollama_provider import configuration, provider_status, provider_label
-from chat_job import ChatJob, sync_chat_job, timing_label
+from chat_job import ChatJob, sync_chat_job, timing_label, response_label
+from copilot_contract import execution_mode
+from copilot_intent import plan_request
+from copilot_snapshot import make_request, with_legacy_context
+from copilot_service import application_stream
 from chat_state import (
     background_refresh_allowed,
     begin_chat_response,
@@ -111,6 +115,7 @@ def _setting(name: str, default: str = "") -> str:
     return str(value) if value not in (None, "") else os.environ.get(name, default)
 
 
+COPILOT_MODE = execution_mode({'COPILOT_EXECUTION_MODE':_setting('COPILOT_EXECUTION_MODE','legacy')})
 OLLAMA_CONFIG = configuration(_setting)
 CARTO_API_KEY  = _setting("CARTO_API_KEY")
 AGOL_BASE      = "https://www.arcgis.com/sharing/rest"
@@ -358,10 +363,10 @@ def fetch_noaa_ep(ep):
             error = data["error"]
             raise ValueError(error.get("message", str(error)) if isinstance(error, dict) else str(error))
         return {"success": True, "data": data,
-                "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now().strftime("%H:%M:%S")}
+                "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
     except Exception as e:
         return {"success": False, "error": str(e), "ep": ep,
-                "fetched_at": _dt.datetime.now().strftime("%H:%M:%S")}
+                "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
 
 def summarize_noaa(result):
     if not result["success"]: return f"[{result['ep']['name']}: failed — {result['error']}]"
@@ -493,9 +498,8 @@ def refresh_stale_endpoints():
         result = st.session_state.noaa_results.get(ep_id)
         if result and result.get("fetched_at"):
             try:
-                fetched  = _dt.datetime.strptime(result["fetched_at"], "%H:%M:%S").replace(
-                    year=now.year, month=now.month, day=now.day)
-                if (now - fetched).total_seconds() < interval: continue
+                fetched = _dt.datetime.fromisoformat(result["fetched_at"].replace('Z','+00:00'))
+                if (_dt.datetime.now(_dt.timezone.utc) - fetched).total_seconds() < interval: continue
             except:
                 pass
         ep = ep_map.get(ep_id)
@@ -1208,7 +1212,7 @@ for k, v in [
     ("messages",     [{"role": "assistant", "content":
                         f"EMBER initialized — Emergency Management Body of Evidence & Resources\n"
                         f"Backend: {OLLAMA_CONFIG['mode']}\nJurisdiction: {CFG.name}\n\n"
-                        f"Knowledge base loaded · NOAA feeds auto-fetching · Radar & wind on by default\n"
+                        f"Knowledge base loaded · {'NOAA fetched on demand' if COPILOT_MODE=='hybrid' else 'NOAA feeds auto-fetching'} · Radar & wind on by default\n"
                         f"Tidal gauges: fetching live CO-OPS water levels for all NY stations\n"
                         f"Click a map marker or type a query to begin."}]),
     ("files",        []),
@@ -1437,7 +1441,7 @@ if background_refresh_allowed(st.session_state.chat_response_pending):
 # Refresh wind obs if stale (>5 min)
 _wind_fetched = st.session_state.get("wind_obs_fetched_at") or _dt.datetime.min
 _wind_age = (_dt.datetime.now() - _wind_fetched).total_seconds()
-if _wind_age > 300:
+if _wind_age > 300 and not (COPILOT_MODE=='hybrid' and st.session_state.chat_response_pending):
     st.session_state.wind_obs            = fetch_wind_obs()
     st.session_state.wind_obs_fetched_at = _dt.datetime.now()
 
@@ -1445,7 +1449,7 @@ if _wind_age > 300:
 _gauge_fetched = st.session_state.get("gauge_fetched_at") or _dt.datetime.min
 _gauge_age = (_dt.datetime.now() - _gauge_fetched).total_seconds()
 _gauge_refresh_seconds = 360 if configured_gauges_complete(st.session_state.gauge_data) else 60
-if _gauge_age > _gauge_refresh_seconds or not st.session_state.gauge_data:
+if (_gauge_age > _gauge_refresh_seconds or not st.session_state.gauge_data) and not (COPILOT_MODE=='hybrid' and st.session_state.chat_response_pending):
     # Fetch station list once
     if not st.session_state.gauge_stations:
         st.session_state.gauge_stations = fetch_station_list("NY")
@@ -1453,8 +1457,9 @@ if _gauge_age > _gauge_refresh_seconds or not st.session_state.gauge_data:
     st.session_state.gauge_fetched_at = _dt.datetime.now()
 
 # Seed the complete NOAA catalogue and refresh stale feeds
-auto_fetch_noaa_endpoints()
-refresh_stale_endpoints()
+if COPILOT_MODE == 'legacy':
+    auto_fetch_noaa_endpoints()
+    refresh_stale_endpoints()
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SIDEBAR
@@ -1473,14 +1478,17 @@ with st.sidebar:
     @st.cache_data(ttl=30, show_spinner=False)
     def cached_provider_status(cfg):
         return provider_status(cfg)
-    status = cached_provider_status(OLLAMA_CONFIG)
-    st.caption(provider_label(status))
-    st.caption(status["message"])
+    if COPILOT_MODE == 'hybrid':
+        st.caption('Local data queries ready · AI provider checked when analysis is requested')
+    else:
+        status = cached_provider_status(OLLAMA_CONFIG)
+        st.caption(provider_label(status))
+        st.caption(status['message'])
     if st.button("Refresh provider status"):
         cached_provider_status.clear()
-        st.rerun()
+        st.caption(provider_label(cached_provider_status(OLLAMA_CONFIG)))
     if st.session_state.get("ollama_provider"):
-        st.caption("Last response: " + provider_label(st.session_state.ollama_provider))
+        st.caption("Last AI provider: " + provider_label(st.session_state.ollama_provider))
 
     if st.session_state.get("ollama_error"):
         st.warning(st.session_state.ollama_error["message"])
@@ -1690,7 +1698,7 @@ def render_layer_geography(label, layer, prefix, disabled=False):
 synchronize_filters(st.session_state.map_layers, st.session_state.mb_layers,
                     st.session_state.esri_layer_filters)
 for operational_layer in st.session_state.map_layers:
-    if operational_layer.get("type") == "esri":
+    if operational_layer.get("type") == "esri" and not (COPILOT_MODE=='hybrid' and st.session_state.chat_response_pending):
         refresh_operational_layer(operational_layer, current_geography_records(), query_operational_features)
 
 
@@ -1712,7 +1720,7 @@ with st.expander("Loaded map layers available to chat", expanded=False):
             if layer.get("type") == "esri":
                 refresh_operational_layer(layer, current_geography_records(), query_operational_features, force=True)
         cached_map_evidence.clear()
-    for evidence in current_map_evidence():
+    for evidence in ([] if COPILOT_MODE=='hybrid' else current_map_evidence()):
         st.markdown(f"**{evidence['name']}** · {evidence['map_path']}")
         st.caption(map_layer_status(evidence))
         st.caption(evidence.get("url"))
@@ -2395,6 +2403,40 @@ with tab_chat:
         if assistant_index is None:
             assistant_index = begin_chat_response(st.session_state.messages, prompt)
             st.session_state.chat_preparation_index = assistant_index
+        hybrid_request = None
+        if COPILOT_MODE == 'hybrid':
+            layers = [l for l in st.session_state.map_layers if l.get('type')=='esri'] + list(st.session_state.mb_layers)
+            source311 = CFG.source('nyc_311_electric_hazards_rockaway')
+            def snapshot(current_layers=None):
+                return make_request(prompt,st.session_state.messages[:assistant_index-1],CFG.name,active_kb,
+                    forecast=st.session_state.noaa_results.get('nws_forecast_li'),layers=layers if current_layers is None else current_layers,
+                    reports=st.session_state.phase4_results.get('nyc_311_electric_hazards_rockaway'),report_source=source311,timezone_name=CFG.timezone)
+            hybrid_request = snapshot()
+            plan = plan_request(hybrid_request)
+            if plan['outcome']=='local':
+                for op in plan['operations']:
+                    if op['status']!='acquire': continue
+                    if op['intent']=='forecast_facts':
+                        ep=next(ep for ep in NOAA_ENDPOINTS if ep['id']=='nws_forecast_li')
+                        result=fetch_noaa_ep(ep)
+                        st.session_state.noaa_results[ep['id']]=result
+                        if result['success']: upsert_noaa_kb(ep,result)
+                    elif op['intent']=='reports_311' and source311:
+                        result=fetch_rockaway_source(source311,requests.get,geography_records=current_geography_records(),
+                            app_token=st.session_state.nyc_token,previous_result=st.session_state.phase4_results.get(source311['id']))
+                        st.session_state.phase4_results[source311['id']]=result
+                layer_ids=[id for op in plan['operations'] if op['intent']=='map_count' and op['status']=='acquire' for id in op['scope']['layer_ids']]
+                evidence_layers=[cached_map_evidence(l,current_geography_records(),prompt) if l['id'] in layer_ids and l.get('visible',True) else l for l in layers]
+                hybrid_request=snapshot(evidence_layers)
+            if plan_request(hybrid_request)['outcome']!='synthesis':
+                st.session_state.pop('ollama_error',None)
+                st.session_state.chat_job=ChatJob(hybrid_request,OLLAMA_CONFIG,assistant_index,application_stream,
+                    evidence_ms=(_time.monotonic()-evidence_started)*1000)
+                st.session_state.pop('chat_preparation_index',None)
+                sync_chat_job(st.session_state)
+                return
+            auto_fetch_noaa_endpoints()
+            refresh_stale_endpoints()
         ctx = build_context(
             st.session_state.files, st.session_state.api_results,
             active_kb, st.session_state.esri_items,
@@ -2409,7 +2451,10 @@ with tab_chat:
         ]
         payload = [{"role": "system", "content": build_copilot_system_prompt(CFG.name, ctx)}] + msgs[-10:]
         st.session_state.pop("ollama_error", None)
+        if hybrid_request is not None:
+            payload=with_legacy_context(hybrid_request,ctx)
         st.session_state.chat_job = ChatJob(payload, OLLAMA_CONFIG, assistant_index,
+            **({'stream_factory':application_stream} if hybrid_request is not None else {}),
             evidence_ms=(_time.monotonic() - evidence_started) * 1000)
         # The stored job is resumable even if a script rerun arrives here.
         sync_chat_job(st.session_state)
@@ -2440,8 +2485,12 @@ with tab_chat:
                     for index, msg in enumerate(st.session_state.messages):
                         with st.chat_message(msg["role"]):
                             st.markdown(msg["content"])
+                            if msg.get('response'):
+                                st.caption(response_label(msg['response']))
+                            elif msg['role']=='assistant' and index>0:
+                                st.caption('Legacy AI response')
                             if msg.get("timing"):
-                                st.caption(timing_label(msg["timing"]))
+                                st.caption(('Evidence %.2fs · local query %.2fs' % (msg['timing'].get('evidence_ms',0)/1000,msg['timing'].get('request_ms',0)/1000)) if msg.get('response',{}).get('execution_mode')=='local_query' else timing_label(msg["timing"]))
                             if job and index == job.assistant_index:
                                 st.caption(snapshot["phase"])
                                 if snapshot["provider"]:

@@ -12,6 +12,7 @@ WORKDIR /app
 COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json server.js ./
 COPY --chown=node:node lib ./lib
+COPY --chown=node:node src/data/copilotPrompt.js ./src/data/copilotPrompt.js
 COPY --chown=node:node shared/copilot/contract.schema.json shared/copilot/policy.json ./shared/copilot/
 USER node
 EXPOSE 3000

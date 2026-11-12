@@ -1,3 +1,4 @@
+import { createCopilot } from './lib/copilot-service.js'
 /** Local/Docker production server. Vercel continues to use api/chat.js. */
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
@@ -8,7 +9,7 @@ import { serveChat } from './lib/node-handler.js'
 import { nodeOllamaFetch } from './lib/node-ollama-fetch.js'
 const root = fileURLToPath(new URL('./dist/', import.meta.url))
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' }
-const handle = createChatHandler({ env: process.env, fetcher: nodeOllamaFetch })
+const handle = createChatHandler({ env: process.env, copilot:createCopilot(process.env), fetcher: nodeOllamaFetch })
 export const server = createServer(async (req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname
   if (path === '/api/chat') return serveChat(req, res, handle)

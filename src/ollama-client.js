@@ -4,11 +4,11 @@ export async function getProviderStatus({ fetcher = fetch, signal } = {}) {
   if (!response.ok) throw new Error('Provider status unavailable. Check server configuration.')
   return response.json()
 }
-export async function* streamChat(messages, { signal, onProvider = () => {}, onProgress = () => {}, onTiming = () => {}, fetcher = fetch } = {}) {
-  const started = performance.now(); let thinkingAt = null; let answerAt = null
+export async function* streamChat(messages, { signal, onProvider = () => {}, onResponse = () => {}, structuredRequest = null, onProgress = () => {}, onTiming = () => {}, fetcher = fetch } = {}) {
+  const started = performance.now(); let thinkingAt = null; let answerAt = null; let executionMode = null
   onProgress('Connecting / processing prompt…')
   const response = await fetcher('/api/chat', { method: 'POST', signal,
-    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages }) })
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(structuredRequest ? {request:structuredRequest} : { messages }) })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     throw new Error(body.error?.message || `Chat request failed (${response.status}).`)
@@ -23,6 +23,7 @@ export async function* streamChat(messages, { signal, onProvider = () => {}, onP
       for (const line of lines) {
         if (!line.trim()) continue
         const frame = JSON.parse(line)
+        if (frame.response) { executionMode=frame.response.execution_mode; onResponse(frame.response) }
         if (frame.provider) onProvider(frame.provider)
         if (frame.error) {
           const error = new Error(frame.error.message); error.code = frame.error.code; error.details = frame.error
@@ -36,7 +37,7 @@ export async function* streamChat(messages, { signal, onProvider = () => {}, onP
         }
         if (frame.done) onTiming({ request_ms: now - started,
           first_output_ms: (thinkingAt ?? answerAt ?? now) - started,
-          thinking_ms: thinkingAt === null ? 0 : (answerAt ?? now) - thinkingAt,
+          ...(executionMode==='local_query' ? {} : {thinking_ms: thinkingAt === null ? 0 : (answerAt ?? now) - thinkingAt}),
           answer_ms: answerAt === null ? 0 : now - answerAt,
           ...Object.fromEntries(['total_duration', 'load_duration', 'prompt_eval_duration', 'eval_duration', 'prompt_eval_count', 'eval_count']
             .filter(key => Number.isFinite(frame[key])).map(key => [key, frame[key]])) })
@@ -59,4 +60,14 @@ export function timingLabel(timing) {
   return `Evidence ${seconds(timing.evidence_ms || 0)} · first output ${seconds(timing.first_output_ms)} · thinking ${seconds(timing.thinking_ms)} · answer ${seconds(timing.answer_ms)}`
     + (Number.isFinite(timing.prompt_eval_duration) ? ` · prompt ${seconds(timing.prompt_eval_duration / 1e6)}` : '')
     + (Number.isFinite(timing.load_duration) ? ` · load ${seconds(timing.load_duration / 1e6)}` : '')
+}
+
+export async function getCopilotCapabilities({fetcher=fetch,signal}={}) {
+  const response = await fetcher('/api/chat?capabilities', {signal})
+  if (!response.ok) throw new Error('Copilot capabilities unavailable')
+  return response.json()
+}
+export function responseLabel(response) {
+  return response.execution_mode === 'local_query' ? 'Local data query · '+response.answer_status
+    : response.execution_mode === 'llm_grounded' ? `Grounded AI · ${response.provider === 'local' ? 'Local' : 'Cloud'} · ${response.model}` : 'Rule-based fallback'
 }

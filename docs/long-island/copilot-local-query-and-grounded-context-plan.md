@@ -2,7 +2,7 @@
 
 Date: November 11, 2026
 
-Status: phase 1 contracts, fixtures and pure planners implemented; application integration has not started. See [phase 1 inventory, contracts and baseline](copilot-phase-1-contracts-and-baseline.md).
+Status: phase 2 local-query integration implemented behind the default-legacy execution switch; bounded synthesis (phase 3) has not started. See [phase 1 inventory and baseline](copilot-phase-1-contracts-and-baseline.md) and [phase 2 implementation and verification](copilot-phase-2-local-queries.md).
 
 Reference: AIDA's current `CopilotService`, `CopilotContextBuilder`, response contract, and provider-bypass tests
 

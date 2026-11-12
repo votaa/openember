@@ -1,10 +1,14 @@
 """Conservative whole-request planning; no inference, discovery or fetching."""
 import re
 from copilot_contract import POLICY, validate_contract
+from copilot_forecast import forecast_periods
 
 
 def _clean(text):
-    return re.sub(r"[?.!]+$", "", text.lower().strip()).strip()
+    text = re.sub(r"\blow temperature\b", "low", text, flags=re.I | re.ASCII)
+    text = re.sub(r"\bhigh temperature\b", "high", text, flags=re.I | re.ASCII)
+    text = re.sub(r"\bwind speed(?: and direction)?\b", "wind", text, flags=re.I | re.ASCII)
+    return re.sub(r"[?.!]+$", "", re.sub(r"^what's\b", "what is", text.lower().replace("’", "'")).strip()).strip()
 
 
 def _base_scope(request):
@@ -32,6 +36,8 @@ def _operation(question, request):
                 scope["geography"] = match[capture["place"]]
             if capture.get("period"):
                 scope["period"] = match[capture["period"]]
+            if capture.get('interval_start'):
+                scope['period'] = match[capture['interval_start']]+' to '+match[capture['interval_end']]
             scope["fields"] = [match[index] for index in capture["fields"] if match[index]] if "fields" in capture else ["complete_count" if rule["intent"] == "map_count" else "aggregate_counts"]
             kind = dict(forecast_facts="forecast", map_count="map_layer", reports_311="reports_311")[rule["intent"]]
             candidates = [b for b in request["evidence"] if b["kind"] == kind]
@@ -39,7 +45,7 @@ def _operation(question, request):
                 candidates = [b for b in candidates if b["source"]["id"] in request["selection"]["source_ids"]]
             if rule["intent"] == "map_count":
                 target = re.sub(r"^the ", "", _clean(match[capture["layer"]]))
-                if target in ("this layer", "loaded layer", "selected layer"):
+                if target in ("this layer", "this loaded layer", "loaded layer", "selected layer"):
                     candidates = [b for b in candidates if b["scope"]["layer_id"] in request["selection"]["layer_ids"]]
                 elif target in ("each loaded layer", "each visible layer"):
                     candidates = [b for b in candidates if b["state"]["availability"] != "hidden"]
@@ -67,12 +73,12 @@ def _operation(question, request):
                 return {**op, "status": "unsupported", "reason": "population_incomplete"}
             if rule["intent"] == "forecast_facts":
                 periods = candidates[0]["values"]["periods"]
-                selected = periods[:1] if scope["period"] == "first period" else [p for p in periods if _clean(p.get("name", "")) == scope["period"]]
-                if len(selected) != 1:
+                selected = forecast_periods(periods,scope,request["requested_at"])
+                if not selected:
                     return {**op, "status": "clarify", "reason": "forecast_period_ambiguous_or_uncovered"}
                 period = selected[0]
-                scope["interval"] = dict(start=period["startTime"], end=period["endTime"], timezone=scope["timezone"]) if period.get("startTime") and period.get("endTime") else None
-                if not scope["interval"] or ("low" in scope["fields"] and period.get("isDaytime") is not False) or ("high" in scope["fields"] and period.get("isDaytime") is not True):
+                scope["interval"] = dict(start=period["startTime"], end=selected[-1]["endTime"], timezone=scope["timezone"]) if period.get("startTime") and period.get("endTime") else None
+                if not scope["interval"] or any(("low" in scope["fields"] and p.get("isDaytime") is not False) or ("high" in scope["fields"] and p.get("isDaytime") is not True) for p in selected):
                     return {**op, "status": "unsupported", "reason": "requested_forecast_fields_unavailable"}
                 def missing(field):
                     if field in ("low", "high", "temperature"):
@@ -82,10 +88,15 @@ def _operation(question, request):
                     if field == "conditions":
                         return not (period.get("detailedForecast") or period.get("shortForecast"))
                     return (period.get("probabilityOfPrecipitation") or {}).get("value") is None
-                if any(missing(field) for field in scope["fields"]):
+                absent = False
+                for period in selected:
+                    absent = absent or any(missing(field) for field in scope['fields'])
+                if absent:
                     return {**op, "status": "unsupported", "reason": "requested_forecast_fields_unavailable"}
             if rule["intent"] == "reports_311":
                 scope["interval"] = candidates[0]["values"]["report_window"]
+                if not scope["interval"]:
+                    return {**op,"status":"unsupported","reason":"reporting_window_unavailable"}
             return {**op, "status": "ready", "reason": None}
     return synthesis()
 

@@ -12,8 +12,9 @@
     {
       "intent": "forecast_facts",
       "patterns": [
-        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(tonight|today|tomorrow|first period)(?:'s)? (low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))?(?: in (.+))?",
-        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))? (?:for )?(tonight|today|tomorrow|first period)(?: in (.+))?"
+        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(tonight|today|tomorrow(?: night)?|first period|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: night)?)(?:'s)? (low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))?(?: in (.+))?",
+        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))? (?:for )?(tonight|today|tomorrow(?: night)?|first period|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: night)?)(?: in (.+))?",
+        "(?:what (?:is|are) |show (?:me )?|give me )?(?:the )?(low|high|temperature|wind|conditions|precipitation probability)(?: and (low|high|temperature|wind|conditions|precipitation probability))? between ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(?::[0-9]{2})?(?:Z|[+-][0-9]{2}:[0-9]{2})) and ([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(?::[0-9]{2})?(?:Z|[+-][0-9]{2}:[0-9]{2}))(?: in (.+))?"
       ],
       "captures": [
         {
@@ -31,6 +32,15 @@
             2
           ],
           "place": 4
+        },
+        {
+          "interval_start": 3,
+          "interval_end": 4,
+          "fields": [
+            1,
+            2
+          ],
+          "place": 5
         }
       ]
     },
@@ -83,5 +93,18 @@
       "hybrid"
     ],
     "hosted_default": "legacy"
+  },
+  "limitations": {
+    "layer_selection_ambiguous_or_missing": "Select one loaded layer or name each layer you want counted.",
+    "source_selection_ambiguous": "Choose the source to use for this question.",
+    "required_evidence_missing": "The required source data is not available in this request.",
+    "refresh_required": "The required source could not be refreshed to current data.",
+    "population_incomplete": "The source does not provide a complete population for this calculation.",
+    "evidence_not_visible": "The requested source is hidden or excluded by the current selection.",
+    "evidence_omitted_by_budget": "The required evidence was omitted during processing; its source is not known to be unavailable.",
+    "forecast_period_ambiguous_or_uncovered": "Specify one available forecast period or an interval covered by the forecast.",
+    "requested_forecast_fields_unavailable": "The requested forecast fields are not available for that period. A nighttime low is not a daytime high.",
+    "follow_up_scope_ambiguous": "Specify the source, place and period for this follow-up.",
+    "reporting_window_unavailable": "The reporting window is not available, so exact complaint counts cannot be verified."
   }
 }

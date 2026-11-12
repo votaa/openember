@@ -4374,21 +4374,21 @@
         "forecast_dst"
       ],
       "request": {
-        "question": "What is tonight's low and wind?"
+        "question": "What is first period's low and wind?"
       },
       "expected": {
         "contract_version": "1.0",
-        "question": "What is tonight's low and wind?",
+        "question": "What is first period's low and wind?",
         "outcome": "local",
         "reason": "supported_operations_only",
         "operations": [
           {
             "intent": "forecast_facts",
-            "question": "What is tonight's low and wind?",
+            "question": "What is first period's low and wind?",
             "scope": {
               "geography": "Long Island",
               "timezone": "America/New_York",
-              "period": "tonight",
+              "period": "first period",
               "interval": {
                 "start": "2026-11-01T00:00:00-04:00",
                 "end": "2026-11-01T06:00:00-05:00",

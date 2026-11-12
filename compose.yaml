@@ -1,4 +1,5 @@
 x-ollama-env: &ollama-env
+  COPILOT_EXECUTION_MODE: ${COPILOT_EXECUTION_MODE:-legacy}
   OLLAMA_MODE: ${OLLAMA_MODE:-local-first}
   OLLAMA_LOCAL_HOST: http://host.docker.internal:11434
   # Release native model memory after completion so the Docker VM can deliver it.

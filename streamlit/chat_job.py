@@ -19,7 +19,7 @@ class ChatJob:
         self._stream_factory = stream_factory
         self._lock = Lock()
         self._thread = None
-        self._state = {"content": "", "provider": None, "error": None,
+        self._state = {"content": "", "provider": None, "response": None, "error": None,
                        "timing": {"evidence_ms": evidence_ms},
                        "answer_received_at": None, "done": False, "phase": "Connecting / processing prompt…"}
 
@@ -53,6 +53,8 @@ class ChatJob:
                 with self._lock:
                     timing = self._state["timing"]
                     timing["request_ms"] = (now - started) * 1000
+                    if frame.get('response'):
+                        self._state['response'] = deepcopy(frame['response'])
                     if frame.get("provider"):
                         self._state["provider"] = deepcopy(frame["provider"])
                         self._state["phase"] = "Waiting for the answer…"
@@ -75,6 +77,8 @@ class ChatJob:
                         "thinking_ms": ((answer_at if answer_at is not None else now) - thinking_at) * 1000 if thinking_at is not None else 0,
                         "answer_ms": (now - answer_at) * 1000 if answer_at is not None else 0,
                     })
+                    if (self._state.get('response') or {}).get('execution_mode')=='local_query':
+                        timing.pop('thinking_ms',None)
                     for key in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration", "prompt_eval_count", "eval_count"):
                         value = frame.get(key)
                         if type(value) in (int, float) and value >= 0:
@@ -126,6 +130,8 @@ def sync_chat_job(state):
     elif snapshot["answer_received_at"] is not None:
         timing["ui_delivery_ms"] = max(0, (monotonic() - snapshot["answer_received_at"]) * 1000)
     state["messages"][index]["timing"] = timing
+    if snapshot.get('response'):
+        state['messages'][index]['response'] = snapshot['response']
     if snapshot["provider"]:
         state["messages"][index]["provider"] = snapshot["provider"]
         state["ollama_provider"] = snapshot["provider"]
@@ -147,3 +153,9 @@ def timing_label(timing):
         if key in timing:
             parts.append(f"{label} {timing[key] / 1e9:.1f}s")
     return " · ".join(parts)
+
+
+def response_label(response):
+    if response['execution_mode']=='local_query': return 'Local data query · '+response['answer_status']
+    if response['execution_mode']=='llm_grounded': return f"Grounded AI · {'Local' if response['provider']=='local' else 'Cloud'} · {response['model']}"
+    return 'Rule-based fallback'

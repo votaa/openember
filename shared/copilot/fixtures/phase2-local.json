@@ -1,0 +1,1461 @@
+[
+  {
+    "id": "relative-tomorrow",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What's tomorrow's high and wind?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Thursday: High: 58\u00b0F; Wind: 8 to 12 mph NW"
+    ]
+  },
+  {
+    "id": "named-weekday",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is Thursday's high?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Thursday: High: 58\u00b0F"
+    ]
+  },
+  {
+    "id": "relative-night",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is tomorrow night's low?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Thursday Night: Low: 44\u00b0F"
+    ]
+  },
+  {
+    "id": "covered-interval",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "Show temperature and wind between 2026-11-11T18:00:00-05:00 and 2026-11-12T18:00:00-05:00",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Tonight: Temperature: 44\u00b0F; Wind: 7 to 10 mph W",
+      "Thursday: Temperature: 58\u00b0F; Wind: 8 to 12 mph NW"
+    ]
+  },
+  {
+    "id": "uncovered-interval",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "Show wind between 2026-11-10T18:00:00-05:00 and 2026-11-12T18:00:00-05:00",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "clarify",
+    "fragments": []
+  },
+  {
+    "id": "missing-rainfall",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is the rainfall amount tonight?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "synthesis",
+    "fragments": []
+  },
+  {
+    "id": "mixed-freeform",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What's tonight's wind and also explain evacuation considerations?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "synthesis",
+    "fragments": []
+  },
+  {
+    "id": "covered-utc-interval",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "Show temperature and wind between 2026-11-11T23:00:00Z and 2026-11-12T23:00:00Z",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Tonight: Temperature: 44\u00b0F; Wind: 7 to 10 mph W",
+      "Thursday: Temperature: 58\u00b0F; Wind: 8 to 12 mph NW"
+    ]
+  },
+  {
+    "id": "low-temperature-alias",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "tonight's low temperature",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Tonight: Low: 44\u00b0F"
+    ]
+  },
+  {
+    "id": "wind-speed-direction-alias",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is tonight's wind speed and direction?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Tonight: Wind: 7 to 10 mph W"
+    ]
+  },
+  {
+    "id": "first-period-low-alias",
+    "request": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What's the low temperature for first period?",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources",
+          "custom_extension"
+        ]
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Thursday",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              },
+              {
+                "name": "Thursday Night",
+                "isDaytime": false,
+                "startTime": "2026-11-12T18:00:00-05:00",
+                "endTime": "2026-11-13T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z"
+    },
+    "status": "ready",
+    "fragments": [
+      "Tonight: Low: 44\u00b0F"
+    ]
+  }
+]
