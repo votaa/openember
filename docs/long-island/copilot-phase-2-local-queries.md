@@ -104,3 +104,13 @@ No native model inference or live cloud inference was needed. These browser chec
 At the checkpoint, weekly usage is 93% remaining, above the 10% pause threshold. Temporary native test servers, the isolated test browser and the test container were stopped. Generated build artifacts were restored; source changes remain uncommitted for user review.
 
 Suggested commit: `feat(copilot): integrate local data queries in React and Streamlit`
+
+## Smoke-test correction — loaded-layer filter metadata
+
+The November 12 user smoke test exposed `evidence.scope.filter: invalid type` immediately after adding the Fire/EMS preset. The React layer includes an evaluated `filter` object (requested/effective modes, records and display counts), while the evidence contract requires a string filter name. The adapter incorrectly passed the UI object into that field, failing before the count query or inference.
+
+Both adapters now distinguish evaluated UI objects from normalized query-result filter strings, preserving explicit `filterMode`/`filter_mode` or the evaluated requested mode. The schema remains strict. Shared fixtures cover both naming conventions; an integration regression runs the actual React filter evaluator, snapshot adapter, scoped complete-count acquisition and HTTP local-answer service for unfiltered, operational and PSEG territory modes. It checks geometry/where constraints, complete counts instead of browse size, and provider bypass.
+
+The complete `local-first:gate` passes after the fix (87 JavaScript contract checks, 6 Python contract tests, 57 JavaScript local-query checks, 4 Python local-query tests, plus all existing gate components). A real browser run added **USA Fire/EMS Stations (USGS) — Fire_Stations_EMS_Stations** through the preset and asked “How many features are in this layer?” The response was **52,010 features**, **unfiltered**, where **1=1**, labeled **Local data query · answered**; the layer browse displayed 500. This was the unfiltered source inventory, not a Long Island-only or distinct-department count. The request recorded 0.24 seconds evidence acquisition and 0.04 seconds local transport/execution; these are single functional observations, not a benchmark.
+
+Rebuild the local Docker images and refresh the pages before repeating the user smoke test. No hosted deployment, paid inference or environment-file change was performed. Suggested fix commit: `fix(copilot): normalize loaded-layer filter metadata`.

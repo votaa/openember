@@ -151,3 +151,30 @@ test('configured and available local/cloud providers remain untouched for a dire
     assert.equal(result[0].response.execution_mode,'local_query');assert.deepEqual(calls,[])
   }
 })
+
+test('evaluated UI layer filters survive snapshot, scoped count acquisition and local HTTP completion',async()=>{
+  const {evaluateMapBuilderFilter}=await import('../src/data/mapBuilderFilters.js')
+  const {fetchMapLayerEvidence}=await import('../src/data/mapLayerEvidence.js')
+  const masks=JSON.parse(readFileSync(new URL('../fixtures/long-island-sources/map-builder-filter-parity.json',import.meta.url))).geography_records
+  for(const filterMode of ['unfiltered','operational','pseg_long_island']) {
+    const layer={id:'fire',name:'USA Fire/EMS Stations (USGS) — Fire_Stations_EMS_Stations',url:'https://example.test/FeatureServer/2',sourceType:'Feature Layer',filterMode,where:'ACTIVE=1',visible:true,
+      metadata:{capabilities:'Query',fields:[]},records:Array(500).fill({properties:{}})}
+    layer.filter=evaluateMapBuilderFilter(layer,masks)
+    assert.equal(typeof layer.filter,'object')
+    const args={question:'How many features are in this layer?',name:'Long Island',layers:[layer],now:corpus.base_request.requested_at}
+    const pending=makeCopilotRequest(args,adaptEvidence)
+    assert.equal(pending.evidence[0].scope.filter,filterMode)
+    assert.equal(planRequest(pending).operations[0].status,'acquire')
+    const queries=[]
+    const evidence=await fetchMapLayerEvidence(layer,masks,{fetchImpl:async(_url,opts)=>{queries.push(new URLSearchParams(opts.body));return Response.json({count:900})}})
+    assert.equal(queries[0].get('where'),'ACTIVE=1')
+    assert.equal(queries[0].has('geometry'),filterMode!=='unfiltered')
+    const request=makeCopilotRequest({...args,layers:[evidence],now:new Date().toISOString()},adaptEvidence)
+    const handle=createChatHandler({fetcher:noProvider,copilot:createCopilot({COPILOT_EXECUTION_MODE:'hybrid'})})
+    const result=await frames(await post(handle,request))
+    assert.equal(result[0].response.answer_status,'answered')
+    assert.match(result.at(-1).message.content,/900 features/)
+    assert.ok(result.at(-1).message.content.includes(`filter: ${filterMode}`))
+    assert.doesNotMatch(result.at(-1).message.content,/500 features/)
+  }
+})

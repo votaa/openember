@@ -1951,6 +1951,162 @@
         },
         "limitations": []
       }
+    },
+    {
+      "id": "map_ui_filter",
+      "kind": "map_layer",
+      "raw": {
+        "displayed_subset": 500,
+        "samples": [
+          {
+            "Name": "Example station"
+          }
+        ],
+        "summary": {
+          "state": "not_requested"
+        },
+        "filter": {
+          "requestedMode": "operational",
+          "effectiveMode": "unfiltered",
+          "inputCount": 500,
+          "outputCount": 500,
+          "records": [],
+          "reason": "geography_filter_unavailable"
+        },
+        "where": "ACTIVE=1",
+        "scope": "complete matching inventory; no browse cap",
+        "fetched_at": "2026-11-11T15:00:00Z",
+        "filterMode": "operational"
+      },
+      "metadata": {
+        "id": "map_ui_filter",
+        "source": {
+          "id": "map_ui_filter",
+          "name": "Fire/EMS",
+          "url": "https://example.test/map",
+          "provenance": "browser_snapshot"
+        },
+        "geography": "Long Island",
+        "freshness": "current",
+        "layer_id": "fire"
+      },
+      "expected": {
+        "id": "map_ui_filter",
+        "kind": "map_layer",
+        "source": {
+          "id": "map_ui_filter",
+          "name": "Fire/EMS",
+          "url": "https://example.test/map",
+          "provenance": "browser_snapshot"
+        },
+        "fetched_at": "2026-11-11T15:00:00Z",
+        "valid_interval": null,
+        "geography": "Long Island",
+        "scope": {
+          "filter": "operational",
+          "where": "ACTIVE=1",
+          "description": "complete matching inventory; no browse cap",
+          "layer_id": "fire"
+        },
+        "state": {
+          "availability": "available",
+          "freshness": "current",
+          "completeness": "partial",
+          "omission_reason": null
+        },
+        "values": {
+          "complete_count": null,
+          "samples": [
+            {
+              "Name": "Example station"
+            }
+          ],
+          "summary": {
+            "state": "not_requested"
+          },
+          "displayed_subset": 500,
+          "unit": null
+        },
+        "limitations": []
+      }
+    },
+    {
+      "id": "map_python_filter",
+      "kind": "map_layer",
+      "raw": {
+        "displayed_subset": 500,
+        "samples": [
+          {
+            "Name": "Example station"
+          }
+        ],
+        "summary": {
+          "state": "not_requested"
+        },
+        "filter": {
+          "requestedMode": "pseg_long_island",
+          "effectiveMode": "unfiltered",
+          "inputCount": 500,
+          "outputCount": 500,
+          "records": [],
+          "reason": "geography_filter_unavailable"
+        },
+        "where": "ACTIVE=1",
+        "scope": "complete matching inventory; no browse cap",
+        "fetched_at": "2026-11-11T15:00:00Z",
+        "filter_mode": "pseg_long_island"
+      },
+      "metadata": {
+        "id": "map_python_filter",
+        "source": {
+          "id": "map_python_filter",
+          "name": "Fire/EMS",
+          "url": "https://example.test/map",
+          "provenance": "browser_snapshot"
+        },
+        "geography": "Long Island",
+        "freshness": "current",
+        "layer_id": "fire"
+      },
+      "expected": {
+        "id": "map_python_filter",
+        "kind": "map_layer",
+        "source": {
+          "id": "map_python_filter",
+          "name": "Fire/EMS",
+          "url": "https://example.test/map",
+          "provenance": "browser_snapshot"
+        },
+        "fetched_at": "2026-11-11T15:00:00Z",
+        "valid_interval": null,
+        "geography": "Long Island",
+        "scope": {
+          "filter": "pseg_long_island",
+          "where": "ACTIVE=1",
+          "description": "complete matching inventory; no browse cap",
+          "layer_id": "fire"
+        },
+        "state": {
+          "availability": "available",
+          "freshness": "current",
+          "completeness": "partial",
+          "omission_reason": null
+        },
+        "values": {
+          "complete_count": null,
+          "samples": [
+            {
+              "Name": "Example station"
+            }
+          ],
+          "summary": {
+            "state": "not_requested"
+          },
+          "displayed_subset": 500,
+          "unit": null
+        },
+        "limitations": []
+      }
     }
   ],
   "planning_cases": [

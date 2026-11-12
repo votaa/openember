@@ -13,9 +13,14 @@ def _valid_count(value):
 def adapt_evidence(kind, raw, metadata):
     fetched = raw.get("fetched_at", raw.get("fetchedAt"))
     dated = bool(fetched and re.fullmatch(r"\d{4}-\d\d-\d\dT.+(?:Z|[+-]\d\d:\d\d)", fetched))
+    filter_name = raw.get("filter", metadata.get("filter"))
+    if kind == "map_layer" and not isinstance(filter_name, str):
+        evaluated = raw.get("filter") if isinstance(raw.get("filter"), dict) else {}
+        filter_name = next((value for value in (raw.get("filterMode"), raw.get("filter_mode"),
+                           evaluated.get("requestedMode"), metadata.get("filter")) if value is not None), None)
     block = dict(id=metadata["id"], kind=kind, source=copy.deepcopy(metadata["source"]), fetched_at=fetched,
                  valid_interval=copy.deepcopy(metadata.get("valid_interval")), geography=metadata.get("geography"),
-                 scope=dict(filter=raw.get("filter", metadata.get("filter")), where=raw.get("where", metadata.get("where")),
+                 scope=dict(filter=filter_name, where=raw.get("where", metadata.get("where")),
                             description=raw.get("scope", metadata.get("description")), layer_id=metadata.get("layer_id")),
                  state=dict(availability=metadata.get("availability", "available"), freshness=metadata.get("freshness", "unknown") if dated else "unknown",
                             completeness="unknown", omission_reason=metadata.get("omission_reason")),
