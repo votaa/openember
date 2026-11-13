@@ -4,6 +4,8 @@ Date: November 11, 2026
 
 Status: phase 5 validation is complete; native grounding and synthesis usability gates failed, so hybrid remains experimental behind the default-legacy execution switch. Native retention, regression, construction parity and packaged browser delivery checks pass; live cloud answer acceptance remains pending authorization. See [phase 5 acceptance and performance results](copilot-phase-5-acceptance.md), [phase 1 inventory and baseline](copilot-phase-1-contracts-and-baseline.md), [phase 2 implementation and verification](copilot-phase-2-local-queries.md), [phase 3 bounded synthesis](copilot-phase-3-bounded-synthesis.md), and [phase 4 fallback and parity](copilot-phase-4-fallback-and-parity.md).
 
+November 13 follow-up: shared local grounding and concise-response guidance, retained failure fixtures and a repeated native comparison are documented in [grounding and conciseness results](copilot-grounding-and-conciseness-2026-11-13.md). Native grounding remains a failed promotion gate; hybrid stays experimental.
+
 Reference: AIDA's current `CopilotService`, `CopilotContextBuilder`, response contract, and provider-bypass tests
 
 ## 1. Problem and intended behavior

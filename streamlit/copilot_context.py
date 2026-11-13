@@ -153,7 +153,7 @@ def build_local_context(request,allocated_context,intent=None,deterministic=''):
                 source['values']['passages'].pop(ranked[0][0]);source['values']['coverage']='selected passages only'
     included=list(required)
     def make_messages():
-        content=(f"Grounded local synthesis · {CFG['prompt_version']}\n{CFG['rules']}\n{COPILOT_RULES}\nJurisdiction: {request['jurisdiction']['name']}\nAll enabled KB modules: {canonical(request['jurisdiction']['enabled_kb_modules'])}\nEVIDENCE:\n"+'\n'.join(canonical(b) for b in included)+f"\nDETERMINISTIC RESULTS:\n{deterministic}\nCOVERAGE:\n"+canonical(dict(included=[b['id'] for b in included],omitted=omitted,warnings=warnings)))
+        content=(f"Grounded local synthesis · {CFG['prompt_version']}\n{CFG['rules']}\n{COPILOT_RULES}\nJurisdiction: {request['jurisdiction']['name']}\nAll enabled KB modules: {canonical(request['jurisdiction']['enabled_kb_modules'])}\nEVIDENCE:\n"+'\n'.join(canonical(b) for b in included)+f"\nDETERMINISTIC RESULTS:\n{deterministic}\nCOVERAGE:\n"+canonical(dict(included=[b['id'] for b in included],omitted=omitted,warnings=warnings))+f"\n{CFG['response_rules']}")
         return [dict(role='system',content=content)]+convo['history']+[dict(role='user',content=request['question'])]
     optional_chars=0
     for source in optional:

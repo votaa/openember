@@ -1,0 +1,50 @@
+{
+  "source": "docs/long-island/copilot-phase-5-results-2026-11-12.json",
+  "notice": "Historical public/synthetic fixtures. Prompt and evidence tests do not establish native answer quality; review complete native answers against every requirement.",
+  "conciseness": "Aim for 250 words, allowing more where requested coverage requires it; no hard generation cutoff.",
+  "cases": [
+    {
+      "id": "weather",
+      "question": "Interpret tonight's forecast: give its low, full wind range and direction, valid interval, fetched time and exact source URL. Explain practical implications without inventing gusts or rainfall amounts.",
+      "prior_failure": {
+        "result": "weather-hybrid-1",
+        "excerpt": "There is no rain or storm risk."
+      },
+      "review_requirements": [
+        "Preserve 44\u00b0F, 7\u201310 mph W, original valid interval, fetch time and exact NWS URL.",
+        "Preserve the 20% precipitation probability; never infer no rain, no impacts or safe operations.",
+        "Do not infer full-window gust maxima or rainfall totals from partial grid coverage."
+      ]
+    },
+    {
+      "id": "mixed",
+      "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+      "prior_failure": {
+        "result": "mixed-hybrid-1",
+        "excerpt": "no incident commander is assigned"
+      },
+      "review_requirements": [
+        "Preserve CEDAR-731, 47 amber cones and the late DELTA-19 passage.",
+        "Say the document does not specify a commander; assignment status remains unknown.",
+        "Facility zone overlap, alert status and current operating condition remain unknown unless explicitly supported.",
+        "Possible impacts must stay conditional; cones do not establish an active public alert."
+      ]
+    },
+    {
+      "id": "broad",
+      "question": "Give an overall situation assessment using all enabled KB modules and available live, uploaded-plan and selected-facility evidence. State coverage and limitations; do not infer complete inventories from samples.",
+      "prior_failure": {
+        "result": "broad-hybrid-1",
+        "excerpt": "Zero active alerts in any system."
+      },
+      "review_requirements": [
+        "Cover all five enabled KB topics, forecast, uploaded plan, selected facility, map totals and 311 complaints without repeating a full inventory.",
+        "Static KB and facility records do not establish current operating conditions or active emergency status.",
+        "No alert feed is supplied; do not assert zero active alerts.",
+        "Counts describe the scoped query; bounded samples do not constitute a full record inventory.",
+        "Keep regional-reference gauges distinct from retired live stations.",
+        "Zero direct electrical complaints does not establish zero confirmed outages; a station count does not establish active operating status."
+      ]
+    }
+  ]
+}

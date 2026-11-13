@@ -35,6 +35,30 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(request,before)
         self.assertTrue(any('coverage is unverified' in ' '.join(b['limitations']) for b in result['selected']))
 
+    def test_grounding_regressions_retain_facts_and_unknowns(self):
+        from copilot_contract import POLICY
+        regressions=json.loads((ROOT/'shared/copilot/fixtures/grounding-regressions.json').read_text())
+        for case in regressions['cases']:
+            with self.subTest(case=case['id']):
+                request=copy.deepcopy(FIXTURE['cases'][0]['request']);request['question']=case['question']
+                before=copy.deepcopy(request);plan=plan_request(request)
+                self.assertEqual(plan['outcome'],'synthesis')
+                out=build_local_context(request,32768,plan,exact_results(request,plan))
+                self.assertEqual(request,before)
+                self.assertIsNone(out['context']['processing_limit'])
+                self.assertEqual(out['context']['prompt_version'],'grounded-local-v2')
+                system=out['messages'][0]['content']
+                self.assertTrue(system.endswith(POLICY['context']['response_rules']))
+                forecast=next(b for b in out['selected'] if b['kind']=='forecast')
+                self.assertEqual(forecast['values']['periods'][0]['probabilityOfPrecipitation']['value'],20)
+                for block in request['evidence']:
+                    if block['kind']=='selected_feature' or block['kind']=='kb' and block['values']['module_id'] in request['jurisdiction']['enabled_kb_modules']:
+                        self.assertEqual(next(b for b in out['selected'] if b['id']==block['id'])['values'],block['values'])
+                if case['id']!='weather':
+                    passages='\n'.join(p['text'] for b in out['selected'] if b['kind']=='document' for p in b['values']['passages'])
+                    for fact in ['CEDAR-731','47 amber cones','DELTA-19','no incident commander is specified']:
+                        self.assertIn(fact,passages)
+
     def test_budget_limit_never_calls_provider_or_cloud(self):
         request=next(c['request'] for c in FIXTURE['cases'] if c['id']=='mandatory-overflow')
         def forbidden(*args,**kwargs):raise AssertionError('No inference or automatic cloud for a processing limit')

@@ -111,3 +111,43 @@ test('typed cloud context retains unbounded legacy content and discloses upload 
  assert.match(result.context.warnings.join(' '),/opening-excerpt/)
  assert.ok(scopeKey(request).startsWith('scope-'))
 })
+
+const grounding=JSON.parse(readFileSync(new URL('../shared/copilot/fixtures/grounding-regressions.json',import.meta.url)))
+const priorNative=JSON.parse(readFileSync(new URL('../docs/long-island/copilot-phase-5-results-2026-11-12.json',import.meta.url))).native_results
+for(const c of grounding.cases)test(`grounding regression evidence and local policy: ${c.id}`,()=>{
+ const request=structuredClone(fixture.cases[0].request);request.question=c.question
+ const before=structuredClone(request),plan=planRequest(request)
+ assert.equal(plan.outcome,'synthesis')
+ const out=buildLocalContext(request,32768,plan,exactResults(request,plan)),system=out.messages[0].content
+ assert.deepEqual(request,before)
+ assert.equal(out.context.processing_limit,null)
+ assert.equal(out.context.prompt_version,'grounded-local-v2')
+ assert.equal(out.messages.at(-1).content,c.question)
+ // Historical failed prose is a review fixture, never added as source evidence.
+ assert.ok(priorNative.find(r=>r.name===c.prior_failure.result).answer.includes(c.prior_failure.excerpt))
+ assert.ok(system.endsWith(POLICY.context.response_rules))
+ const forecast=out.selected.find(b=>b.kind==='forecast')
+ assert.equal(forecast.values.periods[0].probabilityOfPrecipitation.value,20)
+ assert.deepEqual(forecast.source,request.evidence.find(b=>b.kind==='forecast').source)
+ for(const b of request.evidence.filter(b=>b.kind==='kb'&&request.jurisdiction.enabled_kb_modules.includes(b.values.module_id)))assert.deepEqual(out.selected.find(s=>s.id===b.id).values,b.values)
+ assert.deepEqual(out.selected.find(b=>b.kind==='selected_feature').values,request.evidence.find(b=>b.kind==='selected_feature').values)
+ if(c.id!=='weather'){
+  const passages=out.selected.find(b=>b.kind==='document').values.passages.map(p=>p.text).join('\n')
+  for(const fact of ['CEDAR-731','47 amber cones','DELTA-19','no incident commander is specified'])assert.ok(passages.includes(fact))
+ }
+})
+
+import {screenGrounding} from '../scripts/lib/copilot-grounding-review.js'
+test('diagnostic review catches retained native failures without treating clean wording as acceptance',()=>{
+ const expected={weather:'precipitation_absence',mixed:'assignment_absence',broad:'alert_absence'}
+ for(const c of grounding.cases){
+  const answer=priorNative.find(r=>r.name===c.prior_failure.result).answer
+  assert.ok(screenGrounding(answer).flags.includes(expected[c.id]))
+ }
+ const qualified=screenGrounding('There is a 20% chance of precipitation. The plan does not specify a commander; assignment status is unknown. Current alert status is unknown.')
+ assert.deepEqual(qualified.flags,[])
+ assert.equal(qualified.manual_review_required,true)
+ // Quoted/negated claims can still be flagged: this tool must never silently
+ // rewrite an answer or report that a lack of matches proves factual accuracy.
+ assert.equal(screenGrounding('Do not claim no rain.').manual_review_required,true)
+})

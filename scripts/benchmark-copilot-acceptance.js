@@ -1,5 +1,5 @@
 /** Public/synthetic Phase 5 workloads through the real application coordinator.
- * node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS]
+ * node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS] [both|hybrid]
  * Local installed model only; never loads .env, downloads models or calls cloud.
  * Native logs and answers require review separately from timing measurements.
  */
@@ -10,8 +10,8 @@ import {configuration, routeChat, probeLocal} from '../lib/ollama.js'
 import {nodeOllamaFetch} from '../lib/node-ollama-fetch.js'
 import {legacyReact} from '../tests/helpers/copilot-legacy.js'
 
-const [directory, repetitions='3']=process.argv.slice(2)
-if(!directory || !/^[1-9]\d*$/.test(repetitions))throw Error('Usage: node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS]')
+const [directory, repetitions='3', arms='both']=process.argv.slice(2)
+if(!directory || !/^[1-9]\d*$/.test(repetitions) || !['both','hybrid'].includes(arms))throw Error('Usage: node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS] [both|hybrid]')
 mkdirSync(directory,{recursive:true})
 const read=name=>JSON.parse(readFileSync(new URL(`../shared/copilot/fixtures/${name}.json`,import.meta.url)))
 const base=read('phase3-context').cases[0].request, input=read('legacy-input')
@@ -22,11 +22,7 @@ base.evidence.find(b=>b.id==='noaa:space_catalog').values.content=base.evidence.
 // Same retained source population in both arms. The legacy builder keeps all live
 // items and its original opening-upload excerpt; hybrid may retrieve late text.
 input.noaa_items.push(...base.evidence.filter(b=>b.kind==='live').map(b=>({content:`${b.source.name}: ${JSON.stringify(b.values)}`})))
-const workloads=[
- ['weather',"Interpret tonight's forecast: give its low, full wind range and direction, valid interval, fetched time and exact source URL. Explain practical implications without inventing gusts or rainfall amounts."],
- ['mixed',base.question+' Give the low, wind and exact forecast URL; distinguish facts from possible impacts.'],
- ['broad','Give an overall situation assessment using all enabled KB modules and available live, uploaded-plan and selected-facility evidence. State coverage and limitations; do not infer complete inventories from samples.'],
-]
+const workloads=read('grounding-regressions').cases.map(({id,question})=>[id,question])
 const env={COPILOT_EXECUTION_MODE:'hybrid',OLLAMA_MODE:'local-only',OLLAMA_API_KEY:'',OLLAMA_LOCAL_HOST:'http://127.0.0.1:11434',OLLAMA_LOCAL_MODEL:process.env.OLLAMA_LOCAL_MODEL||'qwen3:4b-instruct',OLLAMA_LOCAL_NUM_CTX:'32768',OLLAMA_LOCAL_THINK:'false',OLLAMA_LOCAL_KEEP_ALIVE:'0',OLLAMA_LOCAL_STREAM_TIMEOUT_MS:'900000'}
 const cfg=configuration(env)
 const stop=new AbortController()
@@ -36,7 +32,7 @@ await probeLocal(cfg,nodeOllamaFetch)
 const ps=await (await fetch(cfg.localHost+'/api/ps')).json()
 if(ps.models?.length)throw Error('An installed model is already loaded; avoid interfering with another inference session.')
 const results=[]
-for(let sample=1;sample<=Number(repetitions);sample++)for(const [id,question] of workloads)for(const arm of (sample%2?['legacy','hybrid']:['hybrid','legacy'])) {
+for(let sample=1;sample<=Number(repetitions);sample++)for(const [id,question] of workloads)for(const arm of (arms==='hybrid'?['hybrid']:(sample%2?['legacy','hybrid']:['hybrid','legacy']))) {
  stop.signal.throwIfAborted()
  const request=structuredClone(base);request.question=question
  const legacy=legacyReact({...input,history:request.history},{question,enabled_modules:request.jurisdiction.enabled_kb_modules})
