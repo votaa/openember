@@ -83,12 +83,13 @@ test('both runtimes load only packaged contract resources without a repository m
   const directory = mkdtempSync(join(tmpdir(), 'openember-copilot-contract-'))
   try {
     for (const part of ['lib', 'streamlit', 'shared/copilot','src/data']) mkdirSync(join(directory, part), {recursive:true})
-    const files = ['package.json', 'lib/copilot-context.js', 'lib/copilot-context-core.js', 'lib/copilot-cloud-context.js', 'lib/copilot-service.js', 'lib/copilot-local-queries.js', 'lib/ollama.js', 'src/data/copilotPrompt.js', 'lib/copilot-contract-core.js', 'lib/copilot-evidence-core.js', 'lib/copilot-intent-core.js', 'lib/copilot-forecast.js', 'lib/copilot-contract.js', 'lib/copilot-evidence.js', 'lib/copilot-intent.js',
+    const files = ['package.json', 'lib/copilot-fallback.js', 'lib/copilot-context.js', 'lib/copilot-context-core.js', 'lib/copilot-cloud-context.js', 'lib/copilot-service.js', 'lib/copilot-local-queries.js', 'lib/ollama.js', 'src/data/copilotPrompt.js', 'lib/copilot-contract-core.js', 'lib/copilot-evidence-core.js', 'lib/copilot-intent-core.js', 'lib/copilot-forecast.js', 'lib/copilot-contract.js', 'lib/copilot-evidence.js', 'lib/copilot-intent.js',
+      'streamlit/copilot_service.py', 'streamlit/copilot_fallback.py', 'streamlit/copilot_local_queries.py', 'streamlit/copilot_context.py', 'streamlit/copilot_prompt.py', 'streamlit/ollama_provider.py',
       'streamlit/copilot_forecast.py', 'streamlit/copilot_contract.py', 'streamlit/copilot_evidence.py', 'streamlit/copilot_intent.py',
       'shared/copilot/contract.schema.json', 'shared/copilot/policy.json']
     for (const file of files) copyFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), join(directory, file))
     const node = execFileSync(process.execPath, ['--input-type=module', '-e', "import {capabilities} from './lib/copilot-contract.js'; import './lib/copilot-intent.js'; import './lib/copilot-evidence.js'; import './lib/copilot-service.js'; console.log(JSON.stringify(capabilities()))"], {cwd:directory,encoding:'utf8'})
-    const python = execFileSync('python3', ['-c', "import sys,json;sys.path.insert(0,'streamlit');from copilot_contract import capabilities;import copilot_intent,copilot_evidence;print(json.dumps(capabilities()))"], {cwd:directory,encoding:'utf8'})
+    const python = execFileSync('python3', ['-c', "import sys,json;sys.path.insert(0,'streamlit');from copilot_contract import capabilities;import copilot_intent,copilot_evidence,copilot_service;print(json.dumps(capabilities()))"], {cwd:directory,encoding:'utf8'})
     assert.deepEqual(JSON.parse(node), JSON.parse(python))
     const dockerfile = readFileSync(new URL('../Dockerfile', import.meta.url), 'utf8')
     assert.equal((dockerfile.match(/COPY --chown=(?:node:node|app:app) shared\/copilot\/contract.schema.json shared\/copilot\/policy.json/g) || []).length, 2)

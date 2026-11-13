@@ -2556,7 +2556,7 @@ with tab_chat:
                                     for warning in context.get('warnings',[]):st.caption(warning)
                                     for item in context.get('omitted',[]):st.caption(item.get('source_name',item['id'])+': '+item['reason'])
                             if msg.get("timing"):
-                                st.caption(('Evidence %.2fs · local query %.2fs' % (msg['timing'].get('evidence_ms',0)/1000,msg['timing'].get('request_ms',0)/1000)) if msg.get('response') and not msg['response'].get('provider') else timing_label(msg["timing"]))
+                                st.caption(('Evidence %.2fs · %s %.2fs' % (msg['timing'].get('evidence_ms',0)/1000,'fallback' if msg['response']['execution_mode']=='rule_based_fallback' else 'local query',msg['timing'].get('request_ms',0)/1000)) if msg.get('response') and not msg['response'].get('provider') else timing_label(msg["timing"]))
                             if job and index == job.assistant_index:
                                 st.caption(snapshot["phase"])
                                 if snapshot["provider"]:

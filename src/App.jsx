@@ -1109,6 +1109,10 @@ export default function App() {
         setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full+"▋"}])
       }
     } catch(e) {
+      if (assistantAdded && e.name==='AbortError') {
+        setMessages(p=>[...p.slice(0,-1),{...p.at(-1),
+          ...(p.at(-1).response?{response:{...p.at(-1).response,answer:full,answer_status:'cancelled'}}:{})}])
+      }
       if (e.name!=="AbortError") {
         full += `\n\n⚠ Error: ${e.message}`
         setProviderStatus(previous => ({ ...previous, available: false, message: e.message }))
@@ -1251,7 +1255,7 @@ export default function App() {
                       {m.content}
                       {m.role==='assistant' && m.id!=='initialization' && <div style={{fontSize:10,color:'#9ca3af'}}>{m.response ? responseLabel(m.response) : m.requestMode==='legacy' ? 'Legacy AI response' : streaming ? 'Preparing response…' : 'Response not completed'}</div>}
                       {m.response?.context && <details style={{fontSize:10,color:'#a5aebb'}}><summary>Source coverage · {m.response.context.included_ids?.length||0} included · {m.response.context.omitted?.length||0} limited or omitted</summary><div>{m.response.context.warnings?.join(' ')}{m.response.context.omitted?.length>0 && m.response.context.omitted.map(source=><div key={source.id}>{source.source_name||source.id}: {source.reason}</div>)}</div></details>}
-                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{m.response && !m.response.provider ? `Evidence ${((m.timing.evidence_ms||0)/1000).toFixed(2)}s · local query ${(m.timing.request_ms/1000).toFixed(2)}s` : timingLabel(m.timing)}</div>}
+                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{m.response && !m.response.provider ? `Evidence ${((m.timing.evidence_ms||0)/1000).toFixed(2)}s · ${m.response.execution_mode==='rule_based_fallback'?'fallback':'local query'} ${(m.timing.request_ms/1000).toFixed(2)}s` : timingLabel(m.timing)}</div>}
                     </div>
                   </div>
                 ))}

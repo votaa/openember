@@ -5,6 +5,7 @@ from copilot_local_queries import local_answer
 from copilot_prompt import build_copilot_system_prompt
 from copilot_context import build_local_context, conversation, scope_key
 from ollama_provider import stream_chat
+from copilot_fallback import fallback_answer
 
 
 def synthesis_messages(request):
@@ -42,7 +43,7 @@ def application_stream(request,config,provider_stream=stream_chat,cloud_context_
     typed=bool(request.get('context_version'));contexts={}
     local=build_local_context(request,config.get('local_num_ctx') or 4096,plan,exact_results(request,plan)) if typed and config['mode']!='cloud-only' else None
     if local and local['context']['processing_limit']:
-        response=dict(local_answer(request,plan),execution_mode='rule_based_fallback',answer_status='failed',answer=local['context']['processing_limit']+' Narrow the scope, increase the explicitly validated local context allocation, or deliberately choose an already configured cloud/legacy route. This is a processing limit, not missing source data.',warnings=local['context']['warnings'],context=local['context'])
+        response=fallback_answer(request,plan,context=local['context'],reason=local['context']['processing_limit']+' '+POLICY['fallback']['processing_limit'])
         yield dict(response=validate_contract('result',response));yield dict(message=dict(content=response['answer']),done=True);return
     def prepare_messages(provider):
         if provider=='local':contexts['local']=local;return local['messages']
@@ -56,12 +57,18 @@ def application_stream(request,config,provider_stream=stream_chat,cloud_context_
         contexts['cloud']=cloud_context(full,plan_request(full));return contexts['cloud']['messages']
     stream=provider_stream([] if typed else synthesis_messages(request),config,**(dict(prepare_messages=prepare_messages) if typed else {}))
     metadata,answer=None,''
-    for frame in stream:
-        if frame.get('provider'):
-            p=frame['provider'];context=contexts.get(p['provider'],{}).get('context')
-            metadata=dict(local_answer(request,plan),execution_mode='llm_grounded',answer_status='answered',answer='',provider=p['provider'],model=p['model'],attempts=[dict(provider=a['provider'],code=a['code']) for a in p.get('attempts',[])],warnings=context['warnings'] if context else [],evidence_ids=context['included_ids'] if context else [b['id'] for b in request['evidence']],freshness=[dict(evidence_id=b['id'],state=b['state']) for b in request['evidence']],**(dict(context=context) if context else {}))
-            yield dict(response=validate_contract('result',metadata))
-        answer+=frame.get('message',{}).get('content','')
-        if frame.get('error') and metadata:yield dict(response=dict(metadata,answer=answer,answer_status='partial' if answer else 'failed'))
-        if frame.get('done') and metadata and not frame.get('error'):yield dict(response=dict(metadata,answer=answer))
-        yield frame
+    try:
+        for frame in stream:
+            if frame.get('error') and metadata is None:
+                response=fallback_answer(request,plan,error=frame['error'],context=local['context'] if local else None)
+                yield dict(response=response);yield dict(message=dict(content=response['answer']),done=True);return
+            if frame.get('provider'):
+                p=frame['provider'];context=contexts.get(p['provider'],{}).get('context')
+                metadata=dict(local_answer(request,plan),execution_mode='llm_grounded',answer_status='answered',answer='',provider=p['provider'],model=p['model'],attempts=[dict(provider=a['provider'],code=a['code']) for a in p.get('attempts',[])],warnings=context['warnings'] if context else [],evidence_ids=context['included_ids'] if context else [b['id'] for b in request['evidence']],freshness=[dict(evidence_id=b['id'],state=b['state']) for b in request['evidence']],**(dict(context=context) if context else {}))
+                yield dict(response=validate_contract('result',metadata))
+            answer+=frame.get('message',{}).get('content','')
+            if frame.get('error') and metadata:yield dict(response=dict(metadata,answer=answer,answer_status='partial' if answer else 'failed'))
+            if frame.get('done') and metadata and not frame.get('error'):yield dict(response=dict(metadata,answer=answer))
+            yield frame
+    finally:
+        if hasattr(stream, 'close'):stream.close()

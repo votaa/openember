@@ -78,7 +78,7 @@ class ChatJob:
                         "thinking_ms": ((answer_at if answer_at is not None else now) - thinking_at) * 1000 if thinking_at is not None else 0,
                         "answer_ms": (now - answer_at) * 1000 if answer_at is not None else 0,
                     })
-                    if (self._state.get('response') or {}).get('execution_mode')=='local_query':
+                    if (self._state.get('response') or {}).get('execution_mode') in ('local_query','rule_based_fallback'):
                         timing.pop('thinking_ms',None)
                     for key in ("total_duration", "load_duration", "prompt_eval_duration", "eval_duration", "prompt_eval_count", "eval_count"):
                         value = frame.get(key)
@@ -105,6 +105,8 @@ class ChatJob:
 
     def _fail(self, code, message):
         with self._lock:
+            if self._state['response']:
+                self._state['response'].update(answer=self._state['content'], answer_status='partial' if self._state['content'] else 'failed')
             self._state["error"] = {"code": code, "message": message}
             self._state["content"] += "\n\n⚠ " + message
 
@@ -148,7 +150,7 @@ def sync_chat_job(state):
 def timing_label(timing):
     parts = [f"{label} {timing.get(key, 0) / 1000:.1f}s" for label, key in
              (("Evidence", "evidence_ms"), ("First output", "first_output_ms"),
-              ("Thinking", "thinking_ms"), ("Answer", "answer_ms"))]
+              ("Thinking", "thinking_ms"), ("Answer", "answer_ms")) if key != 'thinking_ms' or key in timing]
     if "ui_delivery_ms" in timing:
         parts.append(f"UI sync {timing['ui_delivery_ms'] / 1000:.1f}s")
     for label, key in (("Prompt", "prompt_eval_duration"), ("Load", "load_duration")):
@@ -159,5 +161,5 @@ def timing_label(timing):
 
 def response_label(response):
     if response['execution_mode']=='local_query': return 'Local data query · '+response['answer_status']
-    if response['execution_mode']=='llm_grounded': return f"Grounded AI · {'Local' if response['provider']=='local' else 'Cloud'} · {response['model']}"
-    return 'Rule-based fallback'
+    if response['execution_mode']=='llm_grounded': return f"Grounded AI · {'Local' if response['provider']=='local' else 'Cloud'} · {response['model']}" + ('' if response['answer_status']=='answered' else ' · '+response['answer_status'])
+    return 'Rule-based fallback · '+response['answer_status']

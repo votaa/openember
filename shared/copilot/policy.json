@@ -200,5 +200,12 @@
     "knowledge_only": "\\bkb\\b|knowledge base|flood zones|evacuation zones|hazard profiles|contacts.{0,5}resources",
     "live_scope": "\\b(?:current|live|tonight|today|tomorrow|forecast|weather|these|selected|loaded|uploaded|document|compare)\\b",
     "source_transfer_bytes": 262144
+  },
+  "fallback": {
+    "provider_failure": "AI analysis could not be completed because no permitted provider produced a response.",
+    "facts_heading": "Available deterministic facts (only the supported parts of this request):",
+    "no_facts": "No supported deterministic facts are available for this request.",
+    "analysis_limit": "The requested explanation, comparison or assessment was not produced. These facts are not an AI assessment.",
+    "processing_limit": "Narrow the scope, increase the explicitly validated local context allocation, or deliberately choose an already configured cloud/legacy route. This is a processing limit, not missing source data."
   }
 }

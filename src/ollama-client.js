@@ -47,7 +47,7 @@ export async function* streamChat(messages, { signal, onProvider = () => {}, onR
         }
         if (frame.done) onTiming({ request_ms: now - started, context_acquisition_ms: contextAcquisitionMs,
           first_output_ms: (thinkingAt ?? answerAt ?? now) - started,
-          ...(executionMode==='local_query' ? {} : {thinking_ms: thinkingAt === null ? 0 : (answerAt ?? now) - thinkingAt}),
+          ...(executionMode==='local_query'||executionMode==='rule_based_fallback' ? {} : {thinking_ms: thinkingAt === null ? 0 : (answerAt ?? now) - thinkingAt}),
           answer_ms: answerAt === null ? 0 : now - answerAt,
           ...Object.fromEntries(['total_duration', 'load_duration', 'prompt_eval_duration', 'eval_duration', 'prompt_eval_count', 'eval_count']
             .filter(key => Number.isFinite(frame[key])).map(key => [key, frame[key]])) })
@@ -67,7 +67,7 @@ export function providerLabel(status) {
 export function timingLabel(timing) {
   if (!timing) return ''
   const seconds = ms => `${(ms / 1000).toFixed(1)}s`
-  return `Evidence ${seconds(timing.evidence_ms || 0)} · first output ${seconds(timing.first_output_ms)} · thinking ${seconds(timing.thinking_ms)} · answer ${seconds(timing.answer_ms)}`
+  return `Evidence ${seconds(timing.evidence_ms || 0)} · first output ${seconds(timing.first_output_ms)}${Number.isFinite(timing.thinking_ms) ? ' · thinking '+seconds(timing.thinking_ms) : ''} · answer ${seconds(timing.answer_ms)}`
     + (timing.context_acquisition_ms ? ` · cloud evidence ${seconds(timing.context_acquisition_ms)}` : '')
     + (Number.isFinite(timing.prompt_eval_duration) ? ` · prompt ${seconds(timing.prompt_eval_duration / 1e6)}` : '')
     + (Number.isFinite(timing.load_duration) ? ` · load ${seconds(timing.load_duration / 1e6)}` : '')
@@ -80,5 +80,5 @@ export async function getCopilotCapabilities({fetcher=fetch,signal}={}) {
 }
 export function responseLabel(response) {
   return response.execution_mode === 'local_query' ? 'Local data query · '+response.answer_status
-    : response.execution_mode === 'llm_grounded' ? `Grounded AI · ${response.provider === 'local' ? 'Local' : 'Cloud'} · ${response.model}` : 'Rule-based fallback'
+    : response.execution_mode === 'llm_grounded' ? `Grounded AI · ${response.provider === 'local' ? 'Local' : 'Cloud'} · ${response.model}${response.answer_status==='answered'?'':' · '+response.answer_status}` : 'Rule-based fallback · '+response.answer_status
 }

@@ -1,0 +1,719 @@
+{
+  "requests": {
+    "facts": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is tonight's low and wind?; explain implications",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": []
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        },
+        {
+          "id": "legacy_context",
+          "kind": "live",
+          "source": {
+            "id": "legacy_context",
+            "name": "Full legacy context",
+            "url": null,
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": null,
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          },
+          "values": {
+            "content": "Synthetic full context for fallback transport checks."
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "context_version": "1.0"
+    },
+    "unknown": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "Explain flood zones and preparedness",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": []
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        },
+        {
+          "id": "legacy_context",
+          "kind": "live",
+          "source": {
+            "id": "legacy_context",
+            "name": "Full legacy context",
+            "url": null,
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": null,
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          },
+          "values": {
+            "content": "Synthetic full context for fallback transport checks."
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "context_version": "1.0"
+    },
+    "hidden": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "How many features are shown in this layer?",
+      "answer_method": "model",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": []
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "map",
+          "kind": "map_layer",
+          "source": {
+            "id": "map",
+            "name": "Fire/EMS",
+            "url": "https://example.test/map",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": "operational",
+            "where": "ACTIVE=1",
+            "description": "complete matching inventory; no browse cap",
+            "layer_id": "fire"
+          },
+          "state": {
+            "availability": "hidden",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "complete_count": 900,
+            "samples": [
+              {
+                "Name": "Example station"
+              }
+            ],
+            "summary": {
+              "state": "not_requested"
+            },
+            "displayed_subset": 500,
+            "unit": null
+          },
+          "limitations": []
+        },
+        {
+          "id": "legacy_context",
+          "kind": "live",
+          "source": {
+            "id": "legacy_context",
+            "name": "Full legacy context",
+            "url": null,
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": null,
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          },
+          "values": {
+            "content": "Synthetic full context for fallback transport checks."
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "context_version": "1.0"
+    },
+    "reports": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "Break down the available 311 electrical-hazard reports.",
+      "answer_method": "model",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": []
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "reports",
+          "kind": "reports_311",
+          "source": {
+            "id": "reports",
+            "name": "reports",
+            "url": "https://example.test/reports",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "aggregate_counts": [
+              {
+                "key": "all_reported_hazards",
+                "label": "All included reports",
+                "total": 3
+              },
+              {
+                "key": "direct_electric",
+                "label": "Direct electrical reports",
+                "total": 0
+              },
+              {
+                "key": "electric_tree_or_wire",
+                "label": "Tree or wire reports",
+                "total": 1
+              },
+              {
+                "key": "road_blockage",
+                "label": "Road blockage reports",
+                "total": 2
+              }
+            ],
+            "report_window": {
+              "start": "2026-11-04T10:00:00",
+              "end": "2026-11-11T10:00:00",
+              "timezone": "America/New_York"
+            },
+            "records": []
+          },
+          "limitations": [
+            "Reported NYC 311 complaints, not utility-confirmed outages."
+          ]
+        },
+        {
+          "id": "legacy_context",
+          "kind": "live",
+          "source": {
+            "id": "legacy_context",
+            "name": "Full legacy context",
+            "url": null,
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": null,
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          },
+          "values": {
+            "content": "Full report context."
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "context_version": "1.0"
+    },
+    "stale": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "question": "What is tonight's low and wind?; explain implications",
+      "answer_method": "auto",
+      "history": [],
+      "jurisdiction": {
+        "id": "long-island",
+        "name": "Long Island",
+        "timezone": "America/New_York",
+        "enabled_kb_modules": []
+      },
+      "selection": {
+        "geography": null,
+        "layer_ids": [
+          "fire"
+        ],
+        "feature_ids": [],
+        "source_ids": []
+      },
+      "evidence": [
+        {
+          "id": "forecast",
+          "kind": "forecast",
+          "source": {
+            "id": "forecast",
+            "name": "forecast",
+            "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": "2026-11-11T15:00:00Z",
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "stale",
+            "completeness": "complete",
+            "omission_reason": null
+          },
+          "values": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "isDaytime": false,
+                "startTime": "2026-11-11T18:00:00-05:00",
+                "endTime": "2026-11-12T06:00:00-05:00",
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow",
+                "isDaytime": true,
+                "startTime": "2026-11-12T06:00:00-05:00",
+                "endTime": "2026-11-12T18:00:00-05:00",
+                "temperature": 58,
+                "temperatureUnit": "F",
+                "windSpeed": "8 to 12 mph",
+                "windDirection": "NW"
+              }
+            ],
+            "raw": {
+              "properties": {
+                "periods": [
+                  {
+                    "name": "Tonight",
+                    "isDaytime": false,
+                    "startTime": "2026-11-11T18:00:00-05:00",
+                    "endTime": "2026-11-12T06:00:00-05:00",
+                    "temperature": 44,
+                    "temperatureUnit": "F",
+                    "windSpeed": "7 to 10 mph",
+                    "windDirection": "W",
+                    "probabilityOfPrecipitation": {
+                      "value": 20
+                    }
+                  },
+                  {
+                    "name": "Tomorrow",
+                    "isDaytime": true,
+                    "startTime": "2026-11-12T06:00:00-05:00",
+                    "endTime": "2026-11-12T18:00:00-05:00",
+                    "temperature": 58,
+                    "temperatureUnit": "F",
+                    "windSpeed": "8 to 12 mph",
+                    "windDirection": "NW"
+                  }
+                ]
+              }
+            }
+          },
+          "limitations": []
+        },
+        {
+          "id": "legacy_context",
+          "kind": "live",
+          "source": {
+            "id": "legacy_context",
+            "name": "Full legacy context",
+            "url": null,
+            "provenance": "browser_snapshot"
+          },
+          "fetched_at": null,
+          "valid_interval": null,
+          "geography": "Long Island",
+          "scope": {
+            "filter": null,
+            "where": null,
+            "description": null,
+            "layer_id": null
+          },
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          },
+          "values": {
+            "content": "Synthetic full context for fallback transport checks."
+          },
+          "limitations": []
+        }
+      ],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "context_version": "1.0"
+    }
+  },
+  "scenarios": [
+    {
+      "id": "local-only-even-with-key",
+      "request": "facts",
+      "mode": "local-only",
+      "key": true,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "partial",
+      "posts": 1
+    },
+    {
+      "id": "all-permitted-providers-fail",
+      "request": "facts",
+      "mode": "local-first",
+      "key": true,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "partial",
+      "posts": 2
+    },
+    {
+      "id": "cloud-only-no-key",
+      "request": "unknown",
+      "mode": "cloud-only",
+      "key": false,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "failed",
+      "posts": 0
+    },
+    {
+      "id": "unknown-remains-synthesis",
+      "request": "unknown",
+      "mode": "local-only",
+      "key": false,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "failed",
+      "posts": 1
+    },
+    {
+      "id": "hidden-no-facts",
+      "request": "hidden",
+      "mode": "local-only",
+      "key": false,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "failed",
+      "posts": 1
+    },
+    {
+      "id": "malformed-before-first-frame",
+      "request": "facts",
+      "mode": "local-only",
+      "key": true,
+      "upstream": "malformed",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "partial",
+      "posts": 1
+    },
+    {
+      "id": "thinking-commits-no-replay",
+      "request": "facts",
+      "mode": "local-first",
+      "key": true,
+      "upstream": "thinking_error",
+      "expected_mode": "llm_grounded",
+      "expected_status": "failed",
+      "posts": 1
+    },
+    {
+      "id": "partial-answer-no-replay",
+      "request": "facts",
+      "mode": "local-first",
+      "key": true,
+      "upstream": "partial_error",
+      "expected_mode": "llm_grounded",
+      "expected_status": "partial",
+      "posts": 1
+    },
+    {
+      "id": "zero-report-category-survives",
+      "request": "reports",
+      "mode": "local-only",
+      "key": false,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "partial",
+      "posts": 1
+    },
+    {
+      "id": "stale-facts-excluded",
+      "request": "stale",
+      "mode": "local-only",
+      "key": false,
+      "upstream": "http_error",
+      "expected_mode": "rule_based_fallback",
+      "expected_status": "failed",
+      "posts": 1
+    }
+  ]
+}

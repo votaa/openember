@@ -2,7 +2,7 @@
 
 Date: November 11, 2026
 
-Status: phase 3 bounded synthesis implemented behind the default-legacy execution switch; native retention/performance and broader phase 4/5 acceptance remain open. See [phase 1 inventory and baseline](copilot-phase-1-contracts-and-baseline.md) and [phase 2 implementation and verification](copilot-phase-2-local-queries.md), and [phase 3 implementation and verification](copilot-phase-3-bounded-synthesis.md).
+Status: phase 4 fallback and parity implemented behind the default-legacy execution switch; phase 5 native retention/performance and broader acceptance remain open. See [phase 1 inventory and baseline](copilot-phase-1-contracts-and-baseline.md), [phase 2 implementation and verification](copilot-phase-2-local-queries.md), [phase 3 bounded synthesis](copilot-phase-3-bounded-synthesis.md), and [phase 4 fallback and parity](copilot-phase-4-fallback-and-parity.md).
 
 Reference: AIDA's current `CopilotService`, `CopilotContextBuilder`, response contract, and provider-bypass tests
 
