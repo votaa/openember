@@ -1,3 +1,4 @@
+from cloud_uploads import (UPLOAD_LIMITS, UPLOAD_GUIDANCE, UploadError, validate_file_metadata, validate_uploads, decode_upload, uploaded_document_context, validate_cloud_messages, utf8_bytes)
 """
 EMBER — Emergency Management Body of Evidence & Resources
 Streamlit version · Ollama Cloud · configurable jurisdiction
@@ -11,7 +12,6 @@ Run:
 # ── Imports (all at module level) ─────────────────────────────────────────────
 import html as _html
 import json, os, re, time as _time, datetime as _dt
-from io import StringIO
 from concurrent.futures import ThreadPoolExecutor
 import folium, requests, streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
@@ -926,9 +926,7 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
     if noaa_items:
         ctx += "--- NOAA OPEN DATA (auto-fetched) ---\n"
         for item in noaa_items: ctx += item["content"] + "\n\n"
-    if files:
-        ctx += "--- UPLOADED DOCUMENTS ---\n"
-        for f in files: ctx += f"[File: {f['name']}]\n{f['content'][:4000]}\n\n"
+    ctx += uploaded_document_context(files)
     if esri_items:
         ctx += "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"
         for item in esri_items: ctx += item["content"] + "\n\n"
@@ -940,7 +938,13 @@ def stream_ollama(messages, context):
         return
     system_prompt = build_copilot_system_prompt(CFG.name, context)
     payload = {"model": OLLAMA_MODEL, "stream": True,
+               "options": {"num_predict": UPLOAD_LIMITS['outputReserveTokens']},
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
+    try:
+        validate_cloud_messages(payload['messages'])
+    except UploadError as exc:
+        yield f"⚠ {exc}"
+        return
     try:
         with requests.post(f"{OLLAMA_HOST}/api/chat", json=payload,
                            headers=OLLAMA_HEADERS, stream=True, timeout=90) as resp:
@@ -950,7 +954,9 @@ def stream_ollama(messages, context):
                     obj   = json.loads(line)
                     token = obj.get("message", {}).get("content", "")
                     if token: yield token
-                    if obj.get("done"): return
+                    if obj.get("done"):
+                        if obj.get("done_reason") == "length": yield "\n\n⚠ The response reached its output limit. Ask a focused follow-up for the remaining details."
+                        return
     except requests.exceptions.HTTPError as e:
         yield f"\n\n⚠ Ollama Cloud error {e.response.status_code}: {e.response.text[:200]}"
     except Exception as e:
@@ -1578,20 +1584,35 @@ with st.sidebar:
 
     st.divider()
     st.markdown("**INGEST DOCUMENTS**")
-    uploads = st.file_uploader("SOPs, GeoJSON, CSV, plans", accept_multiple_files=True,
-                               type=["txt", "csv", "json", "geojson", "md"])
+    st.caption(UPLOAD_GUIDANCE)
+    uploads = st.file_uploader("UTF-8 documents (64 KiB per file)", accept_multiple_files=True,
+                               type=UPLOAD_LIMITS['extensions'], max_upload_size=1, disabled=st.session_state.chat_response_pending, key=f"documents-{st.session_state.get('upload_generation',0)}")
     if uploads:
         existing = {f["name"] for f in st.session_state.files}
-        for up in uploads:
-            if up.name not in existing:
-                st.session_state.files.append({
-                    "name": up.name,
-                    "content": StringIO(up.read().decode("utf-8", errors="replace")).read()
-                })
-    for f in st.session_state.files:
-        st.markdown(f'<span class="pill p-blue">📄 {f["name"]}</span>', unsafe_allow_html=True)
-    if st.session_state.files and st.button("Clear Documents"):
+        pending = [up for up in uploads if up.name not in existing]
+        if pending:
+            try:
+                if len(st.session_state.files) + len(pending) > UPLOAD_LIMITS['maxFiles']:
+                    raise UploadError('At most 8 documents can be attached. Remove a document before adding another.')
+                for up in pending: validate_file_metadata(up.name,up.size)
+                if sum(utf8_bytes(f['content']) for f in st.session_state.files) + sum(up.size for up in pending) > UPLOAD_LIMITS['maxTotalBytes']:
+                    raise UploadError('Attached documents exceed 128 KiB total. Remove or split documents.')
+                added = [decode_upload(up.name,up.getvalue()) for up in pending]
+                validate_uploads(st.session_state.files + added)
+                st.session_state.files += added
+            except UploadError as exc:
+                st.error(f"{exc} No files from this selection were added.")
+    for index, f in enumerate(st.session_state.files):
+        label, remove = st.columns([4,1])
+        label.text(f"{f['name']} · {utf8_bytes(f['content'])/1024:.1f} KiB · full text")
+        if remove.button("Remove", disabled=st.session_state.chat_response_pending, key=f"remove-document-{index}"):
+            st.session_state.files.pop(index)
+            st.session_state.upload_generation = st.session_state.get('upload_generation',0) + 1
+            st.rerun()
+    if st.session_state.files and st.button("Clear Documents", disabled=st.session_state.chat_response_pending):
         st.session_state.files = []
+        st.session_state.upload_generation = st.session_state.get('upload_generation',0) + 1
+        st.rerun()
 
     st.divider()
     if st.button("Clear Chat", use_container_width=True, disabled=st.session_state.chat_response_pending):
@@ -2440,14 +2461,19 @@ with tab_chat:
         assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
-        ctx  = build_context(
-            st.session_state.files, st.session_state.api_results,
-            active_kb, st.session_state.esri_items,
-            st.session_state.get("noaa_items", []),
-            st.session_state.get("gauge_data", {}),
-            st.session_state.phase4_results,
-        )
-        ctx += map_layer_context(current_map_evidence(prompt))
+        try:
+            ctx  = build_context(
+                st.session_state.files, st.session_state.api_results,
+                active_kb, st.session_state.esri_items,
+                st.session_state.get("noaa_items", []),
+                st.session_state.get("gauge_data", {}),
+                st.session_state.phase4_results,
+            )
+            ctx += map_layer_context(current_map_evidence(prompt))
+        except UploadError as exc:
+            finish_chat_response(st.session_state.messages, assistant_index, f"⚠ {exc}")
+            st.session_state.chat_response_pending = False
+            st.rerun()
         msgs = [
             {"role": m["role"], "content": m["content"]}
             for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]

@@ -1,10 +1,12 @@
+import { UPLOAD_LIMITS, UploadError, validateCloudMessages, validateUploads, uploadedDocumentContext } from '../src/data/cloudUploads.js'
+
 /**
  * api/chat.js — Vercel serverless proxy for Ollama Cloud
  *
  * Runs server-side (no CORS) — proxies POST /api/chat to Ollama Cloud
  * and streams the response back to the browser.
  *
- * Browser calls:  POST /api/chat  { messages, context, model? }
+ * Browser calls:  POST /api/chat  { messages, model?, uploads? }
  * This calls:     POST https://ollama.com/api/chat  with Bearer auth
  */
 
@@ -36,9 +38,19 @@ export default async function handler(req) {
 
   let body
   try {
-    body = await req.json()
-  } catch {
-    return new Response("Invalid JSON", { status: 400, headers: corsHeaders() })
+    body = await readChatBody(req)
+    validateCloudMessages(body?.messages)
+    if (body.uploads !== undefined) {
+      validateUploads(body.uploads)
+      const documents = uploadedDocumentContext(body.uploads)
+      if (documents && !body.messages[0].content.includes(documents)) throw new UploadError("The attached documents are not present in full in this request. Refresh the app and upload them again.", "upload_incomplete", 400)
+    }
+  } catch (error) {
+    const known = error instanceof UploadError
+    return new Response(JSON.stringify({ error: known ? error.message : "Invalid JSON", code: known ? error.code : "request_invalid" }), {
+      status: known ? error.status : 400,
+      headers: { ...corsHeaders(), "Content-Type": "application/json" },
+    })
   }
 
   const ollamaHost  = process.env.OLLAMA_HOST  || "https://ollama.com"
@@ -47,7 +59,8 @@ export default async function handler(req) {
   const payload = {
     model:    ollamaModel,
     stream:   true,
-    messages: body.messages || [],
+    messages: body.messages,
+    options: { num_predict: UPLOAD_LIMITS.outputReserveTokens },
   }
 
   try {
@@ -92,4 +105,28 @@ function corsHeaders() {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, x-ollama-key",
   }
+}
+
+// Bound the wire payload before JSON parsing as well as the decoded prompt.
+async function readChatBody(req) {
+  if (!req.body) throw new Error("Missing body")
+  if (Number(req.headers.get("content-length")) > UPLOAD_LIMITS.maxRequestBytes) throw new UploadError("Request exceeds 1 MiB. Remove documents or sources and try again.", "request_limit")
+  const reader = req.body.getReader(), chunks = []
+  let size = 0
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > UPLOAD_LIMITS.maxRequestBytes) {
+        await reader.cancel()
+        throw new UploadError("Request exceeds 1 MiB. Remove documents or sources and try again.", "request_limit")
+      }
+      chunks.push(value)
+    }
+  } finally { reader.releaseLock() }
+  const combined = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) { combined.set(chunk, offset); offset += chunk.byteLength }
+  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(combined))
 }

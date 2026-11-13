@@ -1,3 +1,4 @@
+import { UPLOAD_LIMITS, UPLOAD_GUIDANCE, validateFileMetadata, validateUploads, decodeUpload, uploadedDocumentContext, validateCloudMessages, utf8Bytes } from './data/cloudUploads.js'
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
 import { reportWindowMessage } from "./data/regional/reportWindow.js"
@@ -304,14 +305,11 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
     }
     ctx += "These are reported NYC 311 complaints, not utility-confirmed outages or verified restoration constraints.\n\n"
   }
-  if (files.length) {
-    ctx += "--- UPLOADED DOCUMENTS ---\n"
-    files.forEach(f => { ctx += `[${f.name}]\n${f.content.substring(0,4000)}\n\n` })
-  }
+  ctx += uploadedDocumentContext(files)
   return ctx
 }
 
-async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name) {
+async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name, uploads = []) {
   const key = apiKey || getRuntimeKey()
 
   // Build the system prompt + message array
@@ -320,6 +318,9 @@ async function* streamOllama(messages, context, signal, apiKey, jurisdictionName
     { role: "system", content: system },
     ...messages.slice(-10),
   ]
+
+  validateUploads(uploads)
+  validateCloudMessages(allMessages)
 
   // Use the server-side proxy (/api/chat) to avoid CORS.
   // Pass the user's runtime key as a header if not baked in at build time.
@@ -333,7 +334,7 @@ async function* streamOllama(messages, context, signal, apiKey, jurisdictionName
     res = await fetch("/api/chat", {
       method:  "POST",
       headers,
-      body:    JSON.stringify({ messages: allMessages, model: OLLAMA_MODEL }),
+      body:    JSON.stringify({ messages: allMessages, model: OLLAMA_MODEL, uploads }),
       signal,
     })
   } catch (e) {
@@ -366,7 +367,10 @@ async function* streamOllama(messages, context, signal, apiKey, jurisdictionName
       try {
         const obj = JSON.parse(line)
         if (obj.message?.content) yield obj.message.content
-        if (obj.done) return
+        if (obj.done) {
+          if (obj.done_reason === "length") yield "\n\n⚠ The response reached its output limit. Ask a focused follow-up for the remaining details."
+          return
+        }
       } catch {}
     }
   }
@@ -834,6 +838,9 @@ export default function App() {
   const [showRadar, setShowRadar]       = useState(true)
   const [showWind, setShowWind]         = useState(true)
   const [files, setFiles]               = useState([])
+  const [uploadError, setUploadError]   = useState("")
+  const [uploadBusy, setUploadBusy]     = useState(false)
+  const uploadBusyRef = useRef(false)
   const [esriItems, setEsriItems]       = useState([])
   const [esriMapLayers, setEsriMapLayers] = useState({})
   const [noaaItems, setNoaaItems]       = useState([])
@@ -1034,7 +1041,7 @@ export default function App() {
 
   const sendQuery = useCallback(async (override) => {
     const q = (override||input).trim()
-    if (!q||streaming) return
+    if (!q||streaming||uploadBusyRef.current) return
     setInput("") ; setShowQuick(false) ; setRightTab("chat")
     const userMsg = {role:"user",content:q}
     setMessages(p=>[...p,userMsg])
@@ -1043,29 +1050,29 @@ export default function App() {
     abortRef.current = new AbortController()
     // Refresh missing/stale weather before constructing this request, so the
     // first ordinary question gets the same forecast evidence as Streamlit.
-    await initialNoaaFetchRef.current
-    const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
-      const cached = noaaCacheRef.current[ep.id]
-      return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
-    }).map(fetchNOAA))
-    refreshed.forEach(storeNOAA)
-    const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
-    refreshed.forEach(result => currentNoaa.push({content:result.ok
-      ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
-      : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
-    const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
-      .filter(layer => layer.visible !== false)
-      .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
-    const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
-      + mapLayerContext(loadedEvidence)
-      + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
-      + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
-    const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
     let full = ""
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
     try {
+      await initialNoaaFetchRef.current
+      const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
+        const cached = noaaCacheRef.current[ep.id]
+        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
+      }).map(fetchNOAA))
+      refreshed.forEach(storeNOAA)
+      const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
+      refreshed.forEach(result => currentNoaa.push({content:result.ok
+        ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
+        : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
+      const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
+        .filter(layer => layer.visible !== false)
+        .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
+      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results)
+        + mapLayerContext(loadedEvidence)
+        + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
+        + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
+      const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name,
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files,
       )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])
@@ -1077,11 +1084,29 @@ export default function App() {
     setStreaming(false)
   }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
 
-  const ingestFile = useCallback(file => {
-    const reader = new FileReader()
-    reader.onload = e => setFiles(p=>[...p,{name:file.name,content:e.target.result}])
-    reader.readAsText(file)
-  }, [])
+  const ingestFiles = useCallback(async selected => {
+    if (uploadBusyRef.current || !selected.length) return
+    uploadBusyRef.current = true
+    setUploadBusy(true)
+    setRightTab("chat")
+    setUploadError("")
+    try {
+      // Validate metadata before reading. Admit each selected batch atomically.
+      if (files.length + selected.length > UPLOAD_LIMITS.maxFiles) throw new Error("At most 8 documents can be attached. Remove a document before adding another.")
+      for (const file of selected) validateFileMetadata(file.name, file.size)
+      if (files.reduce((n,f)=>n+utf8Bytes(f.content),0) + selected.reduce((n,f)=>n+f.size,0) > UPLOAD_LIMITS.maxTotalBytes) throw new Error("Attached documents exceed 128 KiB total. Remove or split documents; no files from this selection were added.")
+      const added = []
+      for (const file of selected) added.push(decodeUpload(file.name, await file.arrayBuffer()))
+      const next = [...files, ...added]
+      validateUploads(next)
+      setFiles(next)
+    } catch (error) {
+      setUploadError(`${error.message} No files from this selection were added.`)
+    } finally {
+      uploadBusyRef.current = false
+      setUploadBusy(false)
+    }
+  }, [files])
 
   // ── Styles ────────────────────────────────────────────────────────────────
   const pill = (label, active, onClick, color="#4ade80") => (
@@ -1146,8 +1171,8 @@ export default function App() {
           <button onClick={fetchAPIs} disabled={fetching} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,fontWeight:700,border:"1.5px solid #4ade8044",background:"transparent",color:"#4ade80",cursor:"pointer",fontFamily:"inherit",opacity:fetching?0.5:1}}>
             {fetching?"↺…":"↺ LIVE FEEDS"}
           </button>
-          <button onClick={()=>fileInputRef.current?.click()} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,fontWeight:700,border:"1.5px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit"}}>⬆ INGEST</button>
-          <input ref={fileInputRef} type="file" multiple accept=".txt,.csv,.json,.geojson,.md" onChange={e=>Array.from(e.target.files).forEach(ingestFile)} style={{display:"none"}}/>
+          <button disabled={streaming || uploadBusy} onClick={()=>fileInputRef.current?.click()} style={{padding:"2px 10px",borderRadius:4,fontSize:9.5,fontWeight:700,border:"1.5px solid #60a5fa44",background:"transparent",color:"#60a5fa",cursor:"pointer",fontFamily:"inherit"}}>⬆ INGEST</button>
+          <input ref={fileInputRef} type="file" multiple accept=".txt,.csv,.json,.geojson,.md" onChange={e=>{const selected=Array.from(e.target.files);e.target.value="";ingestFiles(selected)}} style={{display:"none"}}/>
         </div>
       </div>
 
@@ -1230,10 +1255,19 @@ export default function App() {
                 )}
               </div>
 
+              <div style={{flexShrink:0,padding:"8px 18px",borderTop:"1px solid #111820",fontSize:11,color:"#aab4c3",maxHeight:180,overflowY:"auto"}}>
+                <details><summary>Document upload limits</summary><p>{UPLOAD_GUIDANCE}</p></details>
+                {uploadBusy && <div role="status">Reading documents…</div>}
+                {uploadError && <div role="alert" style={{color:"#fca5a5",marginTop:6}}>{uploadError}</div>}
+                {files.length>0 && <div role="status">{files.length} attached · {(files.reduce((sum,f)=>sum+utf8Bytes(f.content),0)/1024).toFixed(1)} KiB · full text included when the request fits</div>}
+                {files.map((file,index)=><div key={index} style={{display:"flex",gap:8,alignItems:"center",marginTop:4}}><span>{file.name} · {(utf8Bytes(file.content)/1024).toFixed(1)} KiB</span><button disabled={streaming || uploadBusy} aria-label={`Remove ${file.name}`} onClick={()=>{setFiles(current=>current.filter((_,i)=>i!==index));setUploadError("")}}>Remove</button></div>)}
+                {files.length>0 && <button disabled={streaming || uploadBusy} onClick={()=>{setFiles([]);setUploadError("")}}>Clear Documents</button>}
+              </div>
+
               {/* Input */}
               <div style={{flexShrink:0,padding:"10px 18px",borderTop:"1px solid #111820",display:"flex",gap:8}}>
                 <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!e.shiftKey&&(e.preventDefault(),sendQuery())} placeholder={`Incident type + location… e.g. 'Cat 2 hurricane at Fire Island'`} style={{flex:1,background:"#0d1117",border:"1px solid #1a1e28",borderRadius:6,padding:"8px 12px",color:"#e0e0e8",fontFamily:"inherit",fontSize:12,outline:"none"}}/>
-                <button onClick={()=>streaming?abortRef.current?.abort():sendQuery()} style={{padding:"8px 16px",borderRadius:6,background:streaming?"#1a0808":"#e8372c",border:"none",color:"#fff",fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                <button disabled={uploadBusy} onClick={()=>streaming?abortRef.current?.abort():sendQuery()} style={{padding:"8px 16px",borderRadius:6,background:streaming?"#1a0808":"#e8372c",border:"none",color:"#fff",fontFamily:"inherit",fontSize:11,fontWeight:700,cursor:"pointer"}}>
                   {streaming?"◼ STOP":"▶ SEND"}
                 </button>
               </div>
