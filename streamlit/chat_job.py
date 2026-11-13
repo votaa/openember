@@ -14,6 +14,7 @@ from ollama_provider import stream_chat
 class ChatJob:
     def __init__(self, messages, config, assistant_index, stream_factory=stream_chat, evidence_ms=0):
         self.assistant_index = assistant_index
+        self.request_mode = 'hybrid' if isinstance(messages,dict) else 'legacy'
         self._messages = deepcopy(messages)
         self._config = dict(config)
         self._stream_factory = stream_factory
@@ -130,6 +131,7 @@ def sync_chat_job(state):
     elif snapshot["answer_received_at"] is not None:
         timing["ui_delivery_ms"] = max(0, (monotonic() - snapshot["answer_received_at"]) * 1000)
     state["messages"][index]["timing"] = timing
+    state['messages'][index]['request_mode']=getattr(job,'request_mode','legacy')
     if snapshot.get('response'):
         state['messages'][index]['response'] = snapshot['response']
     if snapshot["provider"]:

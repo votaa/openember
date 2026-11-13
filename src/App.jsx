@@ -1,7 +1,7 @@
 import { fetchWithCancellation, waitForEvidence } from './data/copilotAcquisition.js'
 import { fetchRockawaySource } from './data/regional/rockawaySources.js'
-import { planRequest, adaptEvidence } from './data/copilotRuntime.js'
-import { makeCopilotRequest, withLegacyContext, layerCacheKey } from './data/copilotSnapshot.js'
+import { planRequest, adaptEvidence, contextNeeds, contextPolicy, sourceNeeded } from './data/copilotRuntime.js'
+import { makeCopilotRequest, withLegacyContext, withSynthesisSnapshot, layerCacheKey } from './data/copilotSnapshot.js'
 import { streamChat, getProviderStatus, getCopilotCapabilities, responseLabel, providerLabel, timingLabel } from './ollama-client.js'
 import { fetchMapLayerEvidence, mapLayerContext, mapLayerStatus } from "./data/mapLayerEvidence.js"
 import { overlaySelection, visibleAddedLayers, participatingRegionalIds } from "./data/mapOverlaySelection.js"
@@ -377,7 +377,7 @@ function escapeMapHtml(value) {
   })[char])
 }
 
-function MapPanel({ basemap = BASEMAP_OSM, activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
+function MapPanel({ selectionScope, basemap = BASEMAP_OSM, activeLayers, showRadar, showWind, liveReadings={}, onFeatureSelect, onSendFeatureToChat, mapWidth, mapLayers, regionalRecords={}, activeRegionalLayers=[], regionalLayerMetadata={} }) {
   const runtimeMapLayers = (mapLayers && Object.keys(mapLayers).length) ? mapLayers : MAP_LAYERS
   const mapRef    = useRef(null)
   const leafRef   = useRef(null)
@@ -389,6 +389,7 @@ function MapPanel({ basemap = BASEMAP_OSM, activeLayers, showRadar, showWind, li
   const [ready, setReady] = useState(false)
   const [radarTs, setRadarTs] = useState(null)
   const [selectedFeature, setSelectedFeature] = useState(null)
+  useEffect(()=>{setSelectedFeature(null)},[selectionScope])
 
   const selectFeature = feature => {
     const normalized = normalizeMapFeature(feature)
@@ -654,7 +655,7 @@ function MapPanel({ basemap = BASEMAP_OSM, activeLayers, showRadar, showWind, li
               <div style={{fontSize:11,color:selectedFeature.color || "#9de7f3",fontWeight:700}}>{selectedFeature.title || selectedFeature.name}</div>
               <div style={{fontSize:8.5,color:"#667",marginTop:2}}>{selectedFeature.sourceName || selectedFeature.layerLabel || "Map feature"}{selectedFeature.geometryType ? ` · ${selectedFeature.geometryType}` : ""}</div>
             </div>
-            <button aria-label="Close selected map feature" onClick={()=>{setSelectedFeature(null);leafRef.current?.closePopup()}} style={{background:"none",border:"none",color:"#778",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button>
+            <button aria-label="Close selected map feature" onClick={()=>{setSelectedFeature(null);onFeatureSelect?.(null);leafRef.current?.closePopup()}} style={{background:"none",border:"none",color:"#778",cursor:"pointer",fontSize:13,lineHeight:1}}>✕</button>
           </div>
           {selectedFeature.description && <div style={{fontSize:9.5,color:"#aac",lineHeight:1.45,marginTop:7}}>{selectedFeature.description}</div>}
           {(selectedFeature.observedAt || selectedFeature.fetchedAt || selectedFeature.attribution) && <div style={{fontSize:8,color:"#556",marginTop:6}}>{selectedFeature.observedAt || selectedFeature.fetchedAt || ""}{selectedFeature.attribution ? ` · ${selectedFeature.attribution}` : ""}</div>}
@@ -798,6 +799,8 @@ export default function App() {
   }, [])
   const [nycOpenDataToken, setNycOpenDataTokenState] = useState(getNycOpenDataToken)
   const [chatProgress, setChatProgress] = useState("")
+  const [chatFeature,setChatFeature] = useState(null)
+  const [answerMethod,setAnswerMethod] = useState('auto')
   const [streaming, setStreaming]       = useState(false)
   const [activeKB, setActiveKB]         = useState(()=>Object.keys(KB_RT))
   const [activeMapLayers, setActiveLayers] = useState(["floodRisk","hospitals","shelters","gauges","eoc"])
@@ -909,6 +912,8 @@ export default function App() {
     setShowWind(enabled)
     setEsriMapLayers(previous => Object.fromEntries(Object.entries(previous).map(([id, layer]) => [id, {...layer, visible:enabled}])))
   }
+  const featureSelectionScope=JSON.stringify([activeMapLayers,activeRegionalMapLayers,Object.values(evaluatedEsriMapLayers).map(layer=>[layer.id,layer.visible,layer.filterMode,layer.where,layer.queryGeometry]),geographyFilterRecords,showWind,showRadar])
+  useEffect(()=>{setChatFeature(null)},[featureSelectionScope])
   const mapLayersVersion = JSON.stringify(ML_RT)
   const setNycOpenDataToken_ = (token) => {
     const nextToken = token.trim()
@@ -1003,7 +1008,7 @@ export default function App() {
     setFetching(false)
   }
 
-  const sendQuery = useCallback(async (override) => {
+  const sendQuery = useCallback(async (override, feature=null) => {
     const q = (override||input).trim()
     if (!q||streaming) return
     setInput("") ; setShowQuick(false) ; setRightTab("chat")
@@ -1016,15 +1021,44 @@ export default function App() {
     abortRef.current = new AbortController()
     let full = ""
     let assistantAdded = false
+    let requestMode='pending'
     try {
       const caps = await capabilitiesRef.current
       const hybrid = caps?.execution_mode === 'hybrid' && caps.request_versions.includes('1.0')
+      requestMode=hybrid?'hybrid':'legacy'
       let structuredRequest = null
       let legacyMessages = []
       const source311 = CFG.sources.find(s=>s.id==='nyc_311_electric_hazards_rockaway')
       const currentLayers = Object.values(evaluatedEsriMapLayers)
       const cachedLayers = currentLayers.map(layer=>{const cached=mapEvidenceCacheRef.current[layer.id];return cached && cached.key===layerCacheKey(layer,geographyFilterRecords) && Date.now()-Date.parse(cached.evidence.fetched_at)<60000 ? cached.evidence : layer})
-      const snapshot = (layers=cachedLayers, forecast=noaaCacheRef.current.nws_forecast, reports=phase4ResultsRef.current.nyc_311_electric_hazards_rockaway) => makeCopilotRequest({question:q,history:messages,name:CFG_RT.name,timezone:CFG_RT.timezone,enabled:activeKB,forecast,layers,reports,reportSource:source311},adaptEvidence)
+      const snapshot = (layers=cachedLayers, forecast=noaaCacheRef.current.nws_forecast, reports=phase4ResultsRef.current.nyc_311_electric_hazards_rockaway) => ({...makeCopilotRequest({question:q,history:messages,name:CFG_RT.name,timezone:CFG_RT.timezone,enabled:activeKB,forecast,layers,reports,reportSource:source311},adaptEvidence),answer_method:answerMethod})
+      const typed=hybrid && caps.context_versions?.includes('1.0')
+      const decorate=request=>typed?withSynthesisSnapshot(request,{kb:KB_RT,files,apiResults,catalog:esriItems,feature:feature||chatFeature,history:messages,
+        sources:NOAA_ENDPOINTS.map(base=>{const ep=weatherEndpoints.find(item=>item.id===base.id)||base;const result=noaaCacheRef.current[ep.id];return {result:result||{ep},pending:!result,content:noaaItemsRef.current.find(item=>item.itemId===ep.id)?.content||'',ttl_seconds:ep.id.includes('coops')?360:ep.id.includes('obs')?300:3600}})},adaptEvidence,contextPolicy):request
+      const collectFullContext=async(original=null)=>{
+      // Refresh missing/stale weather before constructing this request, so the
+      // first ordinary question gets the same forecast evidence as Streamlit.
+      await waitForEvidence(initialNoaaFetchRef.current || Promise.resolve(),abortRef.current.signal)
+      const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
+        const cached = noaaCacheRef.current[ep.id]
+        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
+      }).map(fetchNOAA))
+      refreshed.forEach(storeNOAA)
+      const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
+      refreshed.forEach(result => currentNoaa.push({content:result.ok
+        ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
+        : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
+      const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
+        .filter(layer => layer.visible !== false)
+        .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
+      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results, CFG.sources)
+        + mapLayerContext(loadedEvidence)
+        + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
+        + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
+      const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
+      const full=withLegacyContext(decorate(snapshot(currentLayers.map(layer=>loadedEvidence.find(item=>item.id===layer.id)||layer))),ctx,adaptEvidence)
+      return {request:original?{...original,evidence:full.evidence}:full,messages:[{role:'system',content:buildCopilotSystemPrompt(CFG_RT.name,ctx)},...msgs.slice(-10)]}
+      }
       if (hybrid) {
         let request = snapshot()
         let plan = planRequest(request)
@@ -1045,39 +1079,26 @@ export default function App() {
           request = snapshot(maps,forecast)
           plan = planRequest(request)
         }
-        if (plan.outcome !== 'synthesis') structuredRequest = request
+        if (plan.outcome !== 'synthesis') structuredRequest = typed?decorate(request):request
+        else if(typed && caps.provider_policy!=='cloud-only') {
+          const demand=contextNeeds(request),signal=abortRef.current.signal,scopedFetch=fetchWithCancellation(signal)
+          const targets=NOAA_ENDPOINTS.map(ep=>weatherEndpoints.find(item=>item.id===ep.id)||ep).filter(ep=>sourceNeeded(ep,request))
+          const refreshed=await waitForEvidence(Promise.all(targets.filter(ep=>!noaaCacheRef.current[ep.id]?.ok||Date.now()-Date.parse(noaaCacheRef.current[ep.id]?.fetchedAt)>(ep.id.includes('coops')?360000:ep.id.includes('obs')?300000:3600000)).map(ep=>fetchNOAA(ep,{fetchImpl:scopedFetch}))),signal)
+          refreshed.forEach(storeNOAA)
+          const evidenceLayers=demand.maps||demand.broad?await waitForEvidence(Promise.all(currentLayers.map(layer=>layer.visible!==false?fetchMapLayerEvidence(layer,geographyFilterRecords,{question:q,fetchImpl:scopedFetch}):Promise.resolve(layer))),signal):cachedLayers
+          if(demand.reports && source311) {const report=await fetchRockawaySource(source311,{fetchImpl:scopedFetch,geographyRecords:geographyFilterRecords,appToken:nycOpenDataToken,previousResult:phase4ResultsRef.current[source311.id]});phase4ResultsRef.current={...phase4ResultsRef.current,[source311.id]:report};setPhase4Results(phase4ResultsRef.current)}
+          structuredRequest=decorate(snapshot(evidenceLayers))
+        }
       }
-      if (!structuredRequest) {
-      // Refresh missing/stale weather before constructing this request, so the
-      // first ordinary question gets the same forecast evidence as Streamlit.
-      await initialNoaaFetchRef.current
-      const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
-        const cached = noaaCacheRef.current[ep.id]
-        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
-      }).map(fetchNOAA))
-      refreshed.forEach(storeNOAA)
-      const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
-      refreshed.forEach(result => currentNoaa.push({content:result.ok
-        ? `[NOAA: ${result.ep.name}]\nFetched: ${result.fetchedAt}\nSource: ${result.ep.url}\n\n${summarizeNOAA(result)}`
-        : `[NOAA: ${result.ep.name}] unavailable at ${result.fetchedAt}: ${result.error}`}))
-      const loadedEvidence = await Promise.all(Object.values(evaluatedEsriMapLayers)
-        .filter(layer => layer.visible !== false)
-        .map(layer => fetchMapLayerEvidence(layer, geographyFilterRecords, {question:q})))
-      const ctx = buildContextRT(files, apiResults, activeKB, KB_RT, CFG_RT.name, phase4Results, CFG.sources)
-        + mapLayerContext(loadedEvidence)
-        + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
-        + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
-      const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
-      legacyMessages = [{role:'system',content:buildCopilotSystemPrompt(CFG_RT.name,ctx)},...msgs.slice(-10)]
-      if (hybrid) structuredRequest=withLegacyContext(snapshot(loadedEvidence),ctx,adaptEvidence)
-      }
+      if(!structuredRequest){const full=await collectFullContext();legacyMessages=full.messages;if(hybrid)structuredRequest=full.request}
+      requestMode=hybrid?'hybrid':'legacy'
       const evidenceMs = performance.now() - evidenceStarted
       abortRef.current.signal.throwIfAborted()
-      setMessages(p=>[...p,{role:"assistant",content:"▋"}])
+      setMessages(p=>[...p,{role:"assistant",content:"▋",requestMode}])
       assistantAdded = true
       for await (const token of streamChat(
         legacyMessages,
-        { structuredRequest, onResponse:response=>setMessages(p=>[...p.slice(0,-1),{...p.at(-1),response}]), signal: abortRef.current.signal, onProgress: setChatProgress,
+        { structuredRequest, onContextRequest:async()=>{const full=await collectFullContext(structuredRequest);return full.request}, onResponse:response=>setMessages(p=>[...p.slice(0,-1),{...p.at(-1),response}]), signal: abortRef.current.signal, onProgress: setChatProgress,
           onTiming: timing => setMessages(p => [...p.slice(0,-1), { ...p.at(-1), timing: { ...timing, evidence_ms: evidenceMs } }]),
           onProvider: metadata => {
             setProviderStatus({ ...metadata, available: true })
@@ -1094,9 +1115,9 @@ export default function App() {
       }
     }
     if (assistantAdded) setMessages(p=>[...p.slice(0,-1),{...p.at(-1),role:"assistant",content:full}])
-    else if (full) setMessages(p=>[...p,{role:"assistant",content:full}])
+    else if (full) setMessages(p=>[...p,{role:"assistant",content:full,requestMode}])
     setStreaming(false)
-  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, CFG_RT.name])
+  }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, CFG_RT.name, answerMethod, chatFeature])
 
   const ingestFile = useCallback(file => {
     const reader = new FileReader()
@@ -1176,7 +1197,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} basemap={basemap} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
+          <MapPanel selectionScope={featureSelectionScope} key={mapLayersVersion} basemap={basemap} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onFeatureSelect={setChatFeature} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature),feature)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()
@@ -1228,8 +1249,9 @@ export default function App() {
                     </div>
                     <div style={{flex:1,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
                       {m.content}
-                      {m.role==='assistant' && m.id!=='initialization' && <div style={{fontSize:10,color:'#9ca3af'}}>{m.response ? responseLabel(m.response) : 'Legacy AI response'}</div>}
-                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{m.response?.execution_mode==='local_query' ? `Evidence ${((m.timing.evidence_ms||0)/1000).toFixed(2)}s · local query ${(m.timing.request_ms/1000).toFixed(2)}s` : timingLabel(m.timing)}</div>}
+                      {m.role==='assistant' && m.id!=='initialization' && <div style={{fontSize:10,color:'#9ca3af'}}>{m.response ? responseLabel(m.response) : m.requestMode==='legacy' ? 'Legacy AI response' : streaming ? 'Preparing response…' : 'Response not completed'}</div>}
+                      {m.response?.context && <details style={{fontSize:10,color:'#a5aebb'}}><summary>Source coverage · {m.response.context.included_ids?.length||0} included · {m.response.context.omitted?.length||0} limited or omitted</summary><div>{m.response.context.warnings?.join(' ')}{m.response.context.omitted?.length>0 && m.response.context.omitted.map(source=><div key={source.id}>{source.source_name||source.id}: {source.reason}</div>)}</div></details>}
+                      {m.timing && <div style={{fontSize:10,color:"#8899aa"}}>{m.response && !m.response.provider ? `Evidence ${((m.timing.evidence_ms||0)/1000).toFixed(2)}s · local query ${(m.timing.request_ms/1000).toFixed(2)}s` : timingLabel(m.timing)}</div>}
                     </div>
                   </div>
                 ))}
@@ -1237,6 +1259,8 @@ export default function App() {
                 <div ref={endRef}/>
               </div>
 
+              <label style={{padding:'6px 18px',fontSize:11,color:'#aab4c3'}}><input type="checkbox" checked={answerMethod==='model'} disabled={streaming} onChange={event=>setAnswerMethod(event.target.checked?'model':'auto')}/> Use AI analysis</label>
+              {(files.some(file=>new TextEncoder().encode(file.content||'').length>contextPolicy.context.upload_file_bytes)||files.reduce((sum,file)=>sum+new TextEncoder().encode(file.content||'').length,0)>contextPolicy.context.upload_total_bytes) && <div role="status" style={{padding:'6px 18px',fontSize:11}}>Full-upload retrieval supports 1 MiB per file and 2 MiB total. Oversized uploads retain their opening excerpt; split them for full-text retrieval.</div>}
               {/* Quick queries */}
               <div style={{flexShrink:0,padding:"6px 18px",borderTop:"1px solid #0f1218"}}>
                 <button onClick={()=>setShowQuick(p=>!p)} style={{fontSize:9,color:"#334",background:"none",border:"none",cursor:"pointer",fontFamily:"inherit"}}>

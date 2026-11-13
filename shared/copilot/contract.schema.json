@@ -582,6 +582,12 @@
               "content": {
                 "type": "string",
                 "maxLength": 32000
+              },
+              "scope_key": {
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             },
             "required": [
@@ -632,6 +638,9 @@
         },
         "requested_at": {
           "type": "string"
+        },
+        "context_version": {
+          "const": "1.0"
         }
       },
       "required": [
@@ -864,6 +873,9 @@
             "type": "number",
             "minimum": 0
           }
+        },
+        "context": {
+          "type": "object"
         }
       },
       "required": [

@@ -109,7 +109,7 @@ def provider_label(status):
     return f"{status['provider'].title()} · {status['model']} · {status['mode']}" + (" · fallback" if status.get("fallback") else "")
 
 
-def stream_chat(messages, cfg, http=requests):
+def stream_chat(messages, cfg, http=requests, prepare_messages=None):
     """Yield provider metadata, native Ollama frames, or normalized error frames.
 
     First valid upstream frame commits the provider, even without answer text.
@@ -127,12 +127,14 @@ def stream_chat(messages, cfg, http=requests):
                 probe_local(cfg, http)
             elif not cfg["api_key"]:
                 raise ProviderError("missing_key", "Cloud requires server-side OLLAMA_API_KEY.", "cloud")
+            prepared = prepare_messages(provider) if prepare_messages else None
+            attempt_messages = prepared() if callable(prepared) else prepared if prepared is not None else messages
             probing = False
             headers = {"Content-Type": "application/json"}
             if provider == "cloud":
                 headers["Authorization"] = "Bearer " + cfg["api_key"]
             host = cfg["local_host"] if provider == "local" else "https://ollama.com"
-            payload = {"model": model, "messages": messages, "stream": True}
+            payload = {"model": model, "messages": attempt_messages, "stream": True}
             if provider == "local" and cfg.get("local_num_ctx") is not None:
                 payload["options"] = {"num_ctx": cfg["local_num_ctx"]}
             if provider == "local" and cfg.get("local_keep_alive") == "0":

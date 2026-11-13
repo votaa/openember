@@ -44,7 +44,10 @@ from ollama_provider import configuration, provider_status, provider_label
 from chat_job import ChatJob, sync_chat_job, timing_label, response_label
 from copilot_contract import execution_mode
 from copilot_intent import plan_request
-from copilot_snapshot import make_request, with_legacy_context
+from copilot_snapshot import make_request, with_legacy_context, with_synthesis_snapshot
+from copilot_context import needs as context_needs, source_needed
+from copilot_acquisition import refresh_cloud_noaa
+from copy import deepcopy
 from copilot_service import application_stream
 from chat_state import (
     background_refresh_allowed,
@@ -363,9 +366,9 @@ def fetch_noaa_ep(ep):
             error = data["error"]
             raise ValueError(error.get("message", str(error)) if isinstance(error, dict) else str(error))
         return {"success": True, "data": data,
-                "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
+                "text": is_text, "ep": ep, "url": url, "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
     except Exception as e:
-        return {"success": False, "error": str(e), "ep": ep,
+        return {"success": False, "error": str(e), "ep": ep, "url": url,
                 "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat()}
 
 def summarize_noaa(result):
@@ -877,9 +880,11 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
     return m
 
 
-def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None, phase4_results=None):
+def build_context(files, api_results, active_modules, esri_items, noaa_items=None, gauge_data=None, phase4_results=None, knowledge_base=None, config=None):
+    cfg=config if config is not None else CFG
+    knowledge=knowledge_base if knowledge_base is not None else KNOWLEDGE_BASE
     ctx = build_knowledge_base_context(
-        KNOWLEDGE_BASE, active_modules, CFG.name,
+        knowledge, active_modules, cfg.name,
     )
     if gauge_data:
         ctx += "--- LIVE TIDAL GAUGE READINGS (CO-OPS, 6-min updates) ---\n"
@@ -903,7 +908,7 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
     if hazard_result:
         ctx += "--- NYC 311 REPORTED ELECTRIC HAZARDS AND ROAD BLOCKAGES · PAST 7 DAYS ONLY ---\n"
         ctx += report_window_message({"rolling_window_days": 7}, hazard_result) + "\n"
-        source = CFG.source("nyc_311_electric_hazards_rockaway") or {}
+        source = cfg.source("nyc_311_electric_hazards_rockaway") or {}
         ctx += f"Source: {source.get('name') or 'NYC 311'}\nSource URL: {source.get('endpoint') or 'unavailable'}\n"
         ctx += f"Fetched: {hazard_result.get('fetched_at') or 'unavailable'}\n"
         ctx += f"Report window: {json.dumps(hazard_result.get('report_window'))}\n"
@@ -1814,6 +1819,7 @@ if selected_map_feature:
             # The click-count event contract already permits selecting the same
             # feature again. Remounting st_folium here can emit a late component
             # event and interrupt the chat stream that starts on the next run.
+            st.session_state.pending_chat_feature = deepcopy(selected_map_feature)
             st.session_state.selected_map_feature = None
             st.session_state.pending_query = prompt
             st.rerun()
@@ -2397,8 +2403,12 @@ with tab_esri:
 
 # ── Chat Tab ──────────────────────────────────────────────────────────────────
 with tab_chat:
+    st.checkbox('Use AI analysis',key='copilot_use_ai',disabled=st.session_state.chat_response_pending)
+    if any(len(f.get('content','').encode())>1048576 for f in st.session_state.files) or sum(len(f.get('content','').encode()) for f in st.session_state.files)>2097152:
+        st.caption('Full-upload retrieval supports 1 MiB per file and 2 MiB total. Oversized uploads retain their opening excerpt; split them for full-text retrieval.')
     def prepare_chat_job(prompt):
         evidence_started = _time.monotonic()
+        request_feature=deepcopy(st.session_state.pop('pending_chat_feature',None) or globals().get('selected_map_feature'))
         assistant_index = st.session_state.get("chat_preparation_index")
         if assistant_index is None:
             assistant_index = begin_chat_response(st.session_state.messages, prompt)
@@ -2412,6 +2422,7 @@ with tab_chat:
                     forecast=st.session_state.noaa_results.get('nws_forecast_li'),layers=layers if current_layers is None else current_layers,
                     reports=st.session_state.phase4_results.get('nyc_311_electric_hazards_rockaway'),report_source=source311,timezone_name=CFG.timezone)
             hybrid_request = snapshot()
+            hybrid_request['answer_method']='model' if st.session_state.get('copilot_use_ai',False) else 'auto'
             plan = plan_request(hybrid_request)
             if plan['outcome']=='local':
                 for op in plan['operations']:
@@ -2428,15 +2439,65 @@ with tab_chat:
                 layer_ids=[id for op in plan['operations'] if op['intent']=='map_count' and op['status']=='acquire' for id in op['scope']['layer_ids']]
                 evidence_layers=[cached_map_evidence(l,current_geography_records(),prompt) if l['id'] in layer_ids and l.get('visible',True) else l for l in layers]
                 hybrid_request=snapshot(evidence_layers)
+                hybrid_request['answer_method']='model' if st.session_state.get('copilot_use_ai',False) else 'auto'
             if plan_request(hybrid_request)['outcome']!='synthesis':
+                hybrid_request=with_synthesis_snapshot(hybrid_request,kb=KNOWLEDGE_BASE,files=st.session_state.files,api_results=st.session_state.api_results,catalog=st.session_state.esri_items,gauge_data=st.session_state.gauge_data,history=st.session_state.messages[:assistant_index-1],feature=request_feature)
                 st.session_state.pop('ollama_error',None)
                 st.session_state.chat_job=ChatJob(hybrid_request,OLLAMA_CONFIG,assistant_index,application_stream,
                     evidence_ms=(_time.monotonic()-evidence_started)*1000)
                 st.session_state.pop('chat_preparation_index',None)
                 sync_chat_job(st.session_state)
                 return
-            auto_fetch_noaa_endpoints()
-            refresh_stale_endpoints()
+            # Compact synthesis acquires only requested live sources before starting the worker.
+            demand=context_needs(hybrid_request)
+            if OLLAMA_CONFIG['mode']!='cloud-only':
+                wanted=[ep for ep in NOAA_ENDPOINTS if source_needed(ep,hybrid_request)]
+                refreshed=refresh_cloud_noaa(wanted,st.session_state.noaa_results,REFRESH_INTERVALS,fetch_noaa_ep)
+                for ep in wanted:
+                    result=refreshed.get(ep['id'])
+                    if result:
+                        st.session_state.noaa_results[ep['id']]=result
+                        if result.get('success'):upsert_noaa_kb(ep,result)
+                evidence_layers=[cached_map_evidence(l,current_geography_records(),prompt) if l.get('visible',True) and (demand['maps'] or demand['broad']) else l for l in layers]
+                if demand['reports'] and source311:
+                    st.session_state.phase4_results[source311['id']]=fetch_rockaway_source(source311,requests.get,geography_records=current_geography_records(),app_token=st.session_state.nyc_token,previous_result=st.session_state.phase4_results.get(source311['id']))
+            else:evidence_layers=layers
+            # Immutable request-owned inputs for a possible later cloud attempt. The worker
+            # callback uses pure source functions and never reads or mutates session state.
+            captured=deepcopy(dict(files=st.session_state.files,api_results=st.session_state.api_results,esri_items=st.session_state.esri_items,noaa_items=st.session_state.noaa_items,gauge_data=st.session_state.gauge_data,phase4_results=st.session_state.phase4_results,results=st.session_state.noaa_results,layers=layers,geography=current_geography_records(),kb=KNOWLEDGE_BASE,active=active_kb,history=st.session_state.messages[:assistant_index-1],feature=request_feature))
+            cfg=deepcopy(CFG)
+            def decorate(request,results):
+                items={item.get('item_id'):item for item in captured['noaa_items']}
+                return with_synthesis_snapshot(request,kb=captured['kb'],files=captured['files'],api_results=captured['api_results'],gauge_data=captured['gauge_data'],catalog=captured['esri_items'],feature=captured['feature'],history=captured['history'],sources=[dict(result=results.get(ep['id'],dict(ep=ep)),pending=ep['id'] not in results,content=items.get(ep['id'],{}).get('content',''),ttl_seconds=REFRESH_INTERVALS.get(ep['id'],3600) or 3600) for ep in NOAA_ENDPOINTS])
+            hybrid_request=snapshot(evidence_layers)
+            hybrid_request['answer_method']='model' if st.session_state.get('copilot_use_ai',False) else 'auto'
+            hybrid_request=decorate(hybrid_request,captured['results'])
+            original=deepcopy(hybrid_request)
+            def full_cloud_request():
+                results=refresh_cloud_noaa(NOAA_ENDPOINTS,captured['results'],REFRESH_INTERVALS,fetch_noaa_ep)
+                items=deepcopy(captured['noaa_items'])
+                for ep in NOAA_ENDPOINTS:
+                    result=results.get(ep['id'])
+                    if not result or not result.get('success'):continue
+                    entry=dict(name='NOAA: '+ep['name'],item_id=ep['id'],content=f"[NOAA Open Data — {ep['name']}]\nFetched: {result['fetched_at']}\nSource: {resolve_url(ep)}\n\n{summarize_noaa(result)}")
+                    index=next((i for i,item in enumerate(items) if item.get('item_id')==ep['id']),None)
+                    if index is None:items.append(entry)
+                    else:items[index]=entry
+                maps=[fetch_map_layer_evidence(l,captured['geography'],requests.post,requests.get,prompt) for l in captured['layers'] if l.get('visible',True)]
+                context=build_context(captured['files'],captured['api_results'],captured['active'],captured['esri_items'],items,captured['gauge_data'],captured['phase4_results'],knowledge_base=captured['kb'],config=cfg)+map_layer_context(maps)
+                # Keep the original identity/selection; only replace retained evidence.
+                fresh_layers=[next((item for item in maps if item['id']==layer['id']),layer) for layer in captured['layers']]
+                fresh=make_request(prompt,captured['history'],cfg.name,captured['active'],forecast=results.get('nws_forecast_li'),layers=fresh_layers,reports=captured['phase4_results'].get('nyc_311_electric_hazards_rockaway'),report_source=cfg.source('nyc_311_electric_hazards_rockaway'),timezone_name=cfg.timezone)
+                fresh['answer_method']=original['answer_method']
+                cloud=decorate(fresh,results)
+                cloud=dict(original,evidence=cloud['evidence'])
+                return with_legacy_context(cloud,context)
+            def synthesis_stream(request,config):
+                return application_stream(request,config,cloud_context_factory=full_cloud_request)
+            st.session_state.pop('ollama_error',None)
+            st.session_state.chat_job=ChatJob(hybrid_request,OLLAMA_CONFIG,assistant_index,synthesis_stream,evidence_ms=(_time.monotonic()-evidence_started)*1000)
+            sync_chat_job(st.session_state)
+            return
         ctx = build_context(
             st.session_state.files, st.session_state.api_results,
             active_kb, st.session_state.esri_items,
@@ -2488,9 +2549,14 @@ with tab_chat:
                             if msg.get('response'):
                                 st.caption(response_label(msg['response']))
                             elif msg['role']=='assistant' and index>0:
-                                st.caption('Legacy AI response')
+                                st.caption('Preparing response…' if msg.get('request_mode')=='hybrid' else 'Legacy AI response')
+                            if msg.get('response',{}).get('context'):
+                                context=msg['response']['context']
+                                with st.expander(f"Source coverage · {len(context.get('included_ids',[]))} included · {len(context.get('omitted',[]))} limited or omitted"):
+                                    for warning in context.get('warnings',[]):st.caption(warning)
+                                    for item in context.get('omitted',[]):st.caption(item.get('source_name',item['id'])+': '+item['reason'])
                             if msg.get("timing"):
-                                st.caption(('Evidence %.2fs · local query %.2fs' % (msg['timing'].get('evidence_ms',0)/1000,msg['timing'].get('request_ms',0)/1000)) if msg.get('response',{}).get('execution_mode')=='local_query' else timing_label(msg["timing"]))
+                                st.caption(('Evidence %.2fs · local query %.2fs' % (msg['timing'].get('evidence_ms',0)/1000,msg['timing'].get('request_ms',0)/1000)) if msg.get('response') and not msg['response'].get('provider') else timing_label(msg["timing"]))
                             if job and index == job.assistant_index:
                                 st.caption(snapshot["phase"])
                                 if snapshot["provider"]:

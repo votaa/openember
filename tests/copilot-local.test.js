@@ -38,7 +38,7 @@ test('local facts preserve full wind, zero categories, complete counts and citat
 })
 test('capabilities and planning do not require even valid provider configuration',async()=>{
   const handle=handler(noProvider,{OLLAMA_MODE:'invalid'})
-  assert.deepEqual(await getCopilotCapabilities({fetcher:(url,opts)=>handle(new Request('http://localhost'+url,opts))}),{execution_mode:'hybrid',request_versions:['1.0'],legacy_messages:true})
+  assert.deepEqual(await getCopilotCapabilities({fetcher:(url,opts)=>handle(new Request('http://localhost'+url,opts))}),{execution_mode:'hybrid',request_versions:['1.0'],legacy_messages:true,context_versions:['1.0'],provider_policy:'local-first'})
   assert.equal((await post(handle,requestFor(direct[0]),'?plan')).status,200)
 })
 test('browser consumes response metadata and one completion without fake model status',async()=>{

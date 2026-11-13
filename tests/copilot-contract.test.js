@@ -83,7 +83,7 @@ test('both runtimes load only packaged contract resources without a repository m
   const directory = mkdtempSync(join(tmpdir(), 'openember-copilot-contract-'))
   try {
     for (const part of ['lib', 'streamlit', 'shared/copilot','src/data']) mkdirSync(join(directory, part), {recursive:true})
-    const files = ['package.json', 'lib/copilot-service.js', 'lib/copilot-local-queries.js', 'lib/ollama.js', 'src/data/copilotPrompt.js', 'lib/copilot-contract-core.js', 'lib/copilot-evidence-core.js', 'lib/copilot-intent-core.js', 'lib/copilot-forecast.js', 'lib/copilot-contract.js', 'lib/copilot-evidence.js', 'lib/copilot-intent.js',
+    const files = ['package.json', 'lib/copilot-context.js', 'lib/copilot-context-core.js', 'lib/copilot-cloud-context.js', 'lib/copilot-service.js', 'lib/copilot-local-queries.js', 'lib/ollama.js', 'src/data/copilotPrompt.js', 'lib/copilot-contract-core.js', 'lib/copilot-evidence-core.js', 'lib/copilot-intent-core.js', 'lib/copilot-forecast.js', 'lib/copilot-contract.js', 'lib/copilot-evidence.js', 'lib/copilot-intent.js',
       'streamlit/copilot_forecast.py', 'streamlit/copilot_contract.py', 'streamlit/copilot_evidence.py', 'streamlit/copilot_intent.py',
       'shared/copilot/contract.schema.json', 'shared/copilot/policy.json']
     for (const file of files) copyFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), join(directory, file))

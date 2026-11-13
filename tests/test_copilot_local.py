@@ -56,9 +56,10 @@ class CopilotLocalTests(unittest.TestCase):
 from types import SimpleNamespace
 sys.path.insert(0,{str(ROOT/'streamlit')!r})
 import streamlit as st
+from copy import deepcopy
 from chat_job import ChatJob,sync_chat_job,timing_label,response_label
 from chat_state import begin_chat_response
-from copilot_snapshot import make_request,with_legacy_context
+from copilot_snapshot import make_request,with_legacy_context,with_synthesis_snapshot
 from copilot_intent import plan_request
 from copilot_service import application_stream as real_stream
 from ollama_provider import provider_label
@@ -67,6 +68,7 @@ COPILOT_MODE='hybrid'
 OLLAMA_CONFIG={{}}
 CFG=SimpleNamespace(name='Long Island',timezone='America/New_York',source=lambda id:None)
 active_kb=[]
+KNOWLEDGE_BASE={{}}
 def forbidden(*args,**kwargs): raise AssertionError('Unrelated source or model work')
 build_context=auto_fetch_noaa_endpoints=refresh_stale_endpoints=fetch_noaa_ep=cached_map_evidence=forbidden
 if 'messages' not in st.session_state:
@@ -76,6 +78,10 @@ if 'messages' not in st.session_state:
  st.session_state.map_layers=[]
  st.session_state.mb_layers=[]
  st.session_state.phase4_results={{}}
+ st.session_state.files=[]
+ st.session_state.api_results=[]
+ st.session_state.esri_items=[]
+ st.session_state.gauge_data={{}}
  raw={raw!r}
  raw['fetched_at']=datetime.datetime.now(datetime.timezone.utc).isoformat()
  st.session_state.noaa_results={{'nws_forecast_li':raw}}

@@ -25,3 +25,19 @@ def forecast_periods(periods,scope,requested_at):
     if dated_exact: return dated_exact
     night='night' in scope['period'] or 'low' in scope['fields']
     return [p for p in periods if instant(p['startTime']).astimezone(tz).date()==wanted and p.get('isDaytime') is (not night)]
+
+
+def context_forecast_periods(request,periods):
+    import re
+    text=request['question'].lower()
+    if re.match(r'what about\b',text) and not re.search('tonight|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday',text):text+=' '+' '.join(m['content'] for m in [m for m in request['history'] if m['role']=='user'][-2:]).lower()
+    names=re.findall(r'tomorrow night|tonight|today|tomorrow|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: night)?',text)
+    if not names:return periods
+    selected=[]
+    for name in names:
+        scope=dict(period=name,timezone=request['jurisdiction']['timezone'],fields=['low'] if re.search(r'\blow\b',text) else ['high'] if re.search(r'\bhigh\b',text) else ['temperature'])
+        selected.extend(forecast_periods(periods,scope,request['requested_at']))
+        if not re.search(r'\blow\b|\bhigh\b',text) and 'night' not in name:
+            scope['period']='tonight' if name=='today' else name+' night'
+            selected.extend(forecast_periods(periods,scope,request['requested_at']))
+    return sorted({p['startTime']:p for p in selected}.values(),key=lambda p:datetime.fromisoformat(p['startTime'].replace('Z','+00:00')))
