@@ -1,0 +1,25 @@
+NWS point forecast — frozen comparison snapshot, fetched 2026-11-13T15:32:00.616Z
+Source URL: https://api.weather.gov/gridpoints/OKX/62,50/forecast
+Source updateTime: 2026-11-13T10:44:40+00:00
+Forecast period supplied to the focused comparison:
+{
+  "number": 2,
+  "name": "Tonight",
+  "startTime": "2026-11-13T18:00:00-05:00",
+  "endTime": "2026-11-14T06:00:00-05:00",
+  "isDaytime": false,
+  "temperature": 36,
+  "temperatureUnit": "F",
+  "temperatureTrend": null,
+  "probabilityOfPrecipitation": {
+    "unitCode": "wmoUnit:percent",
+    "value": 52
+  },
+  "windSpeed": "9 mph",
+  "windDirection": "N",
+  "icon": "https://api.weather.gov/icons/land/night/rain,50/bkn?size=medium",
+  "shortForecast": "Chance Light Rain then Mostly Cloudy",
+  "detailedForecast": "A chance of rain before 10pm. Mostly cloudy, with a low around 36. North wind around 9 mph. Chance of precipitation is 50%."
+}
+
+The structured probability is 52%; the source narrative says 50%. Preserve this distinction when comparing answers. This snapshot is historical after its stated valid interval.

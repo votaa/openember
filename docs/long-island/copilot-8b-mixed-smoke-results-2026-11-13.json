@@ -1,0 +1,1136 @@
+{
+  "validation_date_local": "2026-11-13",
+  "base_commit": "c3b2d62",
+  "scope": "One cold mixed-source local-only qwen3:8b generation at 32768 context; no additional workload or model download.",
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "model_quantization": "Q4_K_M",
+  "fixture_notice": "Historical public/synthetic November 11 fixtures; not current operational information.",
+  "comparison_checks": {
+    "identical_fixture_sha256": true,
+    "identical_messages_sha256": true,
+    "identical_included_ids": true
+  },
+  "memory_summary": {
+    "sample_interval_seconds": 5,
+    "host_ram_bytes": 17179869184,
+    "baseline_swap_mib": 5495.5,
+    "peak_sampled_swap_mib": 9371.0,
+    "peak_swap_increase_mib": 3875.5,
+    "peak_ollama_size_bytes": 9930161520,
+    "peak_ollama_size_gib": 9.248183593153954,
+    "peak_pressure_level": 4,
+    "pressure_sample_counts": {
+      "1": 1,
+      "2": 25,
+      "4": 1
+    },
+    "pressure_codes": {
+      "1": "normal",
+      "2": "warning",
+      "4": "critical"
+    },
+    "minimum_reported_free_percent": 6,
+    "post_run": {
+      "loaded_models": [],
+      "pressure_level": 1,
+      "reported_free_percent": 76,
+      "swap_used_mib": 7249.06
+    }
+  },
+  "manual_quality_review": {
+    "commander": "Fail: correctly says not specified in Facts/Gaps, but reasons from absence of an incident commander in Possible Impacts. Missing assignment information is not proof of absence.",
+    "precipitation": "Fail: says probability is not provided, although the identical fully retained prompt supplies 20%.",
+    "plan_facts": "Pass for this sample: CEDAR-731, 47 amber cones and DELTA-19 retained.",
+    "forecast_facts": "Pass for low, sustained wind and source URL: 44°F, 7 to 10 mph W, exact NWS URL.",
+    "overall": "Fail; do not advance to the full 8B matrix based on this smoke case."
+  },
+  "result": {
+    "name": "mixed-hybrid-1",
+    "workload": "mixed",
+    "arm": "hybrid",
+    "sample": 1,
+    "started_at": "2026-11-13T15:22:25.320Z",
+    "config": {
+      "COPILOT_EXECUTION_MODE": "hybrid",
+      "OLLAMA_MODE": "local-only",
+      "OLLAMA_API_KEY": "",
+      "OLLAMA_LOCAL_HOST": "http://127.0.0.1:11434",
+      "OLLAMA_LOCAL_MODEL": "qwen3:8b",
+      "OLLAMA_LOCAL_NUM_CTX": "32768",
+      "OLLAMA_LOCAL_THINK": "false",
+      "OLLAMA_LOCAL_KEEP_ALIVE": "0",
+      "OLLAMA_LOCAL_STREAM_TIMEOUT_MS": "900000"
+    },
+    "fixture_sha256": "78c1e0cbfc007e3a10be1b3f9aa843e91c6c12d85206c96b9ce0db12300f8736",
+    "answer": "**Facts:**\n- The selected facility is named **Cedar facility** and is described as a **synthetic selected facility near the coast**.\n- The **CEDAR-731** reference is associated with **47 amber cones**.\n- The **radio channel** mentioned in the synthetic-plan.txt document is **DELTA-19**.\n- The **incident commander** is **not specified** in the document.\n- The **low temperature** for tonight is **44°F**.\n- The **wind** is expected to be **7 to 10 mph from the west**.\n- The **exact forecast URL** is [https://api.weather.gov/gridpoints/OKX/62,50/forecast](https://api.weather.gov/gridpoints/OKX/62,50/forecast).\n\n**Possible Impacts:**\n- The **47 amber cones** associated with CEDAR-731 could be impacted by the forecasted weather conditions, particularly if the wind or precipitation affects visibility or infrastructure.\n- The **radio channel DELTA-19** may be used for communication during the event, but the absence of an incident commander could lead to potential coordination challenges.\n- The **low temperature of 44°F** and **wind conditions** may affect outdoor operations or equipment, depending on the facility's specific needs and protocols.\n\n**Gaps:**\n- The **incident commander** is not specified in the document, so the actual assignment status is unknown.\n- The **operational effects** of the weather conditions on the facility are not established.\n- The **precipitation probability** for the forecast period is not provided, so the potential for rainfall or its impact is unknown.",
+    "first_answer_ms": 73068.70020800829,
+    "complete": true,
+    "calls": [
+      {
+        "path": "/api/tags",
+        "method": "GET"
+      },
+      {
+        "path": "/api/chat",
+        "method": "POST"
+      }
+    ],
+    "native": {
+      "done_reason": "stop",
+      "total_duration": 125261867208,
+      "load_duration": 7946674708,
+      "prompt_eval_count": 5324,
+      "prompt_eval_cached_count": 0,
+      "prompt_eval_duration": 64761459000,
+      "eval_count": 355,
+      "eval_duration": 52331664000
+    },
+    "messages_sha256": "acfc8478373c19270ae805e166569b1e161839658ce3794fab98088873a14a00",
+    "input_characters": 20350,
+    "response": {
+      "contract_version": "1.0",
+      "request_id": "fixture-request",
+      "execution_mode": "llm_grounded",
+      "answer_status": "answered",
+      "intents": [
+        "synthesis",
+        "synthesis"
+      ],
+      "answer": "**Facts:**\n- The selected facility is named **Cedar facility** and is described as a **synthetic selected facility near the coast**.\n- The **CEDAR-731** reference is associated with **47 amber cones**.\n- The **radio channel** mentioned in the synthetic-plan.txt document is **DELTA-19**.\n- The **incident commander** is **not specified** in the document.\n- The **low temperature** for tonight is **44°F**.\n- The **wind** is expected to be **7 to 10 mph from the west**.\n- The **exact forecast URL** is [https://api.weather.gov/gridpoints/OKX/62,50/forecast](https://api.weather.gov/gridpoints/OKX/62,50/forecast).\n\n**Possible Impacts:**\n- The **47 amber cones** associated with CEDAR-731 could be impacted by the forecasted weather conditions, particularly if the wind or precipitation affects visibility or infrastructure.\n- The **radio channel DELTA-19** may be used for communication during the event, but the absence of an incident commander could lead to potential coordination challenges.\n- The **low temperature of 44°F** and **wind conditions** may affect outdoor operations or equipment, depending on the facility's specific needs and protocols.\n\n**Gaps:**\n- The **incident commander** is not specified in the document, so the actual assignment status is unknown.\n- The **operational effects** of the weather conditions on the facility are not established.\n- The **precipitation probability** for the forecast period is not provided, so the potential for rainfall or its impact is unknown.",
+      "evidence_ids": [
+        "kb:floodZones",
+        "kb:evacZones",
+        "kb:criticalInfrastructure",
+        "kb:hazardProfiles",
+        "kb:resources",
+        "selected_feature",
+        "forecast",
+        "map",
+        "document:0:synthetic-plan.txt",
+        "noaa:nws_grid"
+      ],
+      "response_scope": [
+        {
+          "geography": "Long Island",
+          "timezone": "America/New_York",
+          "period": null,
+          "interval": null,
+          "layer_ids": [],
+          "feature_ids": [
+            "selected_feature"
+          ],
+          "source_ids": [],
+          "fields": []
+        },
+        {
+          "geography": "Long Island",
+          "timezone": "America/New_York",
+          "period": null,
+          "interval": null,
+          "layer_ids": [],
+          "feature_ids": [
+            "selected_feature"
+          ],
+          "source_ids": [],
+          "fields": []
+        }
+      ],
+      "provider": "local",
+      "model": "qwen3:8b",
+      "attempts": [],
+      "requested_at": "2026-11-11T15:00:00Z",
+      "generated_at": "2026-11-13T15:24:30.735Z",
+      "freshness": [
+        {
+          "evidence_id": "forecast",
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "map",
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "reports",
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:floodZones",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:evacZones",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:criticalInfrastructure",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:hazardProfiles",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:resources",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "kb:custom_extension",
+          "state": {
+            "availability": "omitted",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": "selection"
+          }
+        },
+        {
+          "evidence_id": "document:0:synthetic-plan.txt",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "noaa:nws_grid",
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "noaa:space_catalog",
+          "state": {
+            "availability": "available",
+            "freshness": "current",
+            "completeness": "complete",
+            "omission_reason": null
+          }
+        },
+        {
+          "evidence_id": "selected_feature",
+          "state": {
+            "availability": "available",
+            "freshness": "unknown",
+            "completeness": "unknown",
+            "omission_reason": null
+          }
+        }
+      ],
+      "warnings": [
+        "synthetic-plan.txt: only selected document passages are included."
+      ],
+      "timing": {},
+      "context": {
+        "policy": "local_bounded",
+        "prompt_version": "grounded-local-v2",
+        "scope_key": "scope-93f869fa",
+        "included_ids": [
+          "kb:floodZones",
+          "kb:evacZones",
+          "kb:criticalInfrastructure",
+          "kb:hazardProfiles",
+          "kb:resources",
+          "selected_feature",
+          "forecast",
+          "map",
+          "document:0:synthetic-plan.txt",
+          "noaa:nws_grid"
+        ],
+        "omitted": [
+          {
+            "id": "reports",
+            "reason": "not needed for this question",
+            "source_name": "reports"
+          },
+          {
+            "id": "kb:custom_extension",
+            "reason": "disabled or excluded KB module",
+            "source_name": "Synthetic extension"
+          },
+          {
+            "id": "noaa:space_catalog",
+            "reason": "source exceeds the per-source processing budget; narrow the requested fields or period",
+            "source_name": "Space weather catalog"
+          }
+        ],
+        "warnings": [
+          "synthetic-plan.txt: only selected document passages are included."
+        ],
+        "accounting": {
+          "method": "utf8_bytes_plus_template_reserve_v1",
+          "exact": false,
+          "content_bytes": 20379,
+          "estimated_input_tokens": 21531,
+          "generation_reserve": 2048,
+          "safety_reserve": 1024,
+          "allocated_context": 32768,
+          "fits_estimate": true,
+          "requires_native_retention_check": true
+        },
+        "processing_limit": null,
+        "enabled_kb_modules": [
+          "floodZones",
+          "evacZones",
+          "criticalInfrastructure",
+          "hazardProfiles",
+          "resources"
+        ]
+      }
+    },
+    "provider": {
+      "mode": "local-only",
+      "provider": "local",
+      "model": "qwen3:8b",
+      "fallback": false,
+      "attempts": []
+    },
+    "request_ms": 125382.31087499857,
+    "native_log": [
+      "print_info: n_ctx_train           = 40960",
+      "print_info: n_ctx_orig_yarn       = 40960",
+      "llama_context: n_ctx                 = 32768",
+      "llama_context: n_ctx_seq             = 32768",
+      "llama_context: n_ctx_seq (32768) < n_ctx_train (40960) -- the full capacity of the model will not be utilized",
+      "srv    load_model: initializing, n_slots = 1, n_ctx_slot = 32768, kv_unified = 'false'",
+      "slot   load_model: id  0 | task -1 | new slot, n_ctx = 32768",
+      "slot   operator(): id  0 | task 0 | new prompt, n_ctx_slot = 32768, n_keep = 4, task.n_tokens = 5324",
+      "slot   operator(): id  0 | task 0 | cached n_tokens = 0, memory_seq_rm [0, end)",
+      "slot print_timing: id  0 | task 0 | prompt eval time =   64761.46 ms /  5324 tokens (   12.16 ms per token,    82.21 tokens per second)",
+      "slot      release: id  0 | task 0 | stop processing: n_tokens = 5678, truncated = 0"
+    ],
+    "retention": {
+      "allocated_32768": true,
+      "explicit_no_truncation": true,
+      "input_truncation": false,
+      "cold_cache": true
+    },
+    "accepted_retention": true,
+    "accepted_transport": true
+  },
+  "memory_samples": [
+    {
+      "at": "2026-11-13T15:22:25.299Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4116.\nPages active:                                 377664.\nPages inactive:                               375937.\nPages speculative:                               242.\nPages throttled:                                   0.\nPages wired down:                             119989.\nPages purgeable:                                4633.\n\"Translation faults\":                     2619102576.\nPages copy-on-write:                        49183832.\nPages zero filled:                        1069674836.\nPages reactivated:                         812574338.\nPages purged:                               26862579.\nFile-backed pages:                            220884.\nAnonymous pages:                              532959.\nPages stored in compressor:                   300469.\nPages occupied by compressor:                 135002.\nDecompressions:                            878685652.\nCompressions:                              914646284.\nPageins:                                   124322778.\nPageouts:                                    1733908.\nSwapins:                                    93141493.\nSwapouts:                                   97007920.",
+      "swap": "vm.swapusage: total = 7168.00M  used = 5495.50M  free = 1672.50M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 1",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 74%",
+      "ollama": {
+        "models": []
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:30.336Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     1171.\nPages active:                                  32702.\nPages inactive:                                28996.\nPages speculative:                              2959.\nPages throttled:                                   0.\nPages wired down:                             620363.\nPages purgeable:                                   0.\n\"Translation faults\":                     2619863982.\nPages copy-on-write:                        49185558.\nPages zero filled:                        1070246316.\nPages reactivated:                         812861027.\nPages purged:                               26865433.\nFile-backed pages:                             36083.\nAnonymous pages:                               28574.\nPages stored in compressor:                   592895.\nPages occupied by compressor:                 326742.\nDecompressions:                            878939597.\nCompressions:                              915433608.\nPageins:                                   124669542.\nPageouts:                                    1734112.\nSwapins:                                    93141951.\nSwapouts:                                   97079904.",
+      "swap": "vm.swapusage: total = 7168.00M  used = 6626.31M  free = 541.69M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 4",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 6%",
+      "ollama": {
+        "models": []
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:35.337Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4147.\nPages active:                                  57006.\nPages inactive:                                52134.\nPages speculative:                              3896.\nPages throttled:                                   0.\nPages wired down:                             741154.\nPages purgeable:                                   0.\n\"Translation faults\":                     2620846050.\nPages copy-on-write:                        49186801.\nPages zero filled:                        1070384653.\nPages reactivated:                         813166445.\nPages purged:                               26869219.\nFile-backed pages:                             38250.\nAnonymous pages:                               74786.\nPages stored in compressor:                   268258.\nPages occupied by compressor:                 154610.\nDecompressions:                            879388374.\nCompressions:                              915843960.\nPageins:                                   124784024.\nPageouts:                                    1734240.\nSwapins:                                    93163646.\nSwapouts:                                   97251716.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8968.56M  free = 1271.44M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:22:35.401103-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:40.337Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3832.\nPages active:                                  53440.\nPages inactive:                                48033.\nPages speculative:                              4599.\nPages throttled:                                   0.\nPages wired down:                             740508.\nPages purgeable:                                   0.\n\"Translation faults\":                     2621197916.\nPages copy-on-write:                        49189091.\nPages zero filled:                        1070396491.\nPages reactivated:                         813361421.\nPages purged:                               26871253.\nFile-backed pages:                             40582.\nAnonymous pages:                               65490.\nPages stored in compressor:                   304168.\nPages occupied by compressor:                 162538.\nDecompressions:                            879623153.\nCompressions:                              916090257.\nPageins:                                   124800922.\nPageouts:                                    1734297.\nSwapins:                                    93181581.\nSwapouts:                                   97256308.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8763.06M  free = 1476.94M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:22:40.405793-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:45.338Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3943.\nPages active:                                  54117.\nPages inactive:                                48898.\nPages speculative:                              3972.\nPages throttled:                                   0.\nPages wired down:                             738917.\nPages purgeable:                                   2.\n\"Translation faults\":                     2621465393.\nPages copy-on-write:                        49191465.\nPages zero filled:                        1070409782.\nPages reactivated:                         813511737.\nPages purged:                               26873175.\nFile-backed pages:                             39324.\nAnonymous pages:                               67663.\nPages stored in compressor:                   301077.\nPages occupied by compressor:                 163103.\nDecompressions:                            879790444.\nCompressions:                              916259793.\nPageins:                                   124820410.\nPageouts:                                    1734373.\nSwapins:                                    93189276.\nSwapouts:                                   97269572.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8855.56M  free = 1384.44M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:22:45.386299-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:50.340Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4635.\nPages active:                                  54113.\nPages inactive:                                48504.\nPages speculative:                              4405.\nPages throttled:                                   0.\nPages wired down:                             736960.\nPages purgeable:                                   2.\n\"Translation faults\":                     2622029626.\nPages copy-on-write:                        49193708.\nPages zero filled:                        1070424808.\nPages reactivated:                         813796929.\nPages purged:                               26874433.\nFile-backed pages:                             40122.\nAnonymous pages:                               66900.\nPages stored in compressor:                   310495.\nPages occupied by compressor:                 164332.\nDecompressions:                            880176367.\nCompressions:                              916649887.\nPageins:                                   124832451.\nPageouts:                                    1734397.\nSwapins:                                    93212546.\nSwapouts:                                   97287892.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8781.81M  free = 1458.19M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:22:50.366158-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:22:55.341Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4313.\nPages active:                                  54433.\nPages inactive:                                50223.\nPages speculative:                              3077.\nPages throttled:                                   0.\nPages wired down:                             737798.\nPages purgeable:                                   2.\n\"Translation faults\":                     2622250201.\nPages copy-on-write:                        49196058.\nPages zero filled:                        1070437251.\nPages reactivated:                         813904584.\nPages purged:                               26876255.\nFile-backed pages:                             40467.\nAnonymous pages:                               67266.\nPages stored in compressor:                   306778.\nPages occupied by compressor:                 163106.\nDecompressions:                            880313502.\nCompressions:                              916788816.\nPageins:                                   124840411.\nPageouts:                                    1734403.\nSwapins:                                    93224403.\nSwapouts:                                   97301500.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8818.44M  free = 1421.56M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:22:55.375075-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:00.343Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4167.\nPages active:                                  54235.\nPages inactive:                                50569.\nPages speculative:                              3164.\nPages throttled:                                   0.\nPages wired down:                             737067.\nPages purgeable:                                   0.\n\"Translation faults\":                     2622651707.\nPages copy-on-write:                        49197667.\nPages zero filled:                        1070444103.\nPages reactivated:                         814100960.\nPages purged:                               26876444.\nFile-backed pages:                             40208.\nAnonymous pages:                               67761.\nPages stored in compressor:                   316241.\nPages occupied by compressor:                 163746.\nDecompressions:                            880595693.\nCompressions:                              917072040.\nPageins:                                   124849228.\nPageouts:                                    1734466.\nSwapins:                                    93236216.\nSwapouts:                                   97311056.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8775.75M  free = 1464.25M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:00.360136-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:05.345Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4116.\nPages active:                                  55509.\nPages inactive:                                51429.\nPages speculative:                              2980.\nPages throttled:                                   0.\nPages wired down:                             736724.\nPages purgeable:                                   2.\n\"Translation faults\":                     2622886913.\nPages copy-on-write:                        49200725.\nPages zero filled:                        1070462339.\nPages reactivated:                         814221111.\nPages purged:                               26879230.\nFile-backed pages:                             39100.\nAnonymous pages:                               70818.\nPages stored in compressor:                   313786.\nPages occupied by compressor:                 162190.\nDecompressions:                            880725586.\nCompressions:                              917203333.\nPageins:                                   124867666.\nPageouts:                                    1734538.\nSwapins:                                    93242923.\nSwapouts:                                   97320856.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8816.88M  free = 1423.12M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:05.435337-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:10.347Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3786.\nPages active:                                  54755.\nPages inactive:                                48856.\nPages speculative:                              4953.\nPages throttled:                                   0.\nPages wired down:                             734572.\nPages purgeable:                                  40.\n\"Translation faults\":                     2623403740.\nPages copy-on-write:                        49203268.\nPages zero filled:                        1070478813.\nPages reactivated:                         814481379.\nPages purged:                               26880671.\nFile-backed pages:                             41136.\nAnonymous pages:                               67428.\nPages stored in compressor:                   325319.\nPages occupied by compressor:                 166026.\nDecompressions:                            881069194.\nCompressions:                              917554265.\nPageins:                                   124888180.\nPageouts:                                    1734653.\nSwapins:                                    93261336.\nSwapouts:                                   97338404.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8803.06M  free = 1436.94M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:10.391641-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:15.348Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3815.\nPages active:                                  53867.\nPages inactive:                                49397.\nPages speculative:                              3862.\nPages throttled:                                   0.\nPages wired down:                             738477.\nPages purgeable:                                   0.\n\"Translation faults\":                     2623598389.\nPages copy-on-write:                        49204859.\nPages zero filled:                        1070487997.\nPages reactivated:                         814584711.\nPages purged:                               26881888.\nFile-backed pages:                             40739.\nAnonymous pages:                               66387.\nPages stored in compressor:                   320005.\nPages occupied by compressor:                 163526.\nDecompressions:                            881197609.\nCompressions:                              917681410.\nPageins:                                   124898753.\nPageouts:                                    1734705.\nSwapins:                                    93272489.\nSwapouts:                                   97353528.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8871.38M  free = 1368.62M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:15.414703-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:20.349Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4414.\nPages active:                                  53610.\nPages inactive:                                48406.\nPages speculative:                              4375.\nPages throttled:                                   0.\nPages wired down:                             738595.\nPages purgeable:                                   0.\n\"Translation faults\":                     2624014743.\nPages copy-on-write:                        49208002.\nPages zero filled:                        1070525388.\nPages reactivated:                         814888267.\nPages purged:                               26892166.\nFile-backed pages:                             40549.\nAnonymous pages:                               65842.\nPages stored in compressor:                   325674.\nPages occupied by compressor:                 163547.\nDecompressions:                            881441980.\nCompressions:                              917936526.\nPageins:                                   124938326.\nPageouts:                                    1734846.\nSwapins:                                    93287133.\nSwapouts:                                   97367792.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8862.25M  free = 1377.75M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:20.498746-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:25.354Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     1663.\nPages active:                                  55975.\nPages inactive:                                52786.\nPages speculative:                              2019.\nPages throttled:                                   0.\nPages wired down:                             734342.\nPages purgeable:                                   0.\n\"Translation faults\":                     2624387318.\nPages copy-on-write:                        49210399.\nPages zero filled:                        1070555085.\nPages reactivated:                         815083474.\nPages purged:                               26896583.\nFile-backed pages:                             43671.\nAnonymous pages:                               67109.\nPages stored in compressor:                   324392.\nPages occupied by compressor:                 166133.\nDecompressions:                            881663812.\nCompressions:                              918166365.\nPageins:                                   124964983.\nPageouts:                                    1734884.\nSwapins:                                    93310997.\nSwapouts:                                   97391324.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8863.94M  free = 1376.06M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:25.451968-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:30.355Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3606.\nPages active:                                  54435.\nPages inactive:                                48609.\nPages speculative:                              4895.\nPages throttled:                                   0.\nPages wired down:                             735883.\nPages purgeable:                                   0.\n\"Translation faults\":                     2624695453.\nPages copy-on-write:                        49212598.\nPages zero filled:                        1070571769.\nPages reactivated:                         815249274.\nPages purged:                               26898819.\nFile-backed pages:                             40635.\nAnonymous pages:                               67305.\nPages stored in compressor:                   329382.\nPages occupied by compressor:                 165518.\nDecompressions:                            881864789.\nCompressions:                              918370297.\nPageins:                                   124979425.\nPageouts:                                    1734987.\nSwapins:                                    93325707.\nSwapouts:                                   97405252.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8853.81M  free = 1386.19M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:30.467808-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:35.447Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4152.\nPages active:                                  53178.\nPages inactive:                                47485.\nPages speculative:                              5008.\nPages throttled:                                   0.\nPages wired down:                             739963.\nPages purgeable:                                   0.\n\"Translation faults\":                     2625019566.\nPages copy-on-write:                        49214502.\nPages zero filled:                        1070585811.\nPages reactivated:                         815401455.\nPages purged:                               26900100.\nFile-backed pages:                             48719.\nAnonymous pages:                               56952.\nPages stored in compressor:                   325402.\nPages occupied by compressor:                 163147.\nDecompressions:                            882081349.\nCompressions:                              918596708.\nPageins:                                   124991792.\nPageouts:                                    1735021.\nSwapins:                                    93339918.\nSwapouts:                                   97424692.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8915.38M  free = 1324.62M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:35.527691-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:40.453Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4393.\nPages active:                                  55643.\nPages inactive:                                49676.\nPages speculative:                              5110.\nPages throttled:                                   0.\nPages wired down:                             731133.\nPages purgeable:                                   0.\n\"Translation faults\":                     2625397973.\nPages copy-on-write:                        49216897.\nPages zero filled:                        1070604500.\nPages reactivated:                         815616363.\nPages purged:                               26906376.\nFile-backed pages:                             45387.\nAnonymous pages:                               65042.\nPages stored in compressor:                   346518.\nPages occupied by compressor:                 166971.\nDecompressions:                            882307210.\nCompressions:                              918825861.\nPageins:                                   125024029.\nPageouts:                                    1735193.\nSwapins:                                    93376238.\nSwapouts:                                   97456344.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8873.62M  free = 1366.38M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:41.30589-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:45.473Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4697.\nPages active:                                  51695.\nPages inactive:                                46844.\nPages speculative:                              4227.\nPages throttled:                                   0.\nPages wired down:                             745678.\nPages purgeable:                                   0.\n\"Translation faults\":                     2625919590.\nPages copy-on-write:                        49218297.\nPages zero filled:                        1070676208.\nPages reactivated:                         815937940.\nPages purged:                               26913666.\nFile-backed pages:                             39666.\nAnonymous pages:                               63100.\nPages stored in compressor:                   339624.\nPages occupied by compressor:                 159786.\nDecompressions:                            882597947.\nCompressions:                              919146257.\nPageins:                                   125095835.\nPageouts:                                    1735395.\nSwapins:                                    93430915.\nSwapouts:                                   97518476.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8998.81M  free = 1241.19M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:46.124438-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:50.459Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4117.\nPages active:                                  45969.\nPages inactive:                                42248.\nPages speculative:                              3182.\nPages throttled:                                   0.\nPages wired down:                             784405.\nPages purgeable:                                   0.\n\"Translation faults\":                     2626277785.\nPages copy-on-write:                        49219940.\nPages zero filled:                        1070729476.\nPages reactivated:                         816179375.\nPages purged:                               26915945.\nFile-backed pages:                             35280.\nAnonymous pages:                               56119.\nPages stored in compressor:                   277741.\nPages occupied by compressor:                 133025.\nDecompressions:                            882808406.\nCompressions:                              919361630.\nPageins:                                   125136563.\nPageouts:                                    1735504.\nSwapins:                                    93489364.\nSwapouts:                                   97602624.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 9371.00M  free = 869.00M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 9%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:50.705806-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:23:55.459Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3974.\nPages active:                                  55383.\nPages inactive:                                50108.\nPages speculative:                              4643.\nPages throttled:                                   0.\nPages wired down:                             735535.\nPages purgeable:                                   0.\n\"Translation faults\":                     2626624819.\nPages copy-on-write:                        49222035.\nPages zero filled:                        1070751146.\nPages reactivated:                         816399160.\nPages purged:                               26918574.\nFile-backed pages:                             41834.\nAnonymous pages:                               68300.\nPages stored in compressor:                   340079.\nPages occupied by compressor:                 163304.\nDecompressions:                            883021555.\nCompressions:                              919595162.\nPageins:                                   125172471.\nPageouts:                                    1735640.\nSwapins:                                    93533359.\nSwapouts:                                   97617232.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8895.25M  free = 1344.75M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:23:55.613381-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:00.461Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4127.\nPages active:                                  57207.\nPages inactive:                                50979.\nPages speculative:                              5272.\nPages throttled:                                   0.\nPages wired down:                             734237.\nPages purgeable:                                   0.\n\"Translation faults\":                     2626942099.\nPages copy-on-write:                        49224268.\nPages zero filled:                        1070764518.\nPages reactivated:                         816593458.\nPages purged:                               26920422.\nFile-backed pages:                             43697.\nAnonymous pages:                               69761.\nPages stored in compressor:                   339452.\nPages occupied by compressor:                 161103.\nDecompressions:                            883218051.\nCompressions:                              919793748.\nPageins:                                   125191101.\nPageouts:                                    1735692.\nSwapins:                                    93561532.\nSwapouts:                                   97644016.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8873.69M  free = 1366.31M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:00.556183-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:05.463Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3936.\nPages active:                                  54657.\nPages inactive:                                48591.\nPages speculative:                              4930.\nPages throttled:                                   0.\nPages wired down:                             735218.\nPages purgeable:                                   0.\n\"Translation faults\":                     2627256360.\nPages copy-on-write:                        49226805.\nPages zero filled:                        1070783430.\nPages reactivated:                         816799915.\nPages purged:                               26922832.\nFile-backed pages:                             41055.\nAnonymous pages:                               67123.\nPages stored in compressor:                   348684.\nPages occupied by compressor:                 165612.\nDecompressions:                            883404223.\nCompressions:                              919986476.\nPageins:                                   125213767.\nPageouts:                                    1735872.\nSwapins:                                    93585617.\nSwapouts:                                   97664596.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8835.25M  free = 1404.75M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:05.616944-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:10.464Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4248.\nPages active:                                  53741.\nPages inactive:                                48028.\nPages speculative:                              4884.\nPages throttled:                                   0.\nPages wired down:                             737438.\nPages purgeable:                                   2.\n\"Translation faults\":                     2627561123.\nPages copy-on-write:                        49228736.\nPages zero filled:                        1070797432.\nPages reactivated:                         816992012.\nPages purged:                               26924036.\nFile-backed pages:                             40702.\nAnonymous pages:                               65951.\nPages stored in compressor:                   346340.\nPages occupied by compressor:                 164607.\nDecompressions:                            883598752.\nCompressions:                              920184466.\nPageins:                                   125229359.\nPageouts:                                    1735928.\nSwapins:                                    93604162.\nSwapouts:                                   97685856.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8868.38M  free = 1371.62M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:10.605663-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:15.465Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4121.\nPages active:                                  55928.\nPages inactive:                                52444.\nPages speculative:                              2141.\nPages throttled:                                   0.\nPages wired down:                             736475.\nPages purgeable:                                   2.\n\"Translation faults\":                     2627869043.\nPages copy-on-write:                        49230657.\nPages zero filled:                        1070810010.\nPages reactivated:                         817153613.\nPages purged:                               26924617.\nFile-backed pages:                             40035.\nAnonymous pages:                               70478.\nPages stored in compressor:                   344579.\nPages occupied by compressor:                 161841.\nDecompressions:                            883809766.\nCompressions:                              920392775.\nPageins:                                   125234170.\nPageouts:                                    1735938.\nSwapins:                                    93620835.\nSwapouts:                                   97700620.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8854.12M  free = 1385.88M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 11%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:15.514949-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:20.466Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     4221.\nPages active:                                  54412.\nPages inactive:                                49641.\nPages speculative:                              3759.\nPages throttled:                                   0.\nPages wired down:                             735166.\nPages purgeable:                                   0.\n\"Translation faults\":                     2628150124.\nPages copy-on-write:                        49232436.\nPages zero filled:                        1070822654.\nPages reactivated:                         817320141.\nPages purged:                               26925932.\nFile-backed pages:                             42318.\nAnonymous pages:                               65494.\nPages stored in compressor:                   352406.\nPages occupied by compressor:                 165745.\nDecompressions:                            883992026.\nCompressions:                              920582858.\nPageins:                                   125244583.\nPageouts:                                    1735960.\nSwapins:                                    93637211.\nSwapouts:                                   97716460.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8829.62M  free = 1410.38M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:20.57919-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:25.468Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3625.\nPages active:                                  54777.\nPages inactive:                                51724.\nPages speculative:                              2107.\nPages throttled:                                   0.\nPages wired down:                             735154.\nPages purgeable:                                   0.\n\"Translation faults\":                     2628419711.\nPages copy-on-write:                        49233966.\nPages zero filled:                        1070833995.\nPages reactivated:                         817472758.\nPages purged:                               26927049.\nFile-backed pages:                             40023.\nAnonymous pages:                               68585.\nPages stored in compressor:                   348142.\nPages occupied by compressor:                 165561.\nDecompressions:                            884177934.\nCompressions:                              920767170.\nPageins:                                   125249809.\nPageouts:                                    1735961.\nSwapins:                                    93652314.\nSwapouts:                                   97732356.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8840.94M  free = 1399.06M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:25.519415-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:30.468Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                     3968.\nPages active:                                  54062.\nPages inactive:                                51148.\nPages speculative:                              1919.\nPages throttled:                                   0.\nPages wired down:                             737931.\nPages purgeable:                                   2.\n\"Translation faults\":                     2628737064.\nPages copy-on-write:                        49235862.\nPages zero filled:                        1070846307.\nPages reactivated:                         817626576.\nPages purged:                               26927947.\nFile-backed pages:                             40330.\nAnonymous pages:                               66799.\nPages stored in compressor:                   346387.\nPages occupied by compressor:                 163917.\nDecompressions:                            884393870.\nCompressions:                              920986480.\nPageins:                                   125253858.\nPageouts:                                    1735971.\nSwapins:                                    93664791.\nSwapouts:                                   97748544.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8914.94M  free = 1325.06M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 10%",
+      "ollama": {
+        "models": [
+          {
+            "name": "qwen3:8b",
+            "model": "qwen3:8b",
+            "size": 9930161520,
+            "digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+            "details": {
+              "parent_model": "",
+              "format": "gguf",
+              "family": "qwen3",
+              "families": [
+                "qwen3"
+              ],
+              "parameter_size": "8.2B",
+              "quantization_level": "Q4_K_M"
+            },
+            "expires_at": "2026-11-13T10:24:30.557188-05:00",
+            "size_vram": 9930161520,
+            "context_length": 32768,
+            "runner": "llamacpp"
+          }
+        ]
+      }
+    },
+    {
+      "at": "2026-11-13T15:24:30.810Z",
+      "vm_stat": "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                                    12048.\nPages active:                                  56128.\nPages inactive:                                52598.\nPages speculative:                              2055.\nPages throttled:                                   0.\nPages wired down:                             726962.\nPages purgeable:                                  10.\n\"Translation faults\":                     2628757566.\nPages copy-on-write:                        49236036.\nPages zero filled:                        1070847219.\nPages reactivated:                         817634918.\nPages purged:                               26928039.\nFile-backed pages:                             40731.\nAnonymous pages:                               70050.\nPages stored in compressor:                   341417.\nPages occupied by compressor:                 163150.\nDecompressions:                            884408039.\nCompressions:                              920997139.\nPageins:                                   125254458.\nPageouts:                                    1735971.\nSwapins:                                    93666209.\nSwapouts:                                   97750304.",
+      "swap": "vm.swapusage: total = 10240.00M  used = 8918.44M  free = 1321.56M  (encrypted)",
+      "pressure": "kern.memorystatus_vm_pressure_level: 2",
+      "memory_free": "The system has 17179869184 (1048576 pages with a page size of 16384).\nSystem-wide memory free percentage: 12%",
+      "ollama": {
+        "models": []
+      }
+    }
+  ],
+  "runner_source": "/** Public/synthetic Phase 5 workloads through the real application coordinator.\n * node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS] [both|hybrid]\n * Local installed model only; never loads .env, downloads models or calls cloud.\n * Native logs and answers require review separately from timing measurements.\n */\nimport {readFileSync, mkdirSync, writeFileSync} from 'node:fs'\nimport {execFileSync as memoryExec} from 'node:child_process'\nimport {createHash} from 'node:crypto'\nimport {createCopilot} from 'file:///Users/anthonyvota/Projects/openember/lib/copilot-service.js'\nimport {configuration, routeChat, probeLocal} from 'file:///Users/anthonyvota/Projects/openember/lib/ollama.js'\nimport {nodeOllamaFetch} from 'file:///Users/anthonyvota/Projects/openember/lib/node-ollama-fetch.js'\nimport {legacyReact} from 'file:///Users/anthonyvota/Projects/openember/tests/helpers/copilot-legacy.js'\n\nconst [directory, repetitions='3', arms='both']=process.argv.slice(2)\nif(!directory || !/^[1-9]\\d*$/.test(repetitions) || !['both','hybrid'].includes(arms))throw Error('Usage: node scripts/benchmark-copilot-acceptance.js OUTPUT_DIRECTORY [REPETITIONS] [both|hybrid]')\nmkdirSync(directory,{recursive:true})\nconst read=name=>JSON.parse(readFileSync(new URL(`file:///Users/anthonyvota/Projects/openember/shared/copilot/fixtures/${name}.json`,import.meta.url)))\nconst base=read('phase3-context').cases[0].request, input=read('legacy-input')\n// Define a smaller fixed catalog fixture for the repeated matrix. The original\n// 120 KB stress source remains in phase3-context.json and its conformance tests.\nbase.evidence.find(b=>b.id==='noaa:space_catalog').values.raw.text='UNRELATED_LIVE_MARKER '+('Public synthetic catalog entry. '.repeat(200))\nbase.evidence.find(b=>b.id==='noaa:space_catalog').values.content=base.evidence.find(b=>b.id==='noaa:space_catalog').values.raw.text\n// Same retained source population in both arms. The legacy builder keeps all live\n// items and its original opening-upload excerpt; hybrid may retrieve late text.\ninput.noaa_items.push(...base.evidence.filter(b=>b.kind==='live').map(b=>({content:`${b.source.name}: ${JSON.stringify(b.values)}`})))\nconst workloads=read('grounding-regressions').cases.filter(c=>c.id==='mixed').map(({id,question})=>[id,question])\nconst env={COPILOT_EXECUTION_MODE:'hybrid',OLLAMA_MODE:'local-only',OLLAMA_API_KEY:'',OLLAMA_LOCAL_HOST:'http://127.0.0.1:11434',OLLAMA_LOCAL_MODEL:process.env.OLLAMA_LOCAL_MODEL||'qwen3:4b-instruct',OLLAMA_LOCAL_NUM_CTX:'32768',OLLAMA_LOCAL_THINK:'false',OLLAMA_LOCAL_KEEP_ALIVE:'0',OLLAMA_LOCAL_STREAM_TIMEOUT_MS:'900000'}\nconst cfg=configuration(env)\nconst stop=new AbortController()\nprocess.once('SIGINT',()=>stop.abort(new DOMException('Benchmark interrupted','AbortError')))\nprocess.once('SIGTERM',()=>stop.abort(new DOMException('Benchmark terminated','AbortError')))\nawait probeLocal(cfg,nodeOllamaFetch)\nconst ps=await (await fetch(cfg.localHost+'/api/ps')).json()\nif(ps.models?.length)throw Error('An installed model is already loaded; avoid interfering with another inference session.')\nconst results=[]\nconst memorySamples=[]\nlet sampling=false, memoryPending=Promise.resolve()\nfunction readMemory(command,args){try{return memoryExec(command,args,{encoding:'utf8',timeout:3000}).trim()}catch(e){return {error:e.message}}}\nasync function sampleMemory(){\n if(sampling)return\n sampling=true\n try{\n  const sample={at:new Date().toISOString(),vm_stat:readMemory('/usr/bin/vm_stat',[]),swap:readMemory('/usr/sbin/sysctl',['vm.swapusage']),pressure:readMemory('/usr/sbin/sysctl',['kern.memorystatus_vm_pressure_level']),memory_free:readMemory('/usr/bin/memory_pressure',['-Q'])}\n  try{sample.ollama=await (await fetch(cfg.localHost+'/api/ps',{signal:AbortSignal.timeout(3000)})).json()}catch(e){sample.ollama_error=e.message}\n  memorySamples.push(sample)\n  writeFileSync(`${directory}/memory.json`,JSON.stringify(memorySamples,null,2)+'\\n')\n }finally{sampling=false}\n}\nawait sampleMemory()\nconst memoryTimer=setInterval(()=>{memoryPending=sampleMemory()},5000)\nmemoryTimer.unref()\n\nfor(let sample=1;sample<=Number(repetitions);sample++)for(const [id,question] of workloads)for(const arm of (arms==='hybrid'?['hybrid']:(sample%2?['legacy','hybrid']:['hybrid','legacy']))) {\n stop.signal.throwIfAborted()\n const request=structuredClone(base);request.question=question\n const legacy=legacyReact({...input,history:request.history},{question,enabled_modules:request.jurisdiction.enabled_kb_modules})\n legacy[0].content+='\\nCURRENT SELECTED FEATURE (synthetic fixture):\\n'+JSON.stringify(request.evidence.find(b=>b.kind==='selected_feature'))\n writeFileSync(`${directory}/${id}-input.json`,JSON.stringify({request,legacy},null,2))\n const name=`${id}-${arm}-${sample}`,start=performance.now(),logStart=readFileSync(`${process.env.HOME}/.ollama/logs/server.log`,'utf8').length\n const result={name,workload:id,arm,sample,started_at:new Date().toISOString(),config:{...env},fixture_sha256:createHash('sha256').update(JSON.stringify({request,legacy})).digest('hex'),answer:'',first_answer_ms:null,complete:false,calls:[],native:{}}\n const fetcher=async(url,options)=>{\n  if(!url.startsWith(cfg.localHost+'/'))throw Error('Nonlocal transport forbidden')\n  result.calls.push({path:new URL(url).pathname,method:options?.method||'GET'})\n  if(url.endsWith('/api/chat')){const messages=JSON.parse(options.body).messages;result.messages_sha256=createHash('sha256').update(JSON.stringify(messages)).digest('hex');result.input_characters=messages.reduce((n,m)=>n+m.content.length,0)}\n  return nodeOllamaFetch(url,options)\n }\n const deadline=setTimeout(()=>stop.abort(new DOMException('Benchmark deadline exceeded','TimeoutError')),1200000)\n try {\n  const signal=stop.signal\n  const stream=arm==='hybrid'?createCopilot(env,{clock:()=>Date.parse(request.requested_at)}).stream(request,{config:()=>cfg,fetcher,signal}):routeChat(legacy,cfg,{fetcher,signal})\n  for await(const frame of stream){\n   if(frame.response)result.response=frame.response\n   if(frame.error)result.error=frame.error\n   if(frame.provider)result.provider=frame.provider\n   if(frame.message?.content){result.first_answer_ms??=performance.now()-start;result.answer+=frame.message.content}\n   if(frame.done&&!frame.error){result.complete=frame.done_reason!=='length';for(const k of ['done_reason','total_duration','load_duration','prompt_eval_count','prompt_eval_cached_count','prompt_eval_duration','eval_count','eval_duration'])if(frame[k]!==undefined)result.native[k]=frame[k]}\n  }\n }catch(e){result.error={name:e.name,message:e.message}}finally{clearTimeout(deadline)}\n result.request_ms=performance.now()-start\n const log=readFileSync(`${process.env.HOME}/.ollama/logs/server.log`,'utf8').slice(logStart)\n const lines=log.split('\\n').filter(l=>/n_ctx|task.n_tokens|cached n_tokens = 0|truncat|prompt eval time/.test(l))\n result.native_log=lines\n result.retention={allocated_32768:/n_ctx_slot = 32768/.test(log),explicit_no_truncation:/truncated = 0/.test(log),input_truncation:/truncating input|truncated = [1-9]/i.test(log),cold_cache:/cached n_tokens = 0/.test(log)}\n result.accepted_retention=result.retention.allocated_32768&&result.retention.explicit_no_truncation&&!result.retention.input_truncation&&result.retention.cold_cache&&result.native.prompt_eval_cached_count===0\n result.accepted_transport=result.complete&&!!result.answer&&result.provider?.provider==='local'&&result.calls.filter(c=>c.path==='/api/chat').length===1\n writeFileSync(`${directory}/${name}.json`,JSON.stringify(result,null,2)+'\\n')\n results.push(result);writeFileSync(`${directory}/results.json`,JSON.stringify(results,null,2)+'\\n')\n console.log(JSON.stringify({name,seconds:result.request_ms/1000,tokens:result.native.prompt_eval_count,retention:result.retention,transport:result.accepted_transport,error:result.error}))\n if(!result.accepted_transport||!result.accepted_retention)throw Error('Native acceptance transport/retention failed; stopped further submissions.')\n}\n\nclearInterval(memoryTimer)\nawait memoryPending\nawait sampleMemory()\n",
+  "limitations": [
+    "Single sample, not a repeated performance benchmark.",
+    "Host already used 5495.50 MiB swap before loading; background workloads and thermals uncontrolled.",
+    "Memory-pressure sampling is periodic and may miss transient peaks; GPU allocation is sampled Ollama size_vram/size on unified memory.",
+    "JavaScript coordinator measured; no new browser, Docker or Python native acceptance."
+  ]
+}
