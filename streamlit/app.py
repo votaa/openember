@@ -53,6 +53,7 @@ from copilot_prompt import (
     build_knowledge_base_context,
 )
 from weather_context import summarize_weather
+from request_scope import resolve_request_scope, render_request_scope, weather_snapshots, needs_scope_refresh, instant as scope_instant
 from esri_presentation import (
     build_presentation,
     discover_feature_layers,
@@ -370,10 +371,10 @@ def fetch_noaa_ep(ep):
             error = data["error"]
             raise ValueError(error.get("message", str(error)) if isinstance(error, dict) else str(error))
         return {"success": True, "data": data,
-                "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now().strftime("%H:%M:%S")}
+                "text": is_text, "ep": ep, "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")}
     except Exception as e:
         return {"success": False, "error": str(e), "ep": ep,
-                "fetched_at": _dt.datetime.now().strftime("%H:%M:%S")}
+                "fetched_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")}
 
 def summarize_noaa(result):
     if not result["success"]: return f"[{result['ep']['name']}: failed — {result['error']}]"
@@ -498,15 +499,14 @@ def auto_fetch_noaa_endpoints():
                 upsert_noaa_kb(ep, result)
 
 def refresh_stale_endpoints():
-    now    = _dt.datetime.now()
+    now    = _dt.datetime.now(_dt.timezone.utc)
     ep_map = {ep["id"]: ep for ep in NOAA_ENDPOINTS}
     for ep_id, interval in REFRESH_INTERVALS.items():
         if interval == 0: continue
         result = st.session_state.noaa_results.get(ep_id)
         if result and result.get("fetched_at"):
             try:
-                fetched  = _dt.datetime.strptime(result["fetched_at"], "%H:%M:%S").replace(
-                    year=now.year, month=now.month, day=now.day)
+                fetched = _dt.datetime.fromisoformat(result["fetched_at"].replace("Z", "+00:00"))
                 if (now - fetched).total_seconds() < interval: continue
             except:
                 pass
@@ -932,11 +932,11 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         for item in esri_items: ctx += item["content"] + "\n\n"
     return ctx
 
-def stream_ollama(messages, context):
+def stream_ollama(messages, context, request_scope=None, weather=None):
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
-    system_prompt = build_copilot_system_prompt(CFG.name, context)
+    system_prompt = build_copilot_system_prompt(CFG.name, context, render_request_scope(request_scope, weather) if request_scope else None)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "options": {"num_predict": UPLOAD_LIMITS['outputReserveTokens']},
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
@@ -2458,10 +2458,25 @@ with tab_chat:
                 st.session_state.pending_query = q
 
     def run_query(prompt):
+        requested_at = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
         try:
+            # Existing configured endpoints and source deadlines; never fetch document URLs.
+            auto_fetch_noaa_endpoints()
+            refresh_stale_endpoints()
+            jurisdiction = dict(name=CFG.name, timezone=CFG.timezone, center=list(CFG.center))
+            required_refresh = [ep for ep in NOAA_ENDPOINTS if needs_scope_refresh(st.session_state.noaa_results.get(ep['id'], {}), prompt, requested_at, jurisdiction)]
+            with ThreadPoolExecutor(max_workers=6) as pool:
+                for ep, result in zip(required_refresh, pool.map(fetch_noaa_ep, required_refresh)):
+                    st.session_state.noaa_results[ep['id']] = result
+                    if result['success']: upsert_noaa_kb(ep, result)
+            weather = weather_snapshots(list(st.session_state.noaa_results.values()), jurisdiction)
+            for source in weather:
+                age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
+                if not (-300000 <= age <= 3600000): source['state'] = 'stale'
+            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files)
             ctx  = build_context(
                 st.session_state.files, st.session_state.api_results,
                 active_kb, st.session_state.esri_items,
@@ -2482,7 +2497,7 @@ with tab_chat:
             placeholder = st.empty()
             full = ""
             try:
-                for token in stream_ollama(msgs, ctx):
+                for token in stream_ollama(msgs, ctx, request_scope, weather):
                     full += token
                     update_chat_response(st.session_state.messages, assistant_index, full)
                     placeholder.markdown(full + "▋")

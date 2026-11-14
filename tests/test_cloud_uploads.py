@@ -7,6 +7,7 @@ from cloud_uploads import *
 from copilot_prompt import build_copilot_system_prompt,build_knowledge_base_context
 from report_window import report_window_message
 from weather_context import summarize_weather
+from request_scope import resolve_request_scope,render_request_scope
 DOC=dict(name='synthetic-plan.txt',content=(ROOT/'tests/fixtures/uploads/synthetic-plan.txt').read_text())
 # Compile the real context and provider functions without executing app/network setup.
 app=ast.parse((ROOT/'streamlit/app.py').read_text())
@@ -15,6 +16,7 @@ import types
 scope=dict(globals(),CFG=types.SimpleNamespace(name='Long Island'),KNOWLEDGE_BASE={'floodZones':dict(label='Flood',source='Fixture',data='FULL_KB_SENTINEL')},OLLAMA_API_KEY='recording-only-key',OLLAMA_HOST='https://ollama.com',OLLAMA_MODEL='gpt-oss:120b-cloud',OLLAMA_HEADERS={})
 import requests
 scope['requests']=requests
+scope['render_request_scope']=render_request_scope
 exec(compile(functions,'streamlit/app.py','exec'),scope)
 
 class UploadTests(unittest.TestCase):
@@ -32,6 +34,21 @@ class UploadTests(unittest.TestCase):
             body=post.call_args.kwargs['json']
             self.assertIn(DOC['content'],body['messages'][0]['content'])
             self.assertEqual(body['options']['num_predict'],8192)
+    def test_real_provider_delivers_versioned_scope_and_preserves_full_document(self):
+        c=json.loads((ROOT/'tests/fixtures/scope/request-windows.json').read_text())[0]
+        request_scope=resolve_request_scope(c['question'],c['requestedAt'],c['jurisdiction'],c['weather'])
+        context=scope['build_context']([DOC],[],['floodZones'],[],[])
+        from unittest.mock import patch
+        with patch.object(requests,'post') as post:
+            response=post.return_value.__enter__.return_value
+            response.iter_lines.return_value=[json.dumps(dict(message=dict(content='recorded'),done=True)).encode()]
+            self.assertEqual(''.join(scope['stream_ollama']([dict(role='user',content=c['question'])],context,request_scope,c['weather'])),'recorded')
+            self.assertEqual(post.call_count,1)
+            prompt=post.call_args.kwargs['json']['messages'][0]['content']
+            self.assertIn('request-scope-v1',prompt);self.assertIn('2026-11-14T22:30:00Z',prompt)
+            self.assertIn(DOC['content'],prompt);self.assertIn('FULL_KB_SENTINEL',prompt)
+            self.assertIn('2026-11-14T17:30:00-05:00',prompt)
+
     def test_overflow_prevents_provider_call_and_preserves_input(self):
         from unittest.mock import patch
         with patch.object(requests,'post') as post:

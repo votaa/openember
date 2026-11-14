@@ -1,0 +1,3675 @@
+[
+  {
+    "id": "tonight-regression",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_period",
+      "start": "2026-11-14T22:30:00Z",
+      "end": "2026-11-15T12:15:00Z"
+    }
+  },
+  {
+    "id": "expired-tonight",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "missing-tonight",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "refresh-failed",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "unavailable",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "stale-source",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "stale",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "historical-night",
+    "question": "Assess 2026-11-13 night",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_period",
+      "start": "2026-11-13T23:00:00Z",
+      "end": "2026-11-14T11:00:00Z"
+    }
+  },
+  {
+    "id": "early-morning-tonight",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T07:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_period",
+      "start": "2026-11-14T22:30:00Z",
+      "end": "2026-11-15T12:15:00Z"
+    }
+  },
+  {
+    "id": "early-morning-overnight",
+    "question": "Assess overnight",
+    "requestedAt": "2026-11-14T07:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_period",
+      "start": "2026-11-13T23:00:00Z",
+      "end": "2026-11-14T11:00:00Z"
+    }
+  },
+  {
+    "id": "this-afternoon",
+    "question": "Assess this afternoon",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "configured",
+      "start": "2026-11-14T17:00:00Z",
+      "end": "2026-11-14T23:00:00Z"
+    }
+  },
+  {
+    "id": "later-today",
+    "question": "Assess later today",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "configured",
+      "start": "2026-11-14T13:13:00Z",
+      "end": "2026-11-15T05:00:00Z"
+    }
+  },
+  {
+    "id": "tomorrow-am",
+    "question": "Assess tomorrow AM",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "configured",
+      "start": "2026-11-15T05:00:00Z",
+      "end": "2026-11-15T17:00:00Z"
+    }
+  },
+  {
+    "id": "tomorrow-afternoon",
+    "question": "Assess tomorrow afternoon",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "configured",
+      "start": "2026-11-15T17:00:00Z",
+      "end": "2026-11-15T23:00:00Z"
+    }
+  },
+  {
+    "id": "day-after-tomorrow",
+    "question": "Assess day after tomorrow",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-17T05:00:00Z"
+    }
+  },
+  {
+    "id": "two-days-from-now",
+    "question": "Assess two days from now",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-17T05:00:00Z"
+    }
+  },
+  {
+    "id": "weekday",
+    "question": "Assess Monday",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-16T05:00:00Z",
+      "end": "2026-11-17T05:00:00Z"
+    }
+  },
+  {
+    "id": "ambiguous-next-weekday",
+    "question": "Assess next Friday",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "conflicting-date",
+    "question": "Assess today and tomorrow",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "explicit-historical",
+    "question": "Assess November 13, 2026",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-13T05:00:00Z",
+      "end": "2026-11-14T05:00:00Z"
+    }
+  },
+  {
+    "id": "month-implied-year",
+    "question": "Assess November 15",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-15T05:00:00Z",
+      "end": "2026-11-16T05:00:00Z"
+    }
+  },
+  {
+    "id": "invalid-date",
+    "question": "Assess 2026-02-30",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "local-clock-range",
+    "question": "Assess 2026-11-14 18:00 to 2026-11-15 06:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-14T23:00:00Z",
+      "end": "2026-11-15T11:00:00Z"
+    }
+  },
+  {
+    "id": "clock-range",
+    "question": "Assess tomorrow 6am to 10pm",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-15T11:00:00Z",
+      "end": "2026-11-16T03:00:00Z"
+    }
+  },
+  {
+    "id": "explicit-offset-fold",
+    "question": "Assess 2026-11-01T01:30:00-04:00 to 2026-11-01T01:30:00-05:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-01T05:30:00Z",
+      "end": "2026-11-01T06:30:00Z"
+    }
+  },
+  {
+    "id": "ambiguous-fold",
+    "question": "Assess 2026-11-01 01:30 to 2026-11-01 03:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "nonexistent-clock",
+    "question": "Assess 2026-03-08 02:30 to 2026-03-08 04:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "spring-calendar-day",
+    "question": "Assess tomorrow",
+    "requestedAt": "2026-03-07T17:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-03-08T05:00:00Z",
+      "end": "2026-03-09T04:00:00Z"
+    }
+  },
+  {
+    "id": "fall-calendar-day",
+    "question": "Assess tomorrow",
+    "requestedAt": "2026-10-31T16:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-01T04:00:00Z",
+      "end": "2026-11-02T05:00:00Z"
+    }
+  },
+  {
+    "id": "calendar-offset-not-48h",
+    "question": "Assess two days from now",
+    "requestedAt": "2026-03-07T17:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-03-09T04:00:00Z",
+      "end": "2026-03-10T04:00:00Z"
+    }
+  },
+  {
+    "id": "local-date-at-utc-midnight",
+    "question": "Assess today",
+    "requestedAt": "2026-11-14T02:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-13T05:00:00Z",
+      "end": "2026-11-14T05:00:00Z"
+    }
+  },
+  {
+    "id": "freeform-kb",
+    "question": "Explain the supplied evacuation SOP",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "unspecified",
+      "method": null
+    }
+  },
+  {
+    "id": "iap-next-defined",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "iap.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\nNext operational period: 2026-11-14T18:00:00-05:00 to 2026-11-15T08:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "resolved",
+      "method": "IAP",
+      "start": "2026-11-14T23:00:00Z",
+      "end": "2026-11-15T13:00:00Z"
+    }
+  },
+  {
+    "id": "iap-incident-ambiguous",
+    "question": "Assess next operational period",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "iap.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\nNext operational period: 2026-11-14T18:00:00-05:00 to 2026-11-15T08:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "iap-conflict",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "iap.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\nNext operational period: 2026-11-14T18:00:00-05:00 to 2026-11-15T08:00:00-05:00\n"
+      },
+      {
+        "name": "conflict.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\nNext operational period: 2026-11-14T18:00:00-05:00 to 2026-11-15T09:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "iap-timezone-free",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "naive.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00 to 2026-11-14T18:00:00\nNext operational period: 2026-11-14T18:00:00 to 2026-11-15T08:00:00\n"
+      }
+    ],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "iap-stale",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "stale.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-12\nApproved: yes by Planning\nCurrent operational period: 2026-11-12T06:00:00-05:00 to 2026-11-12T18:00:00-05:00\nNext operational period: 2026-11-12T18:00:00-05:00 to 2026-11-13T08:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "explicit-overrides-iap",
+    "question": "Assess next operational period for CEDAR-731 from 2026-11-14T17:00:00-05:00 to 2026-11-14T23:00:00-05:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "iap.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\nNext operational period: 2026-11-14T18:00:00-05:00 to 2026-11-15T08:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-14T22:00:00Z",
+      "end": "2026-11-15T04:00:00Z"
+    }
+  },
+  {
+    "id": "sunrise-weekend-fallback",
+    "question": "Assess next operational period",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "assumed",
+      "start": "2026-11-15T11:30:00Z",
+      "end": "2026-11-16T03:30:00Z"
+    },
+    "sunrise_clock": "06:30"
+  },
+  {
+    "id": "iap-current-only",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [
+      {
+        "name": "current.txt",
+        "content": "IAP\nIncident: CEDAR-731\nRevision: 2 approved 2026-11-14\nApproved: yes by Planning\nCurrent operational period: 2026-11-14T06:00:00-05:00 to 2026-11-14T18:00:00-05:00\n"
+      }
+    ],
+    "expected": {
+      "status": "resolved",
+      "method": "assumed",
+      "start": "2026-11-15T11:30:00Z",
+      "end": "2026-11-16T03:30:00Z"
+    },
+    "sunrise_clock": "06:30"
+  },
+  {
+    "id": "unavailable-sunrise",
+    "question": "Assess next operational period",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    },
+    "sunrise_clock": null
+  },
+  {
+    "id": "sunrise-dst-duration",
+    "question": "Assess next operational period",
+    "requestedAt": "2026-10-31T16:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "assumed",
+      "start": "2026-11-01T11:30:00Z",
+      "end": "2026-11-02T03:30:00Z"
+    },
+    "sunrise_clock": "06:30"
+  },
+  {
+    "id": "holiday-fallback",
+    "question": "Assess next operational period",
+    "requestedAt": "2026-12-24T16:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "assumed",
+      "start": "2026-12-25T11:30:00Z",
+      "end": "2026-12-26T03:30:00Z"
+    },
+    "sunrise_clock": "06:30"
+  },
+  {
+    "id": "configured-schedule",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "configured",
+      "start": "2026-11-14T23:00:00Z",
+      "end": "2026-11-15T15:00:00Z"
+    },
+    "policy": {
+      "version": "request-scope-v1",
+      "dayparts": {
+        "am": [
+          0,
+          12
+        ],
+        "morning": [
+          6,
+          12
+        ],
+        "afternoon": [
+          12,
+          18
+        ],
+        "evening": [
+          18,
+          24
+        ]
+      },
+      "planning_fallback": {
+        "enabled": true,
+        "duration_seconds": 57600,
+        "calendar": "all_calendar_days",
+        "solar_boundary": "sunrise",
+        "reference": "configured jurisdiction center",
+        "algorithm": "NOAA fractional-year approximation, 90.833-degree zenith, rounded to minute"
+      },
+      "incident_schedules": [
+        {
+          "incident": "CEDAR-731",
+          "start": "2026-11-14T18:00:00-05:00",
+          "end": "2026-11-15T10:00:00-05:00",
+          "valid_until": "2026-11-15T18:00:00-05:00",
+          "source": "Incident planning configuration"
+        }
+      ]
+    }
+  },
+  {
+    "id": "stale-configured-schedule",
+    "question": "Assess next operational period for CEDAR-731",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    },
+    "policy": {
+      "version": "request-scope-v1",
+      "dayparts": {
+        "am": [
+          0,
+          12
+        ],
+        "morning": [
+          6,
+          12
+        ],
+        "afternoon": [
+          12,
+          18
+        ],
+        "evening": [
+          18,
+          24
+        ]
+      },
+      "planning_fallback": {
+        "enabled": true,
+        "duration_seconds": 57600,
+        "calendar": "all_calendar_days",
+        "solar_boundary": "sunrise",
+        "reference": "configured jurisdiction center",
+        "algorithm": "NOAA fractional-year approximation, 90.833-degree zenith, rounded to minute"
+      },
+      "incident_schedules": [
+        {
+          "incident": "CEDAR-731",
+          "start": "2026-11-14T18:00:00-05:00",
+          "end": "2026-11-15T10:00:00-05:00",
+          "valid_until": "2026-11-13T18:00:00-05:00",
+          "source": "Incident planning configuration"
+        }
+      ]
+    }
+  },
+  {
+    "id": "afternoon-and-night",
+    "question": "Assess this afternoon and tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "multiple-weekdays",
+    "question": "Assess Monday to Friday",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "invalid-offset",
+    "question": "Assess 2026-11-14T18:00+99:00 to 2026-11-15T06:00+99:00",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "invalid-12h-clock",
+    "question": "Assess tomorrow 13pm to 10pm",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  },
+  {
+    "id": "next-working-day-includes-sunday",
+    "question": "Assess next working day",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-15T05:00:00Z",
+      "end": "2026-11-16T05:00:00Z"
+    }
+  },
+  {
+    "id": "other-jurisdiction-cannot-resolve-tonight",
+    "question": "Assess tonight",
+    "requestedAt": "2026-11-14T13:13:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Other jurisdiction",
+        "area": "Long Island reference point",
+        "fetched_at": "2026-11-14T13:10:00Z",
+        "state": "available",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "name": "Tonight",
+                "startTime": "2026-11-13T18:00:00-05:00",
+                "endTime": "2026-11-14T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Misleading name",
+                "startTime": "2026-11-14T17:30:00-05:00",
+                "endTime": "2026-11-15T07:15:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              },
+              {
+                "name": "Tomorrow Night",
+                "startTime": "2026-11-15T18:00:00-05:00",
+                "endTime": "2026-11-16T06:00:00-05:00",
+                "isDaytime": false,
+                "temperature": 44,
+                "temperatureUnit": "F",
+                "windSpeed": "7 to 10 mph",
+                "windDirection": "W",
+                "probabilityOfPrecipitation": {
+                  "value": 20
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "clarify",
+      "method": null
+    }
+  }
+]

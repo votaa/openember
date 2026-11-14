@@ -1,3 +1,4 @@
+import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
 import { UPLOAD_LIMITS, UploadError, validateCloudMessages, validateUploads, uploadedDocumentContext } from '../src/data/cloudUploads.js'
 
 /**
@@ -36,7 +37,8 @@ export default async function handler(req) {
     )
   }
 
-  let body
+  const receivedAt = new Date().toISOString().replace(/\.\d{3}Z$/, "Z")
+  let body, scoped
   try {
     body = await readChatBody(req)
     validateCloudMessages(body?.messages)
@@ -45,6 +47,7 @@ export default async function handler(req) {
       const documents = uploadedDocumentContext(body.uploads)
       if (documents && !body.messages[0].content.includes(documents)) throw new UploadError("The attached documents are not present in full in this request. Refresh the app and upload them again.", "upload_incomplete", 400)
     }
+    scoped = scopedCloudMessages(body, receivedAt)
   } catch (error) {
     const known = error instanceof UploadError
     return new Response(JSON.stringify({ error: known ? error.message : "Invalid JSON", code: known ? error.code : "request_invalid" }), {
@@ -59,7 +62,7 @@ export default async function handler(req) {
   const payload = {
     model:    ollamaModel,
     stream:   true,
-    messages: body.messages,
+    messages: scoped.messages,
     options: { num_predict: UPLOAD_LIMITS.outputReserveTokens },
   }
 

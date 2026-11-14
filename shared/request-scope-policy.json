@@ -1,0 +1,6 @@
+{
+  "version": "request-scope-v1",
+  "dayparts": {"am": [0,12], "morning": [6,12], "afternoon": [12,18], "evening": [18,24]},
+  "planning_fallback": {"enabled": true, "duration_seconds": 57600, "calendar": "all_calendar_days", "solar_boundary": "sunrise", "reference": "configured jurisdiction center", "algorithm": "NOAA fractional-year approximation, 90.833-degree zenith, rounded to minute"},
+  "incident_schedules": []
+}

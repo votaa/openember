@@ -50,7 +50,10 @@ test('actual Edge proxy forwards every document byte, preserves streaming, and r
   const uploads=[doc],messages=[{role:'system',content:uploadedDocumentContext(uploads)},{role:'user',content:'Read the radio channel and commander.'}]
   const response=await handler(jsonRequest({messages,uploads}))
   assert.equal(response.status,200);assert.match(await response.text(),/recorded/)
-  assert.deepEqual(calls[0].body.messages,messages)
+  assert.deepEqual(calls[0].body.messages.slice(1),messages.slice(1))
+  assert.ok(calls[0].body.messages[0].content.includes(messages[0].content))
+  assert.match(calls[0].body.messages[0].content,/REQUEST SCOPE/)
+  assert.match(calls[0].body.messages[0].content,/AUTHORITATIVE GROUNDING RULES/)
   assert.equal(calls[0].body.options.num_predict,8192)
   assert.ok(calls[0].body.messages[0].content.includes('DELTA-19'))
   for(const body of [

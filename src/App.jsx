@@ -45,6 +45,8 @@ import {
 } from "./data/mapBuilderFilters.js"
 import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
 import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
+import scopePolicy from '../shared/request-scope-policy.json'
+import {weatherSnapshots,needsScopeRefresh,SCOPE_VERSION} from './data/requestScope.js'
 import { summarizeWeather } from "./data/weatherContext.js"
 
 const _J     = _J_raw     || {}
@@ -74,6 +76,7 @@ const CFG = {
   name:       _J.name       || "New York City",
   shortName:  _J.short_name || "NYC",
   state:      _J.state      || "NY",
+  timezone:   _J.timezone || "America/New_York",
   center:     _J.center     || [40.7128, -74.006],
   zoom:       _J.zoom       || 10,
   bbox:       _J.bbox       || null,
@@ -124,6 +127,7 @@ function buildRuntimeConfig(local) {
     name:      j.name      || _J.name      || "New York City",
     shortName: j.shortName || _J.short_name|| "NYC",
     state:     (j.state    || _J.state     || "NY").toUpperCase(),
+    timezone:  _J.timezone || "America/New_York",
     center:    j.center    || _J.center    || [40.7128, -74.006],
     zoom:      j.zoom      || _J.zoom      || 10,
     nwsOffice: j.nwsOffice || _NWS.office  || "OKX",
@@ -309,7 +313,7 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   return ctx
 }
 
-async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name, uploads = []) {
+async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name, uploads = [], scopeInput = null) {
   const key = apiKey || getRuntimeKey()
 
   // Build the system prompt + message array
@@ -334,7 +338,7 @@ async function* streamOllama(messages, context, signal, apiKey, jurisdictionName
     res = await fetch("/api/chat", {
       method:  "POST",
       headers,
-      body:    JSON.stringify({ messages: allMessages, model: OLLAMA_MODEL, uploads }),
+      body:    JSON.stringify({ messages: allMessages, model: OLLAMA_MODEL, uploads, ...(scopeInput?{scope_input:scopeInput}:{}) }),
       signal,
     })
   } catch (e) {
@@ -1043,6 +1047,7 @@ export default function App() {
     const q = (override||input).trim()
     if (!q||streaming||uploadBusyRef.current) return
     setInput("") ; setShowQuick(false) ; setRightTab("chat")
+    const requestedAt = new Date().toISOString()
     const userMsg = {role:"user",content:q}
     setMessages(p=>[...p,userMsg])
     setStreaming(true)
@@ -1056,7 +1061,7 @@ export default function App() {
       await initialNoaaFetchRef.current
       const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
         const cached = noaaCacheRef.current[ep.id]
-        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt
+        return !cached?.ok || cached.ep.url !== ep.url || Date.now() - Date.parse(cached.fetchedAt || "") > 3600000 || !cached.fetchedAt || needsScopeRefresh(cached,q,requestedAt,CFG_RT,scopePolicy)
       }).map(fetchNOAA))
       refreshed.forEach(storeNOAA)
       const currentNoaa = noaaItemsRef.current.filter(item => !refreshed.some(result => result.ep.id === item.itemId))
@@ -1072,7 +1077,7 @@ export default function App() {
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files,
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots(Object.values(noaaCacheRef.current),CFG_RT)},
       )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])

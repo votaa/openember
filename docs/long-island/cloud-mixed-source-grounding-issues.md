@@ -170,3 +170,9 @@ Existing generic rules (“Flag data gaps” and “Never hallucinate”) are in
 This tracking update does not reopen the resolved upload truncation behavior, change runtime code, publish GitHub issues, or deploy a prompt change. The upload fix can be reviewed/released as its own change; these are tracked follow-up defects.
 
 Suggested documentation commit: `docs(copilot): track cloud grounding and date-handling failures`.
+
+## Implementation follow-up — November 14
+
+The implementation is now on **`codex/cloud-upload-coverage`**, in the hosted-preview checkout, rather than the local-first branch. See [request-time/window contract](cloud-request-scope-contract.md) for the grammar, source-period selection, operational-period precedence, IAP text format, solar calculation and regression evidence.
+
+Code and recording-provider checks are implemented for GROUND-001/002/003. These issues remain **open pending hosted whole-answer acceptance**. Deterministic date correctness and prompt delivery do not demonstrate that the cloud model obeys the grounding rules. The earlier observed failed answers remain the acceptance baseline; the upload retrieval success remains separate.
