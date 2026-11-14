@@ -1,0 +1,516 @@
+{
+  "provenance": "Deterministic current-commit projection of actual captured weather using reconstructed scope; not observed server egress.",
+  "scope": {
+    "version": "request-scope-v1",
+    "request_utc": "2026-11-14T18:49:33Z",
+    "request_local": "2026-11-14T13:49:33-05:00",
+    "timezone": "America/New_York",
+    "jurisdiction": "Long Island",
+    "status": "resolved",
+    "method": "source_period",
+    "interval": {
+      "start_utc": "2026-11-14T23:00:00Z",
+      "end_utc": "2026-11-15T11:00:00Z",
+      "start_local": "2026-11-14T18:00:00-05:00",
+      "end_local": "2026-11-15T06:00:00-05:00"
+    },
+    "source_refs": [
+      {
+        "source": "nws_forecast",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "start": "2026-11-14T18:00:00-05:00",
+        "end": "2026-11-15T06:00:00-05:00",
+        "geography": "Long Island"
+      }
+    ],
+    "assumptions": [],
+    "clarification": null,
+    "coverage": [
+      {
+        "id": "nws_forecast",
+        "state": "available",
+        "coverage": "complete",
+        "fields": {}
+      },
+      {
+        "id": "nws_hourly",
+        "state": "available",
+        "coverage": "complete",
+        "fields": {}
+      },
+      {
+        "id": "nws_grid",
+        "state": "available",
+        "coverage": "field-specific; no full-window aggregate calculated",
+        "fields": {
+          "windSpeed": "complete",
+          "windGust": "complete",
+          "quantitativePrecipitation": "complete",
+          "probabilityOfPrecipitation": "complete"
+        }
+      }
+    ],
+    "historical": false
+  },
+  "weather": [
+    {
+      "id": "nws_forecast",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+      "geography": "Long Island",
+      "area": "7-Day Forecast — LI",
+      "fetched_at": "2026-11-14T18:49:09.404Z",
+      "state": "available",
+      "coverage": "complete",
+      "periods": [
+        {
+          "number": 2,
+          "name": "Tonight",
+          "startTime": "2026-11-14T18:00:00-05:00",
+          "endTime": "2026-11-15T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 34,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 11
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/sct?size=medium",
+          "shortForecast": "Partly Cloudy",
+          "detailedForecast": "Partly cloudy. Low around 34, with temperatures rising to around 36 overnight. Northwest wind around 8 mph."
+        }
+      ],
+      "series": {}
+    },
+    {
+      "id": "nws_hourly",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+      "geography": "Long Island",
+      "area": "Hourly Forecast",
+      "fetched_at": "2026-11-14T18:49:09.491Z",
+      "state": "available",
+      "coverage": "complete",
+      "periods": [
+        {
+          "number": 6,
+          "name": "",
+          "startTime": "2026-11-14T18:00:00-05:00",
+          "endTime": "2026-11-14T19:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 44,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 11
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 2.2222222222222223
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 73
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 7,
+          "name": "",
+          "startTime": "2026-11-14T19:00:00-05:00",
+          "endTime": "2026-11-14T20:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 42,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 5
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.6666666666666667
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 76
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 8,
+          "name": "",
+          "startTime": "2026-11-14T20:00:00-05:00",
+          "endTime": "2026-11-14T21:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 40,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 5
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.6666666666666667
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 82
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 9,
+          "name": "",
+          "startTime": "2026-11-14T21:00:00-05:00",
+          "endTime": "2026-11-14T22:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 40,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 5
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.6666666666666667
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 82
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 10,
+          "name": "",
+          "startTime": "2026-11-14T22:00:00-05:00",
+          "endTime": "2026-11-14T23:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 39,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.6666666666666667
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 11,
+          "name": "",
+          "startTime": "2026-11-14T23:00:00-05:00",
+          "endTime": "2026-11-15T00:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 39,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.1111111111111112
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 82
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/sct?size=small",
+          "shortForecast": "Partly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 12,
+          "name": "",
+          "startTime": "2026-11-15T00:00:00-05:00",
+          "endTime": "2026-11-15T01:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 38,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.1111111111111112
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/bkn?size=small",
+          "shortForecast": "Mostly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 13,
+          "name": "",
+          "startTime": "2026-11-15T01:00:00-05:00",
+          "endTime": "2026-11-15T02:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 38,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 1.1111111111111112
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "7 mph",
+          "windDirection": "W",
+          "icon": "https://api.weather.gov/icons/land/night/sct?size=small",
+          "shortForecast": "Partly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 14,
+          "name": "",
+          "startTime": "2026-11-15T02:00:00-05:00",
+          "endTime": "2026-11-15T03:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 37,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 0.5555555555555556
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/sct?size=small",
+          "shortForecast": "Partly Cloudy",
+          "detailedForecast": ""
+        },
+        {
+          "number": 15,
+          "name": "",
+          "startTime": "2026-11-15T03:00:00-05:00",
+          "endTime": "2026-11-15T04:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 36,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 0.5555555555555556
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 89
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/few?size=small",
+          "shortForecast": "Mostly Clear",
+          "detailedForecast": ""
+        },
+        {
+          "number": 16,
+          "name": "",
+          "startTime": "2026-11-15T04:00:00-05:00",
+          "endTime": "2026-11-15T05:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 36,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 0
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/few?size=small",
+          "shortForecast": "Mostly Clear",
+          "detailedForecast": ""
+        },
+        {
+          "number": 17,
+          "name": "",
+          "startTime": "2026-11-15T05:00:00-05:00",
+          "endTime": "2026-11-15T06:00:00-05:00",
+          "isDaytime": false,
+          "temperature": 36,
+          "temperatureUnit": "F",
+          "temperatureTrend": null,
+          "probabilityOfPrecipitation": {
+            "unitCode": "wmoUnit:percent",
+            "value": 2
+          },
+          "dewpoint": {
+            "unitCode": "wmoUnit:degC",
+            "value": 0
+          },
+          "relativeHumidity": {
+            "unitCode": "wmoUnit:percent",
+            "value": 85
+          },
+          "windSpeed": "8 mph",
+          "windDirection": "NW",
+          "icon": "https://api.weather.gov/icons/land/night/few?size=small",
+          "shortForecast": "Mostly Clear",
+          "detailedForecast": ""
+        }
+      ],
+      "series": {}
+    },
+    {
+      "id": "nws_grid",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+      "geography": "Long Island",
+      "area": "Wind & Precip Grid",
+      "fetched_at": "2026-11-14T18:49:09.471Z",
+      "state": "available",
+      "coverage": "field-specific; no full-window aggregate calculated",
+      "periods": [],
+      "series": {
+        "windSpeed": {
+          "uom": "wmoUnit:km_h-1",
+          "values": [
+            {
+              "validTime": "2026-11-14T23:00:00+00:00/PT7H",
+              "value": 12.964
+            },
+            {
+              "validTime": "2026-11-15T06:00:00+00:00/PT1H",
+              "value": 11.112
+            },
+            {
+              "validTime": "2026-11-15T07:00:00+00:00/PT6H",
+              "value": 12.964
+            }
+          ],
+          "coverage": "complete"
+        },
+        "windGust": {
+          "uom": "wmoUnit:km_h-1",
+          "values": [
+            {
+              "validTime": "2026-11-14T23:00:00+00:00/PT1H",
+              "value": 25.928
+            },
+            {
+              "validTime": "2026-11-15T00:00:00+00:00/PT1H",
+              "value": 24.076
+            },
+            {
+              "validTime": "2026-11-15T01:00:00+00:00/PT6H",
+              "value": 25.928
+            },
+            {
+              "validTime": "2026-11-15T07:00:00+00:00/PT1H",
+              "value": 24.076
+            },
+            {
+              "validTime": "2026-11-15T08:00:00+00:00/PT5H",
+              "value": 25.928
+            }
+          ],
+          "coverage": "complete"
+        },
+        "quantitativePrecipitation": {
+          "uom": "wmoUnit:mm",
+          "values": [
+            {
+              "validTime": "2026-11-14T18:00:00+00:00/PT6H",
+              "value": 0
+            },
+            {
+              "validTime": "2026-11-15T00:00:00+00:00/PT6H",
+              "value": 0
+            },
+            {
+              "validTime": "2026-11-15T06:00:00+00:00/PT6H",
+              "value": 0
+            }
+          ],
+          "coverage": "complete"
+        },
+        "probabilityOfPrecipitation": {
+          "uom": "wmoUnit:percent",
+          "values": [
+            {
+              "validTime": "2026-11-14T21:00:00+00:00/PT3H",
+              "value": 11
+            },
+            {
+              "validTime": "2026-11-15T00:00:00+00:00/PT3H",
+              "value": 5
+            },
+            {
+              "validTime": "2026-11-15T03:00:00+00:00/PT9H",
+              "value": 2
+            }
+          ],
+          "coverage": "complete"
+        }
+      }
+    }
+  ]
+}

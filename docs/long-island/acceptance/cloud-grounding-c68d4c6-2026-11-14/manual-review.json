@@ -1,0 +1,106 @@
+{
+  "verdict": "FAIL",
+  "reviewed_entire_visible_answer": true,
+  "deployment_commit_verified": true,
+  "visible_stream_matches_answer": true,
+  "question_matches_prior": true,
+  "upload_matches_prior": true,
+  "enabled_kb_matches_prior": true,
+  "weather_comparison": "New public capture at 18:49:09Z, not an identical weather replay. No causal before/after claim.",
+  "sections": [
+    {
+      "section": "Facility reference",
+      "result": "PASS with limits",
+      "findings": [
+        "CEDAR-731, 47 amber cones and DELTA-19 are preserved; commander is not named. Count remains inventory here. No actual facility coordinates, authorized radio net or operating status are established."
+      ]
+    },
+    {
+      "section": "Tonight heading",
+      "result": "FAIL",
+      "findings": [
+        "Answer states 18 Nov 2026 local and 23 Nov 2026 UTC. Actual scope and source night are November 14 18:00-05:00 through November 15 06:00-05:00, equivalent to November 14 23:00Z through November 15 11:00Z. UTC offsets and source-defined scope label are not preserved."
+      ]
+    },
+    {
+      "section": "Weather facts table",
+      "result": "PARTIAL",
+      "findings": [
+        "34°F, point NW 8 mph, exact forecast URL and fetched timestamps match capture.",
+        "Hourly direction is W until 02:00 local, then NW. Hourly speed is 7 mph at 01:00 local, 8 otherwise; claiming 8 W/NW for every hour omits a supplied value.",
+        "Grid 12.964 km/h correctly converts to about 8 mph, but covers 23:00Z-06:00Z followed by 11.112 km/h at 06:00Z and 12.964 km/h from 07:00Z onward. Table omits later night intervals.",
+        "Grid gust maximum 25.928 km/h (about 16.11 mph) is supported by complete matched coverage. It occurs at multiple intervals, not only the first hour.",
+        "11%, 5%, then 2% probabilities and overlapping zero-QPF blocks are supported. Probability does not establish drizzle type; forecast 0 mm does not establish observed absence of rain.",
+        "Zero NY alerts at capture time is supported; not an all-night no-hazard or safe-operations conclusion."
+      ]
+    },
+    {
+      "section": "Key factual takeaways",
+      "result": "PARTIAL",
+      "findings": [
+        "Repeats supported point low and approximate sustained/gust values, but collapses hourly variation and source geography.",
+        "Light precipitation type is not supplied in the point/hourly narrative; no measurable rain must remain a forecast-QPF statement, not hazard absence.",
+        "Current zero-alert count is supportable; it cannot establish future risk absence.",
+        "No evidence establishes that this forecast point represents the unspecified facility."
+      ]
+    },
+    {
+      "section": "Possible impacts table",
+      "result": "FAIL",
+      "findings": [
+        "No supplied cone specifications support well below typical tipping thresholds. Dropping the numeric 15 mph threshold does not repair an invented qualitative threshold.",
+        "11% is precipitation probability, not a drizzle probability; a 34°F point air low does not establish cone frost/ice likelihood. Conditional language does not ground the added weather type or asset impact likelihood.",
+        "Visibility row says No impact expected and Unlikely - no supporting evidence: unsupported likelihood and reassurance. Missing fog narrative does not establish absence of visibility effects.",
+        "Electrical/utility impact is called Unlikely - no supporting evidence. No asset-vulnerability, tree/line-condition or operational evidence supports that likelihood.",
+        "Flooding/surge is called Unlikely - no supporting evidence. Missing facility zone linkage is unknown, not evidence of low risk; zero QPF/alerts does not establish site safety."
+      ]
+    },
+    {
+      "section": "Operational gaps",
+      "result": "PARTIAL/FAIL",
+      "findings": [
+        "Commander designation remains unknown; no actual unassigned commander assertion. Cone SOP/anchoring gaps are identified.",
+        "Claims gust grid ends at 06:00Z, with no later forecast. Actual grid includes 07:00Z/PT1H and 08:00Z/PT5H, covering through 13:00Z and the requested 11:00Z endpoint.",
+        "Lack of real-time observations must be separated from supplied forecast coverage.",
+        "The gap discussion does not retract the earlier unsupported threshold, likelihoods or invented facility risk assessment."
+      ]
+    },
+    {
+      "section": "Recommendations",
+      "result": "PARTIAL/FAIL",
+      "findings": [
+        "Recommendations are labeled suggestions, but DELTA-19 is promoted from named channel to designated operational net without authority evidence.",
+        "Cone securing is general advice; its asserted 18:00-22:00 peak timing is not supported as the exclusive peak, as equal maximum gust values recur later. Unknown specifications/deployment should qualify proposed equipment actions.",
+        "Frost monitoring is a conditional suggestion, but the earlier drizzle-to-frost inference remains unsupported.",
+        "Assign or confirm command is a suggestion rather than a confirmed vacancy or invented succession SOP; verifying existing assignment would better preserve the known gap."
+      ]
+    },
+    {
+      "section": "Exact forecast URLs",
+      "result": "PASS with scope limit",
+      "findings": [
+        "Point/hourly URLs are exact supplied URLs. Correct URLs do not repair wrong header dates or implied facility applicability."
+      ]
+    },
+    {
+      "section": "Closing statement",
+      "result": "FAIL",
+      "findings": [
+        "Blanket claim that all facts are directly supported and impacts are conditional conflicts with incorrect dates/coverage and unsupported thresholds/likelihoods above. Conditional headings and a concluding disclaimer do not repair the answer."
+      ]
+    }
+  ],
+  "targeted_regressions": {
+    "commander": "Improved: actual assignment remains unknown in this sample.",
+    "cone_threshold": "FAIL: nonnumeric typical tipping threshold still invented.",
+    "drizzle_frost": "FAIL: unsupported drizzle probability and frost/ice reasoning.",
+    "utility_reassurance": "FAIL: unsupported unlikely utility impact despite admitting no supporting evidence."
+  },
+  "limitations": [
+    "One complete native cloud sample; no repeated favorable retry.",
+    "Actual client messages and visible response captured. Exact server receipt time and final provider-bound messages remain unobserved; reconstruction labelled.",
+    "Production React streaming/context functions invoked from Node; not browser rendering or Stop acceptance.",
+    "New weather revision means this is not an exact previous-input comparison."
+  ],
+  "decision": "Keep GROUND-001/002/003 open; no production promotion based on this answer."
+}

@@ -1,0 +1,40 @@
+{
+  "result": {
+    "deployment": {
+      "id": "dpl_2aMnL6QYny4GZ5Zi6jdUARNJompW",
+      "name": "openember",
+      "url": "openember-js7kpqhrz-ember-li.vercel.app",
+      "type": "LAMBDAS",
+      "state": "READY",
+      "createdAt": 1794681997799,
+      "creator": {
+        "uid": "iETIlUeukZsyP8XfAsH8K9O4",
+        "username": "votaa"
+      },
+      "project": {
+        "id": "prj_eCcSWFbgZAhhv3LEZJRY7L5sNAZw",
+        "name": "openember",
+        "framework": "vite"
+      },
+      "meta": {
+        "githubCommitRef": "codex/cloud-upload-coverage",
+        "githubCommitSha": "c68d4c67be9c0ed86985d495b7b1bc4250bdf64a",
+        "githubCommitMessage": "fix(copilot): ground asset impacts and preserve unknowns across sections",
+        "githubRepo": "openember",
+        "githubOrg": "votaa"
+      },
+      "alias": [
+        "openember-git-codex-cloud-upload-coverage-ember-li.vercel.app"
+      ],
+      "target": null,
+      "regions": [
+        "iad1"
+      ],
+      "buildingAt": 1794681999093,
+      "ready": 1794682013721,
+      "readyState": "READY",
+      "source": "git",
+      "aliasError": null
+    }
+  }
+}
