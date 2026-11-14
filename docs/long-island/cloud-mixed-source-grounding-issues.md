@@ -2,7 +2,7 @@
 
 Logged: November 14, 2026 (America/New_York).
 
-Status: three open follow-up issues; proposed fixes only. Runtime prompts, date logic and deployments have not been changed by this tracking update.
+Status: all three issues remain open. Implementation commit `7bdb1f7` is available on the hosted preview, but the November 14 live mixed-source acceptance run failed. See [hosted acceptance report](cloud-preview-acceptance-2026-11-14.md). The original observations below remain the historical baseline.
 
 ## Evidence and scope
 
@@ -176,3 +176,10 @@ Suggested documentation commit: `docs(copilot): track cloud grounding and date-h
 The implementation is now on **`codex/cloud-upload-coverage`**, in the hosted-preview checkout, rather than the local-first branch. See [request-time/window contract](cloud-request-scope-contract.md) for the grammar, source-period selection, operational-period precedence, IAP text format, solar calculation and regression evidence.
 
 Code and recording-provider checks are implemented for GROUND-001/002/003. These issues remain **open pending hosted whole-answer acceptance**. Deterministic date correctness and prompt delivery do not demonstrate that the cloud model obeys the grounding rules. The earlier observed failed answers remain the acceptance baseline; the upload retrieval success remains separate.
+
+
+## Live acceptance — November 14, 2026
+
+[Hosted acceptance report](cloud-preview-acceptance-2026-11-14.md): **FAIL**, one complete Ollama Cloud / `gpt-oss:120b-cloud` answer. Correct document identifiers, cone count, low, sustained wind and URL are followed by unsupported assignment and safety claims. Captured inputs also reproduce a point-plus-hourly selection defect in both runtimes; the application returns ambiguous scope despite a unique point night. The answer shifts an out-of-window UTC grid gust into tonight. GROUND-001/002/003 remain open; no production promotion is justified.
+
+The original hosted raw weather/history were not retained, so this uses a new fixed NWS capture rather than claiming an exact original replay. Complete client messages and the whole visible answer are captured; final provider-bound messages are reconstructed, explicitly labelled unobserved. Exact provider-egress capture remains an instrumentation gap.

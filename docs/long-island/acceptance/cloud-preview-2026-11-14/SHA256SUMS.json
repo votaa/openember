@@ -1,0 +1,94 @@
+{
+  "answer.md": {
+    "bytes": 8032,
+    "sha256": "90f03f3ae581a0489433afa493494ac2fde4db5f04307f0dae325072bb4713fc"
+  },
+  "client-messages.json": {
+    "bytes": 30437,
+    "sha256": "a895ec2ee442130b215eade759705a206f147b9225b7a003309093becb647294"
+  },
+  "client-request.json": {
+    "bytes": 228069,
+    "sha256": "8daf0a4f6a82f356251f9816effcf11abe0fc15cd14b1a1c26420ce594632036"
+  },
+  "context.txt": {
+    "bytes": 25153,
+    "sha256": "d2e6ddf626430aee6a1e5be02305bdccab0b4d552625df7e50abba622c1e837c"
+  },
+  "enabled-kb.json": {
+    "bytes": 5450,
+    "sha256": "b9f6b632c05129b6e3b7dcf6c4a1228d8ffa89def6559ac03ab5d3f0cc287a9d"
+  },
+  "expected-source-evidence.json": {
+    "bytes": 1682,
+    "sha256": "43ca620dd012da791e109f7a76731c649d4ced72b9ae2c07e0a34cdb94d7e628"
+  },
+  "manual-review.json": {
+    "bytes": 4658,
+    "sha256": "14c47ef0ee1cf176384c7a4d075e21c20aa02b3f8ae7c354570a18c6f5c7ea51"
+  },
+  "nws_alerts.raw.json": {
+    "bytes": 221,
+    "sha256": "2acc54100cc39e8cab3b72e094725ef32fe2edad617d719e4f2779bdfe28d01a"
+  },
+  "nws_forecast.raw.json": {
+    "bytes": 12843,
+    "sha256": "ca2ddbfaf79c3a93f52e5adb494e0886ec111b3d8e5387a5af8c6c0f12042b5b"
+  },
+  "nws_grid.raw.json": {
+    "bytes": 196798,
+    "sha256": "b1d58ae089c4d3cd98acd181b61023e3b3064037c1a055366b903d991f499090"
+  },
+  "nws_hourly.raw.json": {
+    "bytes": 161945,
+    "sha256": "8349172a7f8d1940c029cdb2c14a1e21449fd5b11fa85cd7bf1d8a432b6fca90"
+  },
+  "preflight.json": {
+    "bytes": 1912,
+    "sha256": "806397a087392744477806be3d23f53a07d668931766ccca512ad7bfa4ef3871"
+  },
+  "provider-request-RECONSTRUCTED.json": {
+    "bytes": 36899,
+    "sha256": "9118e3c981d8c79ea8a771eb795f427c4b2a335a6e5aabe880bbac1ad9e4709e"
+  },
+  "question.txt": {
+    "bytes": 246,
+    "sha256": "8edb25a6412c9c883c1154ff7362da8ffce19016da3756891ffd13d80313d28b"
+  },
+  "response.ndjson": {
+    "bytes": 162622,
+    "sha256": "37a0e91ed32412f0f9295f9de2f86c2505f87a1a2d2a68c7278b14997eab52ba"
+  },
+  "run.json": {
+    "bytes": 3581,
+    "sha256": "97f938aafee8ea230c9ebcd11e01c21c93b9a8e65a31caf9773e936e8b36d0b8"
+  },
+  "scope-RECONSTRUCTED.json": {
+    "bytes": 832,
+    "sha256": "815e193a5edb7f23465699d3bfe6f8609dd2ba6eedb3e76ea784509286a1810a"
+  },
+  "scope-diagnostic.json": {
+    "bytes": 3876,
+    "sha256": "947cdc2620af3ffbc8cf13f8525316c368bd11ade696f7e77acff91949d75da6"
+  },
+  "unauthenticated-attempt/answer.md": {
+    "bytes": 218,
+    "sha256": "8e2b221db82025e730d1281caffdd9d228689868c71450d82be9453a00681f71"
+  },
+  "unauthenticated-attempt/response.ndjson": {
+    "bytes": 404,
+    "sha256": "60389ea86495a574804b94e01aae120ed8464c580e61ec0342e751ebb10f1584"
+  },
+  "unauthenticated-attempt/run.json": {
+    "bytes": 3211,
+    "sha256": "83746bcf1cc12570cae6a0a02a277cfff61ff371e3f402504717d24510841aab"
+  },
+  "upload.txt": {
+    "bytes": 5672,
+    "sha256": "501c71d84e729164c7264960330518bc6e12ff97bb9b08d69e336da39d65252a"
+  },
+  "weather-capture.json": {
+    "bytes": 327234,
+    "sha256": "197f78d4cdbdd41cf2502649938fd021e8913f6b4fd478e3fe64c0b1bd7fa438"
+  }
+}

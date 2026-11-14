@@ -1,0 +1,82 @@
+{
+  "preview": "https://openember-nmymjfogq-ember-li.vercel.app",
+  "transport": "Vercel CLI authenticated HTTP (buffered delivery to React stream parser)",
+  "curl_timing": {
+    "http_code": 200,
+    "time_starttransfer": 2.101897,
+    "time_total": 9.460551,
+    "size_upload": 228069,
+    "size_download": 170524
+  },
+  "commit": "7bdb1f723df99c7cb23a10420ccdf28861757f6a",
+  "live": true,
+  "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+  "enabled_kb": [
+    "floodZones",
+    "evacZones",
+    "criticalInfrastructure",
+    "hazardProfiles",
+    "resources"
+  ],
+  "history": "Clean-start initialization message; original hosted history was not captured.",
+  "upload": {
+    "name": "synthetic-plan.txt",
+    "bytes": 5672,
+    "sha256": "501c71d84e729164c7264960330518bc6e12ff97bb9b08d69e336da39d65252a"
+  },
+  "weather_capture_sha256": "197f78d4cdbdd41cf2502649938fd021e8913f6b4fd478e3fe64c0b1bd7fa438",
+  "client_request_sha256": "8daf0a4f6a82f356251f9816effcf11abe0fc15cd14b1a1c26420ce594632036",
+  "client_message_bytes": 30000,
+  "provider_egress_observed": false,
+  "provider_config_observed": {
+    "host": "https://ollama.com",
+    "model": "gpt-oss:120b-cloud",
+    "source": "Read-only Vercel project settings; no credentials retrieved"
+  },
+  "http": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Sat, 14 Nov 2026 14:56:28 GMT",
+      "x-vercel-cache": "MISS",
+      "x-vercel-id": "iad1::iad1::cdfzl-1794668186665-f30840aa4727"
+    },
+    "request_started_utc": "2026-11-14T14:56:24.321Z",
+    "headers_received_utc": "2026-11-14T14:56:36.118Z"
+  },
+  "frame_count": 1153,
+  "thinking_fields_omitted": 324,
+  "response_models": [
+    "gpt-oss:120b-cloud"
+  ],
+  "final_frames": [
+    {
+      "model": "gpt-oss:120b-cloud",
+      "created_at": "2026-11-14T14:56:36.022301442Z",
+      "message": {
+        "role": "assistant",
+        "content": ""
+      },
+      "done": true,
+      "done_reason": "stop",
+      "total_duration": 7728383575,
+      "prompt_eval_count": 11728,
+      "prompt_eval_cached_count": 48,
+      "eval_count": 3142
+    }
+  ],
+  "error": null,
+  "timing_ms": {
+    "total": 11802,
+    "buffered_parser_first_content": 11800
+  },
+  "answer_sha256": "80ba91ce5f8a2abb8b4fe880159c85f0546af922aa8599cbe7f6fcb85d7fbece",
+  "limitations": [
+    "Original hosted raw weather and exact history were not retained; this is a new fixed capture, not an exact before/after replay.",
+    "Client request/messages and visible whole answer are actual captures. Provider-added messages and exact server receipt time are not observable from this deployment; reconstructed files are explicitly labelled.",
+    "Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run."
+  ],
+  "client_request_canonical_sha256": "0b82d99ac6fead5f75c0548afa14b92de66bba75a505833e4845df039418106a",
+  "answer_file_sha256": "90f03f3ae581a0489433afa493494ac2fde4db5f04307f0dae325072bb4713fc",
+  "capture_note": "Exactly one authenticated live model request completed. Whole visible answer and client wire payload are actual captures. Internal provider thinking fields were omitted from the saved response stream. Vercel CLI buffers delivery to the local React parser, so parser timing is not model first-token or browser-paint latency."
+}

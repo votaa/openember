@@ -1,0 +1,33 @@
+{
+  "version": "request-scope-v1",
+  "request_utc": "2026-11-14T14:56:24Z",
+  "request_local": "2026-11-14T09:56:24-05:00",
+  "timezone": "America/New_York",
+  "jurisdiction": "Long Island",
+  "status": "clarify",
+  "method": null,
+  "interval": null,
+  "source_refs": [],
+  "assumptions": [],
+  "clarification": "The requested night is not uniquely covered by a supplied local point-forecast night period. Supply explicit start/end times or refresh the forecast.",
+  "coverage": [
+    {
+      "id": "nws_forecast",
+      "state": "available",
+      "coverage": "unknown",
+      "fields": {}
+    },
+    {
+      "id": "nws_hourly",
+      "state": "available",
+      "coverage": "unknown",
+      "fields": {}
+    },
+    {
+      "id": "nws_grid",
+      "state": "available",
+      "coverage": "unknown",
+      "fields": {}
+    }
+  ]
+}

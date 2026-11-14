@@ -1,0 +1,106 @@
+{
+  "overall": "FAIL",
+  "commit": "7bdb1f723df99c7cb23a10420ccdf28861757f6a",
+  "provider": {
+    "configured_host": "https://ollama.com",
+    "configured_model": "gpt-oss:120b-cloud",
+    "reported_model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "terminal_reason": "stop"
+  },
+  "live_model_answers": 1,
+  "original_weather_replay": false,
+  "provider_egress_captured": false,
+  "requirements": [
+    {
+      "id": "facility-id",
+      "result": "PASS",
+      "evidence": "CEDAR-731 is preserved."
+    },
+    {
+      "id": "amber-cones",
+      "result": "PARTIAL",
+      "evidence": "47 is preserved. Placement/stability/continuity are subsequently inferred without facility/cone specifications."
+    },
+    {
+      "id": "radio-channel",
+      "result": "PARTIAL",
+      "evidence": "DELTA-19 is preserved. Authorized use, propagation/reliability and storm interference are not established by this identifier."
+    },
+    {
+      "id": "incident-commander",
+      "result": "FAIL",
+      "evidence": "Initial Not supplied becomes no incident commander is assigned and no incident commander assigned later in the same answer."
+    },
+    {
+      "id": "night-low",
+      "result": "PASS",
+      "evidence": "33 F matches the captured NWS Tonight period."
+    },
+    {
+      "id": "sustained-wind",
+      "result": "PASS",
+      "evidence": "NW around 10 mph matches the captured NWS Tonight period."
+    },
+    {
+      "id": "exact-forecast-url",
+      "result": "PASS",
+      "evidence": "https://api.weather.gov/gridpoints/OKX/62,50/forecast is copied exactly."
+    },
+    {
+      "id": "concrete-interval-and-status",
+      "result": "PARTIAL",
+      "evidence": "The answer gives the correct source-defined November 14 18:00 to November 15 06:00 EST interval. Code actually resolves clarify because hourly rows compete with the named point period; no application-resolved interval exists for this full snapshot."
+    },
+    {
+      "id": "window-alignment",
+      "result": "FAIL",
+      "evidence": "40.744 km/h gust at 18:00 UTC is outside the expected 23:00 UTC start. The answer rounds it to 40.7, applies it to tonight, and incorrectly labels 18:00 UTC as 22:00 EST. Its hourly gust column shifts daytime UTC rows into nighttime local hours."
+    },
+    {
+      "id": "probability-versus-amount",
+      "result": "PARTIAL",
+      "evidence": "6% is initially preserved. The captured grid does supply zero-valued QPF blocks overlapping tonight, but neither 6% nor those zero forecasts establish no flooding, no traction concerns, or equipment safety. Light drizzle is not in Tonight narrative."
+    },
+    {
+      "id": "alert-fact",
+      "result": "PASS",
+      "evidence": "The captured NY alert source has zero features; reporting zero at fetch time is supported. Using zero alerts to infer operational safety is not."
+    },
+    {
+      "id": "fact-impact-recommendation-separation",
+      "result": "FAIL",
+      "evidence": "Headings separate facts/impacts, but impacts and summary contain categorical hazard absence, unsupported communications assurance and assumed activities continuing as planned."
+    },
+    {
+      "id": "assignment-actions-reassurance",
+      "result": "FAIL",
+      "evidence": "No ice-related hazards, no significant wet-ground or flooding risk, radio propagation should be fine, and standard night-shift activities can continue as planned are unsupported operational conclusions."
+    },
+    {
+      "id": "invented-sop-or-successor",
+      "result": "PASS FOR THIS ANSWER ONLY",
+      "evidence": "No on-site-supervisor takeover or Standard SOP is invented, and the final recommendation is labelled a suggestion. Positive supplied-SOP model acceptance was not run."
+    },
+    {
+      "id": "unknown-location",
+      "result": "PARTIAL",
+      "evidence": "Micro-site uncertainty is acknowledged, but the source does not establish facility coordinates or that the chosen point forecast applies to it."
+    },
+    {
+      "id": "full-client-context",
+      "result": "PASS",
+      "evidence": "All five configured KB module texts and the full synthetic upload appear in the actual client message. Provider-level input retention cannot be proved without actual egress capture."
+    }
+  ],
+  "issues": {
+    "GROUND-001": "OPEN / FAILED",
+    "GROUND-002": "OPEN / FAILED",
+    "GROUND-003": "OPEN / FAILED"
+  },
+  "not_exercised": [
+    "Sunrise fallback is not invoked by the original tonight question; its earlier deterministic fixtures are not a live model acceptance result.",
+    "No repeated stochastic trials, positive supplied-SOP cloud run, browser paint/Stop run, or exact original-history replay."
+  ]
+}

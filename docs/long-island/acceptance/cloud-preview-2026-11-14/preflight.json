@@ -1,0 +1,41 @@
+{
+  "preview": "https://openember-nmymjfogq-ember-li.vercel.app",
+  "commit": "7bdb1f723df99c7cb23a10420ccdf28861757f6a",
+  "live": false,
+  "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+  "enabled_kb": [
+    "floodZones",
+    "evacZones",
+    "criticalInfrastructure",
+    "hazardProfiles",
+    "resources"
+  ],
+  "history": "Clean-start initialization message; original hosted history was not captured.",
+  "upload": {
+    "name": "synthetic-plan.txt",
+    "bytes": 5672,
+    "sha256": "501c71d84e729164c7264960330518bc6e12ff97bb9b08d69e336da39d65252a"
+  },
+  "weather_capture_sha256": "197f78d4cdbdd41cf2502649938fd021e8913f6b4fd478e3fe64c0b1bd7fa438",
+  "client_request_sha256": "52b148c386563e67e0073fed5878672200b72fc46208376af4e84fc81968f2e2",
+  "client_message_bytes": 30000,
+  "provider_egress_observed": false,
+  "provider_config_observed": {
+    "host": "https://ollama.com",
+    "model": "gpt-oss:120b-cloud",
+    "source": "Read-only Vercel project settings; no credentials retrieved"
+  },
+  "http": {},
+  "frame_count": 0,
+  "thinking_fields_omitted": 0,
+  "response_models": [],
+  "final_frames": [],
+  "error": null,
+  "timing_ms": null,
+  "answer_sha256": null,
+  "limitations": [
+    "Original hosted raw weather and exact history were not retained; this is a new fixed capture, not an exact before/after replay.",
+    "Client request/messages and visible whole answer are actual captures. Provider-added messages and exact server receipt time are not observable from this deployment; reconstructed files are explicitly labelled.",
+    "Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run."
+  ]
+}
