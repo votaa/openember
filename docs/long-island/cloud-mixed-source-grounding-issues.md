@@ -121,11 +121,25 @@ Proposed resolution order:
 4. A clearly labeled, configured planning fallback, if no authoritative interval is available.
 5. Clarify when the information needed by the selected rule is missing.
 
-The user proposed a possible fallback: next working day beginning at sunrise/daybreak and continuing for 16 working hours. This is a candidate **application planning assumption**, not an enabled default. Implementation needs definitions for the incident working calendar (including weekends/holidays), solar boundary, planning location, time zone and whether 16 hours means elapsed time or scheduled working hours excluding breaks. A 16-hour interval may extend after dark. If prerequisites are missing, ask rather than invent the window.
+### User-confirmed planning defaults — November 14
+
+The user clarified the following application assumptions for the proposed sunrise-based fallback:
+
+- **Working calendar:** every calendar day is eligible, including weekends. Incidents are worked around the clock until resolution; do not apply a Monday–Friday/business-day calendar or skip holidays by default.
+- **Planning geography:** Long Island, New York, the application scope. Use the application's configured Long Island reference location for the solar calculation and record that reference point in the resolved metadata. This is a regional planning reference, not an invented location for CEDAR-731 or another unspecified facility.
+- **Time zone:** local Eastern time, represented by `America/New_York` so EST/EDT and date boundaries follow the applicable offset. Do not use a permanently fixed EST offset.
+- **Solar boundary:** **sunrise** for the selected Long Island planning date. The earlier sunrise/daybreak wording is now specified as sunrise; do not substitute another dawn definition or a hardcoded clock time.
+- **Duration:** **16 elapsed hours, including breaks**. Compute the end instant as start plus 57,600 seconds; do not pause the clock or subtract breaks. Display both endpoints in local Eastern time with offsets.
+
+These definitions are confirmed requirements for implementation. The fallback remains an **application planning assumption**, not an IAP-defined or command-approved operational period, and has not been enabled in runtime. Explicit requested windows, an applicable IAP's defined next period and an applicable configured incident schedule retain the precedence above. All calendar days are working days; a next-day fallback must not jump over Saturday or Sunday to Monday. The relative-boundary resolver must still state the exact selected date rather than leaving next working day implicit.
+
+Use the configured regional reference point without asking the user for a new planning location on every query. Long Island's regional planning reference does not establish any individual facility's coordinates or flood/evacuation-zone membership. If sunrise cannot be calculated for the reference/date, state that gap instead of inventing a sunrise time.
+
+A 16-hour planning window can extend after dark. Its end is the assessment horizon, **not a claim that incident work ends or stops overnight**; incident operations continue around the clock until resolution. The answer must label the assumed interval and its source rule explicitly.
 
 The resolved contract should carry interval, time zone, resolution method (explicit/IAP/configured/assumed), source references, coverage, assumptions and clarification status. The response must display the concrete interval and whether it was supplied or assumed. If an IAP was ingested in a supported text format, extraction must identify the relevant operational-period fields rather than treating unrelated date occurrences as a schedule. PDF/DOCX IAP extraction remains outside the current uploader's supported file types unless separately implemented.
 
-Additional fixtures: dayparts and rolling/calendar offsets, ambiguous weekday phrasing, a current IAP with a defined next period, an IAP containing only the current period, stale/conflicting plans, a timezone-free IAP, configured incident schedules, weekend operations, and a solar/16-hour fallback with missing location or calendar context.
+Additional fixtures: dayparts and rolling/calendar offsets, ambiguous weekday phrasing, a current IAP with a defined next period, an IAP containing only the current period, stale/conflicting plans, a timezone-free IAP, configured incident schedules, continuous weekend/holiday operations, and sunrise-based 16-elapsed-hour fallback cases. Verify that breaks do not extend the window, a next-day Saturday request does not skip Sunday, the configured Long Island solar reference is recorded, local ET uses the applicable DST offset, and unavailable sunrise data yields an explicit gap. Include a fixture with sunrise fixed at 06:30 local and a 22:30 local end on a same-offset date; this is a test input, not a live sunrise assertion.
 
 ## System prompt changes to propose
 
