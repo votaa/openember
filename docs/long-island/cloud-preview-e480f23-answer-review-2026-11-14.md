@@ -51,4 +51,6 @@ Original client request, complete original source snapshots, original model Mark
 
 Keep this acceptance case failed. Distinguish current tide/water observations from requested future conditions before synthesis, and prevent unrelated/out-of-window CO-OPS evidence from being treated as facility-specific flood evidence. Preserve source-scoped unknowns and applicable operational authority throughout every section. Inventory, precipitation probability and conditional wording cannot supply missing equipment thresholds, flood likelihoods or command assignments. Whole-answer acceptance remains required after any corrective implementation; formatting/prompt tests alone cannot close these findings.
 
+The user-authorized [bounded corrective scope and acceptance criteria](cloud-grounding-corrective-scope-2026-11-14.md) now record the explicit expansion beyond option A, including controlled operational output, missing/supplied evidence tests and repeated hosted runs with exact source/request captures. That scope is not an implementation or a passing retest. This run remains **FAIL**.
+
 Suggested commit: `test(copilot): record hosted preview answer review failures`.

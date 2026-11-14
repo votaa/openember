@@ -4,6 +4,8 @@ Logged: November 14, 2026 (America/New_York).
 
 Status: all three issues remain open. Implementation commit `7bdb1f7` is available on the hosted preview, but the November 14 live mixed-source acceptance run failed. See [hosted acceptance report](cloud-preview-acceptance-2026-11-14.md). The original observations below remain the historical baseline.
 
+Latest disposition: the [e480f23 review](cloud-preview-e480f23-answer-review-2026-11-14.md) also **FAILS**. The user-authorized [corrective scope and acceptance contract](cloud-grounding-corrective-scope-2026-11-14.md) supersede acceptance-only option A for operational triggers. Scope is recorded before implementation; no corrective hosted pass or issue closure is claimed.
+
 ## Evidence and scope
 
 The user tested the mixed-source question on the `codex/cloud-upload-coverage` Vercel preview at commit `4d6d24f8653a8266acd1ec14c43b018693adaeb7`, uploading `synthetic-plan.txt`:

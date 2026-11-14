@@ -1,5 +1,7 @@
 # Hosted preview next slice: weather evidence, known gaps and Markdown
 
+**Follow-up status:** this document records the earlier slice and option A implementation. After the failed e480f23 hosted review, the user authorized controlled enforcement beyond A. See the [November 14 corrective scope and acceptance contract](cloud-grounding-corrective-scope-2026-11-14.md) for the next implementation. The earlier choices below are historical, not a pending authorization request. Current hosted acceptance remains **FAIL**.
+
 Scope recorded November 14, 2026. Implementation target: `/private/tmp/openember-cloud-upload`, branch `codex/cloud-upload-coverage`. This is a scoped proposal, not implemented behavior. Items 1 and 2 and AIDA-style Markdown are scoped here; narrow item 3 remains a user decision. The previous item 1 decision is recorded in `cloud-grounding-followup-2026-11-14.md`.
 
 ## Outcome

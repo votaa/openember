@@ -44,3 +44,7 @@ Item 1 remains a focused input-selection change in both runtimes. Output formatt
 ## Next-slice scope
 
 The [focused implementation scope](cloud-preview-next-slice-scope.md) elaborates the agreed item 1 approach, item 2 facts/gaps and AIDA-style Markdown presentation. Narrow item 3 remains a user decision; manual whole-answer review refers to acceptance testing, not an approval step during ordinary chat.
+
+## Corrective scope after failed e480f23 review
+
+The user has now explicitly expanded item 3 beyond option A to require controlled, source-backed operational triggers. The [bounded corrective scope and acceptance criteria](cloud-grounding-corrective-scope-2026-11-14.md) supersede the pending-choice wording above for this follow-up. It specifies regressions first, CO-OPS time/geography selection, source-scoped unknowns, a flood-threshold provenance audit, controlled operational output and positive-evidence preservation, followed by the full phase-4 gate and repeated fully captured hosted review. This is a scope deliverable before runtime implementation. Current hosted acceptance remains **FAIL**; GROUND-001/002/003 remain open.
