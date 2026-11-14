@@ -1,0 +1,2041 @@
+[
+  {
+    "id": "rolling-cutoff",
+    "question": "next 24 hours",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "rolling",
+      "start": "2026-11-14T15:00:00Z",
+      "end": "2026-11-15T15:00:00Z"
+    },
+    "selection": {
+      "point": 0,
+      "hourly": 1
+    }
+  },
+  {
+    "id": "near-night-values",
+    "question": "tonight",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_period",
+      "start": "2026-11-14T23:00:00Z",
+      "end": "2026-11-15T11:00:00Z"
+    },
+    "selection": {
+      "point": 0,
+      "hourly": 1
+    }
+  },
+  {
+    "id": "tomorrow-crosses-cutoff",
+    "question": "tomorrow",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-15T05:00:00Z",
+      "end": "2026-11-16T05:00:00Z"
+    },
+    "selection": {
+      "point": 1,
+      "hourly": 1
+    }
+  },
+  {
+    "id": "calendar-today",
+    "question": "today",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-14T05:00:00Z",
+      "end": "2026-11-15T05:00:00Z"
+    },
+    "selection": {
+      "point": 0,
+      "hourly": 1
+    }
+  },
+  {
+    "id": "exact-cutoff",
+    "question": "2026-11-15T15:00:00Z to 2026-11-15T16:00:00Z",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-15T15:00:00Z",
+      "end": "2026-11-15T16:00:00Z"
+    },
+    "selection": {
+      "point": 1,
+      "hourly": 0
+    }
+  },
+  {
+    "id": "later-day",
+    "question": "November 18",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-18T05:00:00Z",
+      "end": "2026-11-19T05:00:00Z"
+    },
+    "selection": {
+      "point": 1,
+      "hourly": 0
+    }
+  },
+  {
+    "id": "current-observation",
+    "question": "current weather",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "current_observation",
+      "start": "2026-11-14T14:00:00Z",
+      "end": "2026-11-14T15:00:00Z"
+    },
+    "selection": {
+      "point": 0,
+      "hourly": 0,
+      "observation_fields": 1
+    }
+  },
+  {
+    "id": "stale-observation",
+    "question": "current weather",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T12:00:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "current_observation",
+      "start": "2026-11-14T14:00:00Z",
+      "end": "2026-11-14T15:00:00Z"
+    },
+    "selection": {
+      "observation_fields": 0
+    }
+  },
+  {
+    "id": "missing-observation",
+    "question": "current weather",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "current_observation",
+      "start": "2026-11-14T14:00:00Z",
+      "end": "2026-11-14T15:00:00Z"
+    },
+    "selection": {}
+  },
+  {
+    "id": "dst-rolling",
+    "question": "next 24 hours",
+    "requestedAt": "2026-11-01T04:30:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "rolling",
+      "start": "2026-11-01T04:30:00Z",
+      "end": "2026-11-02T04:30:00Z"
+    },
+    "selection": {}
+  },
+  {
+    "id": "midnight-rolling",
+    "question": "next 24 hours",
+    "requestedAt": "2026-11-15T05:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "rolling",
+      "start": "2026-11-15T05:00:00Z",
+      "end": "2026-11-16T05:00:00Z"
+    },
+    "selection": {}
+  },
+  {
+    "id": "past-only",
+    "question": "2026-11-13",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "explicit",
+      "start": "2026-11-13T05:00:00Z",
+      "end": "2026-11-14T05:00:00Z"
+    },
+    "selection": {
+      "point": 0,
+      "hourly": 0,
+      "observation_fields": 0
+    }
+  },
+  {
+    "id": "broad-source-horizon",
+    "question": "Explain what the forecast shows and how the supplied SOP applies",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "source_coverage",
+      "start": "2026-11-14T15:00:00Z",
+      "end": "2026-11-19T11:00:00Z"
+    },
+    "selection": {
+      "point": 2,
+      "hourly": 1
+    }
+  },
+  {
+    "id": "explicit-seven-days",
+    "question": "Give the 7-day forecast",
+    "requestedAt": "2026-11-14T15:00:00Z",
+    "jurisdiction": {
+      "name": "Long Island",
+      "timezone": "America/New_York",
+      "center": [
+        40.7891,
+        -73.135
+      ]
+    },
+    "weather": [
+      {
+        "id": "point",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T23:00:00Z",
+                "endTime": "2026-11-15T11:00:00Z",
+                "temperature": 34,
+                "temperatureUnit": "F",
+                "name": "Tonight",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T11:00:00Z",
+                "endTime": "2026-11-16T11:00:00Z",
+                "temperature": 42,
+                "temperatureUnit": "F",
+                "name": "Tomorrow",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-18T11:00:00Z",
+                "endTime": "2026-11-19T11:00:00Z",
+                "temperature": 88,
+                "temperatureUnit": "F",
+                "name": "Later",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "periods": [
+              {
+                "startTime": "2026-11-14T15:00:00Z",
+                "endTime": "2026-11-15T15:00:00Z",
+                "temperature": 36,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              },
+              {
+                "startTime": "2026-11-15T15:00:00Z",
+                "endTime": "2026-11-16T15:00:00Z",
+                "temperature": 99,
+                "temperatureUnit": "F",
+                "name": "",
+                "isDaytime": false
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "windGust": {
+              "uom": "wmoUnit:km_h-1",
+              "values": [
+                {
+                  "validTime": "2026-11-14T15:00:00Z/PT24H",
+                  "value": 20
+                },
+                {
+                  "validTime": "2026-11-15T15:00:00Z/PT24H",
+                  "value": null
+                },
+                {
+                  "validTime": "2026-11-18T15:00:00Z/PT24H",
+                  "value": 88
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": "obs",
+        "url": "https://api.weather.gov/stations/KISP/observations/latest",
+        "geography": "Long Island",
+        "area": "Point reference only; facility applicability unknown",
+        "state": "available",
+        "fetched_at": "2026-11-14T15:00:00Z",
+        "data": {
+          "properties": {
+            "timestamp": "2026-11-14T14:50:00Z",
+            "station": "KISP",
+            "temperature": {
+              "value": 8,
+              "unitCode": "wmoUnit:degC"
+            }
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -73.1,
+              40.8
+            ]
+          }
+        }
+      }
+    ],
+    "files": [],
+    "expected": {
+      "status": "resolved",
+      "method": "rolling",
+      "start": "2026-11-14T15:00:00Z",
+      "end": "2026-11-21T15:00:00Z"
+    },
+    "selection": {
+      "point": 2,
+      "hourly": 1
+    }
+  }
+]

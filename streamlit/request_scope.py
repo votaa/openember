@@ -110,6 +110,13 @@ def _resolve_scope(question,requested_at,jurisdiction,weather=None,files=None,po
     if re.search(r'\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b|\bnext week\b',text):return clarify('Specify an unambiguous calendar date or start/end interval.')
     if re.search(r'\d{4}-\d{2}-\d{2}[ t]\d{2}:\d{2}.*\bto\b',text):return clarify('Supply valid offset-bearing timestamps or unambiguous local clock endpoints.')
     if len(set(re.findall(r'\b('+'|'.join(WEEKDAYS)+r')\b',text)))>1:return clarify('Supply explicit dates or a start/end interval for multiple weekdays.')
+    rolling=re.search(r'\bnext (\d+) (hours?|days?)\b',text)
+    if rolling and 0<int(rolling[1])<=366:return resolved(now,now+int(rolling[1])*(86400000 if rolling[2].startswith('day') else 3600000),'rolling')
+    if re.search(r'\bnext (?:24|twenty-four) hours\b',text):return resolved(now,now+86400000,'rolling')
+    if re.search(r'\b(?:current(?:ly)? (?:weather|conditions|temperature|winds?|observations?)|weather right now)\b',text) and not re.search(r'\b(?:today|tomorrow|tonight)\b',text):
+        scope['assumptions'].append('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.')
+        return resolved(now-3600000,now,'current_observation')
+    if re.search(r'\b(?:seven|7)[ -]day forecast\b',text):return resolved(now,now+7*86400000,'rolling')
     today=local_stamp(now,zone)[:10];date=today;explicit_date=False
     dates=re.findall(r'\b\d{4}-\d{2}-\d{2}\b',text)
     if any(not valid_date(d) for d in dates):return clarify('Supply a valid calendar date.')
@@ -180,6 +187,11 @@ def _resolve_scope(question,requested_at,jurisdiction,weather=None,files=None,po
         scope['assumptions'].append('Later today means the remaining local calendar day.')
         return resolved(now,civil(add_days(today,1),'00:00',zone),'configured')
     if explicit_date or relative or weekday:return resolved(civil(date,'00:00',zone),civil(add_days(date,1),'00:00',zone),'explicit')
+    if re.search(r'\bforecast\b',text):
+        ends=[instant(p.get('endTime')) for s in weather if s.get('state') not in ('stale','unavailable') for p in s.get('data',{}).get('properties',{}).get('periods',[]) if math.isfinite(instant(p.get('endTime'))) and instant(p.get('endTime'))>now]
+        if ends:
+            scope['assumptions'].append('No forecast window supplied: showing the available forecast horizon, not a requested incident schedule.')
+            return resolved(now,max(ends),'source_coverage')
     return scope
 
 
@@ -204,15 +216,30 @@ def covered(intervals,start,end):
 def scoped_weather(weather,scope):
     result=[]
     for source in weather:
-        out=dict(id=source['id'],url=source['url'],geography=source['geography'],area=source.get('area'),fetched_at=source.get('fetched_at'),state=source.get('state') or 'available',coverage='unknown',periods=[],series={});result.append(out)
+        out=dict(id=source['id'],url=source['url'],geography=source['geography'],area=source.get('area'),coordinates=(source.get('data',{}).get('geometry') or {}).get('coordinates'),updated_at=source.get('data',{}).get('properties',{}).get('updated') or source.get('data',{}).get('properties',{}).get('generatedAt') or source.get('data',{}).get('properties',{}).get('updateTime'),fetched_at=source.get('fetched_at'),state=source.get('state') or 'available',coverage='unknown',periods=[],series={});result.append(out)
         if scope['status']!='resolved' or source['geography']!=scope['jurisdiction'] or out['state'] in ('stale','unavailable'):continue
-        start,end=instant(scope['interval']['start_utc']),instant(scope['interval']['end_utc'])
+        requested_start,requested_end=instant(scope['interval']['start_utc']),instant(scope['interval']['end_utc']);now=instant(scope['request_utc']);cutoff=now+POLICY['weather']['near_term_seconds']*1000
+        p0=source.get('data',{}).get('properties',{});hourly=bool(re.search(r'/forecast/hourly(?:[?#]|$)',source['url'],re.I)) or isinstance(p0.get('periods'),list) and all(not r.get('name') for r in p0['periods'])
+        if isinstance(p0.get('timestamp'),str):
+            at=instant(p0['timestamp']);age=now-at;coords=(source.get('data',{}).get('geometry') or {}).get('coordinates')
+            out['observation']=dict(timestamp=p0['timestamp'],station=p0.get('station') or source['url'],coordinates=coords,fields={})
+            out['coverage']='observation only; no continuous historical coverage'
+            if not math.isfinite(age) or age<0 or age>POLICY['weather']['observation_max_age_seconds']*1000:out['state']='stale';continue
+            if not isinstance(coords,list) or len(coords)!=2 or any(type(v) not in (int,float) or not math.isfinite(v) for v in coords) or abs(coords[0])>180 or abs(coords[1])>90:out['coverage']='observation location unknown';continue
+            if requested_start>=now or not (scope['method']=='current_observation' or requested_start<=at<requested_end):continue
+            out['observation']['fields']={k:p0[k] for k in POLICY['weather']['observation_fields'] if p0.get(k)}
+            continue
+        start=max(requested_start,now,cutoff if isinstance(p0.get('periods'),list) and not hourly else now);end=min(requested_end,cutoff if isinstance(p0.get('periods'),list) and hourly else requested_end)
+        out['selected_interval']=dict(start_utc=utc(start),end_utc=utc(end)) if start<end else None
+        out['granularity']=('hourly' if hourly else 'point period') if isinstance(p0.get('periods'),list) else 'grid interval'
+        out['segments']=[segment for segment in scope_segments(scope) if instant(segment['start_utc'])<end and instant(segment['end_utc'])>start and segment['evidence']!='observations']
+        if start>=end:out['coverage']='not eligible for this segment';continue
         def overlap(a,b):return math.isfinite(a) and math.isfinite(b) and a<b and a<end and b>start
         p=source.get('data',{}).get('properties',{})
         if isinstance(p.get('periods'),list):
             out['periods']=[r for r in p['periods'] if overlap(instant(r.get('startTime')),instant(r.get('endTime')))]
             out['coverage']='complete' if covered([(instant(r['startTime']),instant(r['endTime'])) for r in out['periods']],start,end) else 'partial'
-        for key in ('windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation'):
+        for key in POLICY['weather']['grid_fields']:
             series=p.get(key)
             if not isinstance(series,dict) or not isinstance(series.get('values'),list):continue
             rows=[r for r in series['values'] if overlap(instant(str(r.get('validTime')).split('/')[0]),duration_end(r.get('validTime')))]
@@ -226,14 +253,32 @@ def render_request_scope(scope,weather=None):
 
 
 def weather_snapshots(results,jurisdiction):
-    keys=('periods','windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation')
-    return [dict(id=r['ep']['id'],url=r['ep']['url'],geography=jurisdiction['name'],area=r['ep']['name'],fetched_at=r.get('fetchedAt') or r.get('fetched_at'),state='available' if r.get('ok',r.get('success')) else 'unavailable',data=dict(properties={k:r['data']['properties'][k] for k in keys if isinstance(r['data']['properties'].get(k) if k=='periods' else (r['data']['properties'].get(k) or {}).get('values'),list)})) for r in results if r.get('ep') and isinstance(r.get('data'),dict) and any(isinstance(r['data'].get('properties',{}).get(k) if k=='periods' else (r['data'].get('properties',{}).get(k) or {}).get('values'),list) for k in keys)]
+    keys=('periods',*POLICY['weather']['grid_fields']);out=[]
+    for r in results:
+        if not r.get('ep') and r.get('url'):r=dict(r,ep=dict(id=r.get('id') or r['url'],url=r['url'],name=r.get('name') or r['url']))
+        if not r.get('ep') or not isinstance(r.get('data'),dict):continue
+        p=r['data'].get('properties',{})
+        if not isinstance(p,dict):continue
+        observation=isinstance(p.get('timestamp'),str)
+        fields={k:p[k] for k in keys if isinstance(p.get(k) if k=='periods' else (p.get(k) or {}).get('values'),list)}
+        if not observation and not fields:continue
+        fields.update({k:p[k] for k in ('updated','generatedAt','updateTime') if k in p})
+        out.append(dict(id=r['ep']['id'],url=r['ep']['url'],geography=jurisdiction['name'],area=r['ep']['name'],fetched_at=r.get('fetchedAt') or r.get('fetched_at'),state='available' if r.get('ok',r.get('success')) else 'unavailable',data=r['data'] if observation else dict(properties=fields,**({'geometry':r['data']['geometry']} if r['data'].get('geometry') else {}))))
+    return out
+
+
+
+def scope_segments(scope):
+    if not scope.get('interval'):return []
+    start,end=instant(scope['interval']['start_utc']),instant(scope['interval']['end_utc']);now=instant(scope['request_utc']);cutoff=now+POLICY['weather']['near_term_seconds']*1000
+    return [dict(evidence=evidence,**interval(a,b,scope['timezone'])) for evidence,a,b in [('observations',start,min(end,now)),('hourly_and_grid',max(start,now),min(end,cutoff)),('point_periods_and_grid',max(start,cutoff),end)] if a<b]
 
 
 def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise):
     scope=_resolve_scope(question,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
-    if scope['interval']:scope['historical']=instant(scope['interval']['end_utc'])<=instant(scope['request_utc'])
-    scope['coverage']=[dict(id=s['id'],state=s['state'],coverage=s['coverage'],fields={k:v['coverage'] for k,v in s['series'].items()}) for s in scoped_weather(weather or [],scope)]
+    scope['segments']=scope_segments(scope)
+    if scope['interval']:scope['historical']=scope['method']!='current_observation' and instant(scope['interval']['end_utc'])<=instant(scope['request_utc'])
+    scope['coverage']=[dict(id=s['id'],url=s['url'],area=s['area'],coordinates=s['coordinates'],updated_at=s['updated_at'],fetched_at=s['fetched_at'],selected_interval=s.get('selected_interval'),observed_at=s.get('observation',{}).get('timestamp'),state=s['state'],coverage=s['coverage'],fields={k:v['coverage'] for k,v in s['series'].items()}) for s in scoped_weather(weather or [],scope)]
     return scope
 
 

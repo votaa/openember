@@ -7,7 +7,7 @@ import {execFile} from 'node:child_process'
 import {promisify} from 'node:util'
 import {tmpdir} from 'node:os'
 import {fileURLToPath} from 'node:url'
-import {resolve,join} from 'node:path'
+import {resolve,join,basename} from 'node:path'
 import {JURISDICTION,KNOWLEDGE_BASE} from '../src/config/jurisdiction.js'
 import {summarizeWeather} from '../src/data/weatherContext.js'
 import {reportWindowMessage} from '../src/data/regional/reportWindow.js'
@@ -22,6 +22,7 @@ const preview=process.env.PREVIEW_URL||'https://openember-nmymjfogq-ember-li.ver
 const previewCommit=process.env.PREVIEW_COMMIT||'7bdb1f723df99c7cb23a10420ccdf28861757f6a'
 if(!/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(preview)||! /^[a-f0-9]{40}$/.test(previewCommit))throw Error('Expected an immutable Vercel preview URL and full commit SHA')
 const send=process.argv.includes('--send')
+if(send&&(!process.env.PREVIEW_URL||!process.env.PREVIEW_COMMIT))throw Error('Live acceptance requires an explicitly verified PREVIEW_URL and PREVIEW_COMMIT; defaults are for dry runs only.')
 const authenticated=process.argv.includes('--transport=vercel-cli')
 let curlTiming=null
 async function authenticatedFetch(path,options) {
@@ -35,13 +36,14 @@ async function authenticatedFetch(path,options) {
   return new Response(readFileSync(raw),{status,headers:filtered})
  } finally {rmSync(dir,{recursive:true,force:true})}
 }
-const question="Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts."
+const question=process.env.PREVIEW_QUESTION||"Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts."
 const results=JSON.parse(readFileSync(join(output,'weather-capture.json'),'utf8'))
 const app=readFileSync(join(root,'src/App.jsx'),'utf8')
 const fragment=app.slice(app.indexOf('function summarizeAPIData('),app.indexOf('async function* streamOllama('))
 const buildContext=new Function('CFG','summarizeWeather','reportWindowMessage','uploadedDocumentContext',fragment+';return buildContextRT')({state:'NY'},summarizeWeather,reportWindowMessage,uploadedDocumentContext)
 const summarizeNOAA=new Function('summarizeWeather',app.slice(app.indexOf('function summarizeNOAA('),app.indexOf('async function fetchNOAA('))+';return summarizeNOAA')(summarizeWeather)
-const doc={name:'synthetic-plan.txt',content:readFileSync(join(root,'tests/fixtures/uploads/synthetic-plan.txt'),'utf8')}
+const uploadPath=process.env.PREVIEW_UPLOAD||join(root,'tests/fixtures/uploads/synthetic-plan.txt')
+const doc={name:basename(uploadPath),content:readFileSync(uploadPath,'utf8')}
 const enabled=Object.keys(KNOWLEDGE_BASE)
 const context=buildContext([doc],[],enabled,KNOWLEDGE_BASE,JURISDICTION.name)+'--- NOAA DATA ---\n'+results.map(r=>r.ok?`[NOAA: ${r.ep.name}]\nFetched: ${r.fetchedAt}\nSource: ${r.ep.url}\n\n${summarizeNOAA(r)}`:`[NOAA: ${r.ep.name}] unavailable at ${r.fetchedAt}: ${r.error}`).join('\n\n')+'\n\n'
 const initial='EMBER initialized — Long Island (NY)\nBackend: Ollama Cloud · gpt-oss:120b-cloud\n\nKnowledge base loaded · NOAA feeds auto-fetching · Map ready\nUse ⚙️ Settings tab to change jurisdiction, KB text, and map points.'
@@ -53,6 +55,7 @@ save('context.txt',context);save('upload.txt',doc.content);save('enabled-kb.json
 const requestedAt=new Date().toISOString()
 const input={version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots(results,JURISDICTION)}
 const streamSource=app.slice(app.indexOf('async function* streamOllama('),app.indexOf('// ── Full NOAA',app.indexOf('async function* streamOllama('))).replaceAll('import.meta.env','testEnv')
+let observedScope=null
 let body,wirePromise,wire='',http={},started,firstContent,finished,frameCount=0,thinkingFieldsOmitted=0,finalFrames=[]
 const transport=async(path,options)=>{
  body=JSON.parse(options.body);save('client-request.json',body);save('client-messages.json',body.messages)
@@ -70,7 +73,7 @@ const transport=async(path,options)=>{
 }
 const stream=new Function('buildCopilotSystemPrompt','validateUploads','validateCloudMessages','getRuntimeKey','CFG','OLLAMA_MODEL','fetch','testEnv',streamSource+';return streamOllama')(buildCopilotSystemPrompt,validateUploads,validateCloudMessages,()=>'',JURISDICTION,'gpt-oss:120b-cloud',transport,{})
 let answer='',error=null
-try {for await(const token of stream(messages,context,undefined,'',JURISDICTION.name,[doc],input)){if(!firstContent)firstContent=Date.now();answer+=token}if(wirePromise)await wirePromise}
+try {for await(const token of stream(messages,context,undefined,'',JURISDICTION.name,[doc],input,scope=>{observedScope=scope;save('scope-OBSERVED.json',{provenance:'Application-owned metadata emitted by the hosted Edge proxy; not observed provider egress or answer verification.',scope})})){if(!firstContent)firstContent=Date.now();answer+=token}if(wirePromise)await wirePromise}
 catch(e){error={name:e.name,message:e.message}}
 finished=Date.now()
 if(send){
@@ -80,7 +83,7 @@ if(send){
  }
  save('response.ndjson',rows.map(r=>JSON.stringify(r)).join('\n')+'\n');save('answer.md',answer+'\n')
 }
-const record={preview,transport:authenticated?'Vercel CLI authenticated HTTP (buffered delivery to React stream parser)':'Node fetch',curl_timing:curlTiming?{http_code:curlTiming.http_code,time_starttransfer:curlTiming.time_starttransfer,time_total:curlTiming.time_total,size_upload:curlTiming.size_upload,size_download:curlTiming.size_download}:null,commit:previewCommit,live:send,question,enabled_kb:enabled,history:'Clean-start initialization message; original hosted history was not captured.',upload:{name:doc.name,bytes:Buffer.byteLength(doc.content),sha256:sha(doc.content)},weather_capture_sha256:sha(readFileSync(join(output,'weather-capture.json'))),client_request_sha256:body?sha(readFileSync(join(output,'client-request.json'))):null,client_request_canonical_sha256:body?sha(JSON.stringify(body)):null,client_message_bytes:body?body.messages.reduce((n,m)=>n+Buffer.byteLength(m.content),0):null,provider_egress_observed:false,provider_config_evidence:{response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],code_default_host:'https://ollama.com',deployment_environment_independently_verified:false},http,frame_count:frameCount,thinking_fields_omitted:thinkingFieldsOmitted,response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],final_frames:finalFrames,error,timing_ms:started?{[authenticated?'buffered_parser_first_content':'stream_parser_first_content']:firstContent-started,total:finished-started}:null,answer_sha256:send?sha(answer):null,limitations:['Weather is the public snapshot retained in this run directory. Unless separately verified, this is not a byte-identical replay of an earlier weather revision.','Client request/messages and visible whole answer are actual captures. Provider-added messages and exact server receipt time are not observable from this deployment; reconstructed files are explicitly labelled.','Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run.']}
+const record={preview,transport:authenticated?'Vercel CLI authenticated HTTP (buffered delivery to React stream parser)':'Node fetch',curl_timing:curlTiming?{http_code:curlTiming.http_code,time_starttransfer:curlTiming.time_starttransfer,time_total:curlTiming.time_total,size_upload:curlTiming.size_upload,size_download:curlTiming.size_download}:null,commit:previewCommit,live:send,question,enabled_kb:enabled,history:'Clean-start initialization message; original hosted history was not captured.',upload:{name:doc.name,bytes:Buffer.byteLength(doc.content),sha256:sha(doc.content)},weather_capture_sha256:sha(readFileSync(join(output,'weather-capture.json'))),client_request_sha256:body?sha(readFileSync(join(output,'client-request.json'))):null,client_request_canonical_sha256:body?sha(JSON.stringify(body)):null,client_message_bytes:body?body.messages.reduce((n,m)=>n+Buffer.byteLength(m.content),0):null,provider_egress_observed:false,provider_config_evidence:{response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],code_default_host:'https://ollama.com',deployment_environment_independently_verified:false},http,frame_count:frameCount,thinking_fields_omitted:thinkingFieldsOmitted,response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],final_frames:finalFrames,error,timing_ms:started?{[authenticated?'buffered_parser_first_content':'stream_parser_first_content']:firstContent-started,total:finished-started}:null,answer_sha256:send?sha(answer):null,limitations:['Weather is the public snapshot retained in this run directory. Unless separately verified, this is not a byte-identical replay of an earlier weather revision.','Client request/messages and visible whole answer are actual captures. Provider egress is not observed; reconstructed files are explicitly labelled. When emitted, scope-OBSERVED.json records application-owned server receipt time, resolved window and source metadata, not model-answer verification.','Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run.']}
 save(send?'run.json':'preflight.json',record)
 console.log(JSON.stringify({live:send,http:http.status,transport:record.transport,enabled,client_message_bytes:record.client_message_bytes,response_models:record.response_models,frame_count:frameCount,timing_ms:record.timing_ms,error,output},null,2))
 if(error||send&&http.status!==200)process.exitCode=1

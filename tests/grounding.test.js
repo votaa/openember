@@ -29,7 +29,8 @@ test('same captured mixed-source request retains full evidence, resolved night a
  assert.equal(out.scope.interval.end_utc,'2026-11-15T11:00:00Z')
  const prompt=out.messages[0].content
  assert.ok(prompt.endsWith('AUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES))
- assert.ok(prompt.includes(body.messages[0].content))
+ assert.ok(prompt.includes('=== LONG ISLAND EMERGENCY MANAGEMENT KNOWLEDGE BASE ==='))
+ assert.ok(!prompt.includes('2026-11-18T11:00:00-05:00')) // out-of-window prose removed
  for(const upload of body.uploads)assert.ok(prompt.includes(upload.content))
  for(const fact of ['CEDAR-731','47 amber cones','DELTA-19','no incident commander is specified'])assert.ok(prompt.includes(fact))
  for(const c of fixture.cases)assert.ok(prompt.includes(c.required_rule),c.id)

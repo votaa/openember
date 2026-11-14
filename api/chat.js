@@ -84,8 +84,22 @@ export default async function handler(req) {
       )
     }
 
-    // Stream the response straight through to the browser
-    return new Response(upstream.body, {
+    // One application-owned metadata frame precedes untouched provider NDJSON.
+    // Body framing avoids HTTP header limits for source metadata and retains
+    // backpressure/cancellation; it does not buffer or validate model prose.
+    const reader = upstream.body.getReader()
+    const stream = new ReadableStream({
+      start(controller) { controller.enqueue(new TextEncoder().encode(JSON.stringify({ember_scope:scoped.scope})+'\n')) },
+      async pull(controller) {
+        try {
+          const {done,value} = await reader.read()
+          if(done)controller.close()
+          else controller.enqueue(value)
+        } catch(error) { controller.error(error) }
+      },
+      cancel(reason) { return reader.cancel(reason) },
+    })
+    return new Response(stream, {
       status:  200,
       headers: {
         ...corsHeaders(),

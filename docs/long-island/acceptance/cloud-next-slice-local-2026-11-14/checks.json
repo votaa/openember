@@ -1,0 +1,30 @@
+{
+  "status": "local checks passed; hosted whole-answer acceptance pending",
+  "date": "2026-11-14",
+  "branch": "codex/cloud-upload-coverage",
+  "base_commit": "77eef717fd90515c62be0bd21b5de8a473e73ebc",
+  "narrow_item_3": "A: acceptance review only",
+  "phase4_gate": {
+    "result": "pass",
+    "javascript_test_executions": 155,
+    "python_test_executions": 133,
+    "note": "Test executions include suites that overlap; not a count of unique tests."
+  },
+  "browser_fixture": {
+    "result": "pass",
+    "model_calls": 0,
+    "chat_requests": 2,
+    "progressive_headings_lists_tables": true,
+    "long_table_scrolls": true,
+    "safe_links": true,
+    "remote_images": 0,
+    "raw_html_executed": false,
+    "metadata_frame": true,
+    "stop_retains_partial_and_history": true
+  },
+  "hosted_runner": "syntax and dry run passed with old public weather; no live request",
+  "limitations": [
+    "Deterministic recording/browser fixtures do not establish hosted model-answer correctness.",
+    "Hosted acceptance awaits user review/commit and verified preview deployment."
+  ]
+}

@@ -50,3 +50,16 @@ button { font-family: inherit; }
 .blink { animation: blink 1s step-end infinite; }
 .pulse { animation: pulse 2s ease-in-out infinite; }
 .fade-in { animation: fadeIn 0.2s ease; }
+
+.assistant-markdown { white-space: normal; min-width: 0; overflow-wrap: anywhere; }
+.assistant-markdown :first-child { margin-top: 0; }
+.assistant-markdown :last-child { margin-bottom: 0; }
+.assistant-markdown h1, .assistant-markdown h2, .assistant-markdown h3 { font-size: 1.12em; margin: 1em 0 .4em; }
+.assistant-markdown h4, .assistant-markdown h5, .assistant-markdown h6 { font-size: 1em; }
+.assistant-markdown p, .assistant-markdown ul, .assistant-markdown ol { margin: .5em 0; }
+.assistant-markdown ul, .assistant-markdown ol { padding-left: 1.5em; }
+.assistant-markdown a { color: #93c5fd; text-decoration: underline; }
+.assistant-markdown pre, .answer-table { max-width: 100%; overflow-x: auto; }
+.assistant-markdown table { border-collapse: collapse; white-space: normal; }
+.assistant-markdown td, .assistant-markdown th { padding: .4em .7em; border: 1px solid #334155; min-width: 7em; text-align: left; }
+.answer-provenance { margin-top: .6em; color: #94a3b8; font-size: 11px; }

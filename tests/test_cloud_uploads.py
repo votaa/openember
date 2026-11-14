@@ -7,6 +7,8 @@ from cloud_uploads import *
 from copilot_prompt import build_copilot_system_prompt,build_knowledge_base_context
 from report_window import report_window_message
 from weather_context import summarize_weather
+from evidence_summary import evidence_summary,strip_weather_context
+import re
 from request_scope import resolve_request_scope,render_request_scope
 DOC=dict(name='synthetic-plan.txt',content=(ROOT/'tests/fixtures/uploads/synthetic-plan.txt').read_text())
 # Compile the real context and provider functions without executing app/network setup.

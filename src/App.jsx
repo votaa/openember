@@ -47,6 +47,7 @@ import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction
 import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
 import scopePolicy from '../shared/request-scope-policy.json'
 import {weatherSnapshots,needsScopeRefresh,SCOPE_VERSION} from './data/requestScope.js'
+import AssistantMarkdown from './components/AssistantMarkdown.jsx'
 import { summarizeWeather } from "./data/weatherContext.js"
 
 const _J     = _J_raw     || {}
@@ -293,7 +294,7 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   }
   if (apiResults.length) {
     ctx += `--- LIVE API DATA (${new Date().toUTCString()}) ---\n`
-    apiResults.forEach(r => { ctx += summarizeAPIData(r) + "\n" })
+    apiResults.filter(r => !/^https:\/\/api\.weather\.gov\/(gridpoints|stations)\//i.test(r.url || "")).forEach(r => { ctx += summarizeAPIData(r) + "\n" })
     ctx += "\n"
   }
   const hazardResult = phase4Results.nyc_311_electric_hazards_rockaway
@@ -313,7 +314,7 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   return ctx
 }
 
-async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name, uploads = [], scopeInput = null) {
+async function* streamOllama(messages, context, signal, apiKey, jurisdictionName = CFG.name, uploads = [], scopeInput = null, onScope = null) {
   const key = apiKey || getRuntimeKey()
 
   // Build the system prompt + message array
@@ -370,6 +371,7 @@ async function* streamOllama(messages, context, signal, apiKey, jurisdictionName
       if (!line.trim()) continue
       try {
         const obj = JSON.parse(line)
+        if (obj.ember_scope && onScope) onScope(obj.ember_scope)
         if (obj.message?.content) yield obj.message.content
         if (obj.done) {
           if (obj.done_reason === "length") yield "\n\n⚠ The response reached its output limit. Ask a focused follow-up for the remaining details."
@@ -987,9 +989,9 @@ export default function App() {
 
   useEffect(() => { refreshPhase4Sources() }, [refreshPhase4Sources])
 
-  const weatherEndpoints = NOAA_ENDPOINTS.filter(ep => ["nws_alerts", "nws_forecast", "nws_hourly", "nws_grid"].includes(ep.id)).map(ep => ({
+  const weatherEndpoints = NOAA_ENDPOINTS.filter(ep => ["nws_alerts", "nws_forecast", "nws_hourly", "nws_grid"].includes(ep.id) || /\/observations\/latest/.test(ep.url)).map(ep => ({
     ...ep,
-    url: ep.id === "nws_alerts" ? `https://api.weather.gov/alerts/active?area=${CFG_RT.state}`
+    url: /\/observations\/latest/.test(ep.url) ? ep.url : ep.id === "nws_alerts" ? `https://api.weather.gov/alerts/active?area=${CFG_RT.state}`
       : `https://api.weather.gov/gridpoints/${CFG_RT.nwsOffice}/${CFG_RT.nwsGridX},${CFG_RT.nwsGridY}${ep.id === "nws_forecast" ? "/forecast" : ep.id === "nws_hourly" ? "/forecast/hourly" : ""}`,
   }))
   const storeNOAA = result => {
@@ -1055,7 +1057,7 @@ export default function App() {
     abortRef.current = new AbortController()
     // Refresh missing/stale weather before constructing this request, so the
     // first ordinary question gets the same forecast evidence as Streamlit.
-    let full = ""
+    let full = "", requestMetadata = null
     setMessages(p=>[...p,{role:"assistant",content:"▋"}])
     try {
       await initialNoaaFetchRef.current
@@ -1077,15 +1079,15 @@ export default function App() {
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots(Object.values(noaaCacheRef.current),CFG_RT)},
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT)}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata}]) },
       )) {
         full += token
-        setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋"}])
+        setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋",scope:requestMetadata}])
       }
     } catch(e) {
       if (e.name!=="AbortError") full += `\n\n⚠ Error: ${e.message}`
     }
-    setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full}])
+    setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full,scope:requestMetadata}])
     setStreaming(false)
   }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
 
@@ -1236,8 +1238,11 @@ export default function App() {
                     <div style={{flexShrink:0,width:22,height:22,borderRadius:"50%",background:m.role==="assistant"?"#e8372c15":"#60a5fa15",border:`1px solid ${m.role==="assistant"?"#e8372c44":"#60a5fa44"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,marginTop:1}}>
                       {m.role==="assistant"?"E":"U"}
                     </div>
-                    <div style={{flex:1,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
-                      {m.content}
+                    <div style={{flex:1,minWidth:0,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
+                      {m.role==="assistant" ? <>
+                        <AssistantMarkdown>{m.content}</AssistantMarkdown>
+                        {m.scope && <details className="answer-provenance"><summary>Application request scope · source metadata</summary><div>Application metadata describes evidence selection; it does not verify the answer.</div><pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(m.scope,null,2)}</pre></details>}
+                      </> : m.content}
                     </div>
                   </div>
                 ))}

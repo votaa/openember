@@ -1,3 +1,5 @@
+import weatherPolicy from '../../shared/request-scope-policy.json' assert {type:'json'}
+const GRID_FIELDS=weatherPolicy.weather.grid_fields
 // Pure request-time contract. Browser snapshots are evidence, never provider settings.
 // Sunrise equations: https://gml.noaa.gov/grad/solcalc/solareqns.PDF
 export const SCOPE_VERSION='request-scope-v1'
@@ -89,6 +91,11 @@ function resolveScope({question,requestedAt,jurisdiction,weather=[],files=[],pol
   if(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b|\bnext week\b/.test(text))return clarify('Specify an unambiguous calendar date or start/end interval.')
   if(/\d{4}-\d{2}-\d{2}[ t]\d{2}:\d{2}.*\bto\b/.test(text))return clarify('Supply valid offset-bearing timestamps or unambiguous local clock endpoints.')
   if(new Set([...text.matchAll(new RegExp(`\\b(${weekdays.join('|')})\\b`,'g'))].map(m=>m[0])).size>1)return clarify('Supply explicit dates or a start/end interval for multiple weekdays.')
+  const rolling=/\bnext (\d+) (hours?|days?)\b/.exec(text)
+  if(rolling&&Number(rolling[1])>0&&Number(rolling[1])<=366)return resolved(now,now+Number(rolling[1])*(rolling[2].startsWith('day')?86400000:3600000),'rolling')
+  if(/\bnext (?:24|twenty-four) hours\b/.test(text))return resolved(now,now+86400000,'rolling')
+  if(/\b(?:current(?:ly)? (?:weather|conditions|temperature|winds?|observations?)|weather right now)\b/.test(text)&&! /\b(?:today|tomorrow|tonight)\b/.test(text)){scope.assumptions.push('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.');return resolved(now-3600000,now,'current_observation')}
+  if(/\b(?:seven|7)[ -]day forecast\b/.test(text))return resolved(now,now+7*86400000,'rolling')
   const today=day(now,zone)
   let date=today,explicitDate=false
   const dates=[...text.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g)].map(m=>m[0])
@@ -166,6 +173,10 @@ function resolveScope({question,requestedAt,jurisdiction,weather=[],files=[],pol
   }
   if(/\blater today\b/.test(text)){scope.assumptions.push('Later today means the remaining local calendar day.');return resolved(now,civil(addDays(today,1),'00:00',zone),'configured')}
   if(explicitDate||relative.length||weekday)return resolved(civil(date,'00:00',zone),civil(addDays(date,1),'00:00',zone),'explicit')
+  if(/\bforecast\b/.test(text)) {
+    const ends=weather.filter(s=>!['stale','unavailable'].includes(s.state)).flatMap(s=>(s.data?.properties?.periods||[]).map(p=>instant(p.endTime))).filter(t=>Number.isFinite(t)&&t>now)
+    if(ends.length){scope.assumptions.push('No forecast window supplied: showing the available forecast horizon, not a requested incident schedule.');return resolved(now,Math.max(...ends),'source_coverage')}
+  }
   return scope
 }
 
@@ -177,16 +188,34 @@ function durationEnd(value) {
 }
 export function scopedWeather(weather,scope) {
   return weather.map(source=>{
-    const out={id:source.id,url:source.url,geography:source.geography,area:source.area||null,fetched_at:source.fetched_at||null,state:source.state||'available',coverage:'unknown',periods:[],series:{}}
+    const out={id:source.id,url:source.url,geography:source.geography,area:source.area||null,coordinates:source.data?.geometry?.coordinates||null,updated_at:source.data?.properties?.updated||source.data?.properties?.generatedAt||source.data?.properties?.updateTime||null,fetched_at:source.fetched_at||null,state:source.state||'available',coverage:'unknown',periods:[],series:{}}
     if(scope.status!=='resolved'||source.geography!==scope.jurisdiction||['stale','unavailable'].includes(out.state))return out
-    const start=instant(scope.interval.start_utc),end=instant(scope.interval.end_utc),overlap=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&a<b&&a<end&&b>start
+    const requestedStart=instant(scope.interval.start_utc),requestedEnd=instant(scope.interval.end_utc),now=instant(scope.request_utc),cutoff=now+weatherPolicy.weather.near_term_seconds*1000
+    const p0=source.data?.properties||{},hourly=/\/forecast\/hourly(?:[?#]|$)/i.test(source.url)||p0.periods?.every(r=>!r.name)
+    const observation=typeof p0.timestamp==='string'
+    if(observation) {
+      const at=instant(p0.timestamp),age=now-at,coords=source.data?.geometry?.coordinates
+      out.observation={timestamp:p0.timestamp,station:p0.station||source.url,coordinates:coords||null,fields:{}}
+      out.coverage='observation only; no continuous historical coverage'
+      if(!Number.isFinite(age)||age<0||age>weatherPolicy.weather.observation_max_age_seconds*1000){out.state='stale';return out}
+      if(!Array.isArray(coords)||coords.length!==2||coords.some(v=>typeof v!=='number'||!Number.isFinite(v))||Math.abs(coords[0])>180||Math.abs(coords[1])>90){out.coverage='observation location unknown';return out}
+      if(requestedStart>=now||!(scope.method==='current_observation'||at>=requestedStart&&at<requestedEnd))return out
+      for(const key of weatherPolicy.weather.observation_fields)if(p0[key])out.observation.fields[key]=p0[key]
+      return out
+    }
+    const start=Math.max(requestedStart,now,Array.isArray(p0.periods)&&!hourly?cutoff:now),end=Math.min(requestedEnd,Array.isArray(p0.periods)&&hourly?cutoff:requestedEnd)
+    out.selected_interval=start<end?{start_utc:utc(start),end_utc:utc(end)}:null
+    out.granularity=Array.isArray(p0.periods)?hourly?'hourly':'point period':'grid interval'
+    out.segments=scopeSegments(scope).filter(segment=>instant(segment.start_utc)<end&&instant(segment.end_utc)>start&&segment.evidence!=='observations')
+    if(start>=end){out.coverage='not eligible for this segment';return out}
+    const overlap=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&a<b&&a<end&&b>start
     const p=source.data?.properties||{},intervals=[]
     if(Array.isArray(p.periods)) {
       out.periods=p.periods.filter(row=>overlap(instant(row.startTime),instant(row.endTime)))
       intervals.push(...out.periods.map(row=>[instant(row.startTime),instant(row.endTime)]))
       out.coverage=covered(intervals,start,end)?'complete':'partial'
     }
-    for(const key of ['windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation'])if(Array.isArray(p[key]?.values)) {
+    for(const key of GRID_FIELDS)if(Array.isArray(p[key]?.values)) {
       const rows=p[key].values.filter(row=>overlap(instant(String(row.validTime).split('/')[0]),durationEnd(row.validTime)))
       out.series[key]={uom:p[key].uom||null,values:rows,coverage:covered(rows.filter(row=>row.value!==null&&row.value!==undefined).map(row=>[instant(row.validTime.split('/')[0]),durationEnd(row.validTime)]),start,end)?'complete':'partial'}
       out.coverage='field-specific; no full-window aggregate calculated'
@@ -201,16 +230,27 @@ export function renderRequestScope(scope,weather=[]) {
 
 // Keep full relevant source snapshots separately; pass only explicit weather fields.
 export function weatherSnapshots(results,jurisdiction) {
-  return results.filter(r=>r?.ep&&r.data?.properties&&(['periods','windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation'].some(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values)))).map(r=>({
+  const keys=['periods',...GRID_FIELDS]
+  results=results.map(r=>r?.ep?r:{...r,ep:r?.url?{id:r.id||r.url,url:r.url,name:r.name||r.url}:null})
+  return results.filter(r=>r?.ep&&r.data?.properties&&(typeof r.data.properties.timestamp==='string'||keys.some(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values)))).map(r=>({
     id:r.ep.id,url:r.ep.url,geography:jurisdiction.name,area:r.ep.name,fetched_at:r.fetchedAt||r.fetched_at||null,state:(r.ok??r.success)?'available':'unavailable',
-    data:{properties:Object.fromEntries(['periods','windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation'].filter(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values)).map(k=>[k,r.data.properties[k]]))},
+    data:typeof r.data.properties.timestamp==='string'?structuredClone(r.data):{...(r.data.geometry?{geometry:structuredClone(r.data.geometry)}:{}),properties:Object.fromEntries(['updated','generatedAt','updateTime',...keys.filter(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values))].filter(k=>r.data.properties[k]!==undefined).map(k=>[k,r.data.properties[k]]))},
   }))
+}
+
+// Segment metadata describes eligibility; source intervals remain unchanged.
+export function scopeSegments(scope) {
+  if(!scope.interval)return []
+  const start=instant(scope.interval.start_utc),end=instant(scope.interval.end_utc),now=instant(scope.request_utc),cutoff=now+weatherPolicy.weather.near_term_seconds*1000
+  return [['observations',start,Math.min(end,now)],['hourly_and_grid',Math.max(start,now),Math.min(end,cutoff)],['point_periods_and_grid',Math.max(start,cutoff),end]]
+    .filter(([,a,b])=>a<b).map(([evidence,a,b])=>({evidence,...interval(a,b,scope.timezone)}))
 }
 
 export function resolveRequestScope(input) {
   const scope=resolveScope(input)
-  if(scope.interval)scope.historical=instant(scope.interval.end_utc)<=instant(scope.request_utc)
-  scope.coverage=scopedWeather(input.weather||[],scope).map(s=>({id:s.id,state:s.state,coverage:s.coverage,fields:Object.fromEntries(Object.entries(s.series).map(([k,v])=>[k,v.coverage]))}))
+  scope.segments=scopeSegments(scope)
+  if(scope.interval)scope.historical=scope.method!=='current_observation'&&instant(scope.interval.end_utc)<=instant(scope.request_utc)
+  scope.coverage=scopedWeather(input.weather||[],scope).map(s=>({id:s.id,url:s.url,area:s.area,coordinates:s.coordinates,updated_at:s.updated_at,fetched_at:s.fetched_at,selected_interval:s.selected_interval||null,observed_at:s.observation?.timestamp||null,state:s.state,coverage:s.coverage,fields:Object.fromEntries(Object.entries(s.series).map(([k,v])=>[k,v.coverage]))}))
   return scope
 }
 

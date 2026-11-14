@@ -6,6 +6,7 @@ from request_scope import *
 CASES=json.loads((ROOT/'tests/fixtures/scope/request-windows.json').read_text())
 
 CAPTURED=json.loads((ROOT/'docs/long-island/acceptance/cloud-preview-2026-11-14/client-request.json').read_text())
+CASES.extend(json.loads((ROOT/'tests/fixtures/scope/weather-selection.json').read_text()))
 CASES.append(dict(id='captured-point-hourly-grid',question=CAPTURED['messages'][-1]['content'],requestedAt='2026-11-14T14:56:24Z',jurisdiction=CASES[0]['jurisdiction'],weather=CAPTURED['scope_input']['weather'],files=[],expected=dict(status='resolved',method='source_period',start='2026-11-14T23:00:00Z',end='2026-11-15T11:00:00Z')))
 
 def project(c):
@@ -18,7 +19,10 @@ class ScopeTests(unittest.TestCase):
     def test_shared_fixed_expectations(self):
         for c in CASES:
             with self.subTest(case=c['id']):
-                scope=project(c)['scope'];e=c['expected']
+                out=project(c);scope=out['scope'];e=c['expected']
+                for id,count in c.get('selection',{}).items():
+                    row=next((s for s in out['weather'] if s['id']==('obs' if id=='observation_fields' else id)),{})
+                    self.assertEqual(len(row.get('observation',{}).get('fields',{})) if id=='observation_fields' else len(row['periods']),count,id)
                 self.assertEqual(scope['status'],e['status']);self.assertEqual(scope['method'],e['method'])
                 if e.get('start'):
                     self.assertEqual(scope['interval']['start_utc'],e['start']);self.assertEqual(scope['interval']['end_utc'],e['end'])

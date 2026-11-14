@@ -9,7 +9,7 @@ import {COPILOT_RULES,buildCopilotSystemPrompt} from '../src/data/copilotPrompt.
 const cases=JSON.parse(readFileSync(new URL('./fixtures/scope/request-windows.json',import.meta.url)))
 const captured=JSON.parse(readFileSync(new URL('../docs/long-island/acceptance/cloud-preview-2026-11-14/client-request.json',import.meta.url)))
 const capturedCase={id:'captured-point-hourly-grid',question:captured.messages.at(-1).content,requestedAt:'2026-11-14T14:56:24Z',jurisdiction:cases[0].jurisdiction,weather:captured.scope_input.weather,files:[],expected:{status:'resolved',method:'source_period',start:'2026-11-14T23:00:00Z',end:'2026-11-15T11:00:00Z'}}
-cases.push(capturedCase)
+cases.push(...JSON.parse(readFileSync(new URL('./fixtures/scope/weather-selection.json',import.meta.url))),capturedCase)
 function project(c) {
  const input={...structuredClone(c),policy:c.policy||policy}
  if('sunrise_clock' in c)input.sunriseFn=(date,ref)=>c.sunrise_clock?civil(date,c.sunrise_clock,c.jurisdiction.timezone):NaN
@@ -17,7 +17,8 @@ function project(c) {
  return {scope,weather:scopedWeather(c.weather,scope),render:renderRequestScope(scope,c.weather)}
 }
 for(const c of cases)test(`request window: ${c.id}`,()=>{
- const before=structuredClone(c),{scope}=project(c),e=c.expected
+ const before=structuredClone(c),{scope,weather}=project(c),e=c.expected
+ for(const [id,count] of Object.entries(c.selection||{}))assert.equal(id==='observation_fields'?Object.keys(weather.find(s=>s.id==='obs')?.observation?.fields||{}).length:weather.find(s=>s.id===id).periods.length,count,id)
  assert.equal(scope.status,e.status);assert.equal(scope.method,e.method)
  if(e.start){assert.equal(scope.interval.start_utc,e.start);assert.equal(scope.interval.end_utc,e.end)}
  if(scope.method==='assumed'){assert.equal(instant(scope.interval.end_utc)-instant(scope.interval.start_utc),57600000);assert.deepEqual(scope.source_refs[0].reference,c.jurisdiction.center)}

@@ -1,0 +1,24 @@
+{
+  "commander": [
+    "Incident commander",
+    "Commander"
+  ],
+  "cone_specifications": [
+    "Cone specifications",
+    "Cone specification"
+  ],
+  "cone_ballast": [
+    "Cone ballast",
+    "Ballast"
+  ],
+  "cone_placement": [
+    "Cone placement"
+  ],
+  "facility_coordinates": [
+    "Facility coordinates"
+  ],
+  "radio_authority": [
+    "Radio authority",
+    "Authorized radio use"
+  ]
+}

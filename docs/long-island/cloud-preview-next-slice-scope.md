@@ -69,3 +69,7 @@ Simple text/regex diagnostics may support acceptance review but cannot establish
 - Acceptance review checks every section, table, recommendation and conclusion: dates/geography, source-faithful values, uncertainty, no invented thresholds/likelihoods or operational authority. Full model answer compliance remains a measured gate rather than something deterministic prompt tests prove.
 
 Implementation order: item 1 selection and conformance; item 2 facts/gaps; Markdown presentation; approved narrow item 3 option; existing gate and hosted review. No model change, broad branch merge, deployment policy change, automatic prose rewriting or production promotion is included. Follow the user's review/commit ownership.
+
+## Implementation status — November 14, 2026
+
+Implemented locally with user-selected narrow item 3 **A**. See [implementation and local acceptance](cloud-preview-next-slice-implementation.md). The local gate and deterministic browser checks pass; hosted whole-answer acceptance remains pending user review/commit and a verified preview.

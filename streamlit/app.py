@@ -53,6 +53,8 @@ from copilot_prompt import (
     build_knowledge_base_context,
 )
 from weather_context import summarize_weather
+from answer_presentation import answer_markdown
+from evidence_summary import evidence_summary, strip_weather_context
 from request_scope import resolve_request_scope, render_request_scope, weather_snapshots, needs_scope_refresh, instant as scope_instant
 from esri_presentation import (
     build_presentation,
@@ -905,7 +907,8 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         ctx += "\n"
     if api_results:
         ctx += "--- LIVE API DATA ---\n"
-        for r in api_results: ctx += summarize_api(r) + "\n"
+        for r in api_results:
+            if not re.search(r"^https://api\.weather\.gov/(gridpoints|stations)/", r.get("url", ""), re.I): ctx += summarize_api(r) + "\n"
         ctx += "\n"
     hazard_result = (phase4_results or {}).get("nyc_311_electric_hazards_rockaway")
     if hazard_result:
@@ -932,11 +935,13 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         for item in esri_items: ctx += item["content"] + "\n\n"
     return ctx
 
-def stream_ollama(messages, context, request_scope=None, weather=None):
+def stream_ollama(messages, context, request_scope=None, weather=None, files=None):
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
-    system_prompt = build_copilot_system_prompt(CFG.name, context, render_request_scope(request_scope, weather) if request_scope else None)
+    context = strip_weather_context(context, files)
+    scope_context = render_request_scope(request_scope, weather) + evidence_summary(request_scope, weather, files) if request_scope else None
+    system_prompt = build_copilot_system_prompt(CFG.name, context, scope_context)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "options": {"num_predict": UPLOAD_LIMITS['outputReserveTokens']},
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
@@ -2435,7 +2440,13 @@ with tab_esri:
 with tab_chat:
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+            if msg['role']=='assistant':
+                st.markdown(answer_markdown(msg['content']))
+                if msg.get('scope'):
+                    with st.expander('Application request scope · source metadata'):
+                        st.caption('Application metadata describes evidence selection; it does not verify the answer.')
+                        st.json(msg['scope'])
+            else:st.text(msg['content'])
 
     with st.expander("▸ Quick Queries"):
         qcols = st.columns(2)
@@ -2472,11 +2483,12 @@ with tab_chat:
                 for ep, result in zip(required_refresh, pool.map(fetch_noaa_ep, required_refresh)):
                     st.session_state.noaa_results[ep['id']] = result
                     if result['success']: upsert_noaa_kb(ep, result)
-            weather = weather_snapshots(list(st.session_state.noaa_results.values()), jurisdiction)
+            weather = weather_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results, jurisdiction)
             for source in weather:
                 age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
                 if not (-300000 <= age <= 3600000): source['state'] = 'stale'
             request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files)
+            st.session_state.messages[assistant_index]["scope"] = request_scope
             ctx  = build_context(
                 st.session_state.files, st.session_state.api_results,
                 active_kb, st.session_state.esri_items,
@@ -2494,19 +2506,22 @@ with tab_chat:
             for m in st.session_state.messages[max(0, assistant_index - 10):assistant_index]
         ]
         with st.chat_message("assistant"):
+            with st.expander('Application request scope · source metadata'):
+                st.caption('Application metadata describes evidence selection; it does not verify the answer.')
+                st.json(request_scope)
             placeholder = st.empty()
             full = ""
             try:
-                for token in stream_ollama(msgs, ctx, request_scope, weather):
+                for token in stream_ollama(msgs, ctx, request_scope, weather, st.session_state.files):
                     full += token
                     update_chat_response(st.session_state.messages, assistant_index, full)
-                    placeholder.markdown(full + "▋")
+                    placeholder.markdown(answer_markdown(full) + "▋")
             except Exception as exc:
                 full += f"\n\n⚠ Chat response interrupted: {exc}"
             finally:
                 finish_chat_response(st.session_state.messages, assistant_index, full)
                 st.session_state.chat_response_pending = False
-            placeholder.markdown(full)
+            placeholder.markdown(answer_markdown(full))
         st.rerun()
 
     if "pending_query" in st.session_state:
