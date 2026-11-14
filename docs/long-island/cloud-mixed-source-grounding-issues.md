@@ -94,6 +94,39 @@ Acceptance:
 - Explicit historical dates remain usable and clearly labeled historical. Test expired source coverage, source refresh failure, midnight, DST transitions and a browser time zone different from the jurisdiction.
 - Hourly/grid rows outside the resolved interval cannot be cited as tonight's conditions. Original offsets and source intervals survive formatting.
 
+## Date-language scope refinement — November 14
+
+The intended temporal interface covers common natural-language dates and dayparts, not only tonight/tomorrow. User examples to include in the design and fixtures:
+
+| Phrase family | Resolution requirement |
+| --- | --- |
+| This afternoon | Current jurisdiction-local date plus the documented afternoon interval |
+| Later today | Remaining local day or an explicitly configured cutoff; disclose the chosen boundary |
+| Tomorrow AM / tomorrow afternoon | Next local calendar date plus the documented AM/afternoon interval |
+| Day after tomorrow / two days from now | Add two local calendar dates, not blindly 48 elapsed hours; use the requested daypart or clearly labeled day scope |
+| Named weekdays, explicit dates and clock ranges | Respect explicit scope, jurisdiction zone and DST; clarify ambiguous constructions such as next Friday when needed |
+| Next operational period | Resolve from incident/IAP context or an explicitly configured incident schedule; never silently substitute a generic daypart |
+
+Broad phrase coverage is the intent; universal understanding of every possible expression is not a verifiable promise. Unresolved or conflicting scope should produce a focused clarification while preserving other supported parts of the question. Keep free-form KB/document synthesis available.
+
+### Next operational period
+
+This is an incident-specific interval. [FEMA's ICS training reference guide](https://training.fema.gov/emiweb/is/icsresource/assets/ics_training_reference_guide.pdf) describes the operational period as the scheduled time for IAP actions and notes that its length varies. ICS forms record explicit start/end dates and times. An OpenEmber fallback must not be represented as an official ICS definition or a command-approved schedule.
+
+Proposed resolution order:
+
+1. An explicit user-requested analysis interval, recorded as a user override rather than rewriting the official IAP schedule.
+2. The next explicitly defined period in the applicable, current IAP for the selected incident. Retain document/section references, dates, times, zone and revision/approval information where supplied. Conflicting IAPs or unclear incident applicability require clarification; do not merely choose the latest upload.
+3. A configured incident operational-period schedule, with its derivation labeled. An IAP naming only the current period does not establish that the next period repeats its duration.
+4. A clearly labeled, configured planning fallback, if no authoritative interval is available.
+5. Clarify when the information needed by the selected rule is missing.
+
+The user proposed a possible fallback: next working day beginning at sunrise/daybreak and continuing for 16 working hours. This is a candidate **application planning assumption**, not an enabled default. Implementation needs definitions for the incident working calendar (including weekends/holidays), solar boundary, planning location, time zone and whether 16 hours means elapsed time or scheduled working hours excluding breaks. A 16-hour interval may extend after dark. If prerequisites are missing, ask rather than invent the window.
+
+The resolved contract should carry interval, time zone, resolution method (explicit/IAP/configured/assumed), source references, coverage, assumptions and clarification status. The response must display the concrete interval and whether it was supplied or assumed. If an IAP was ingested in a supported text format, extraction must identify the relevant operational-period fields rather than treating unrelated date occurrences as a schedule. PDF/DOCX IAP extraction remains outside the current uploader's supported file types unless separately implemented.
+
+Additional fixtures: dayparts and rolling/calendar offsets, ambiguous weekday phrasing, a current IAP with a defined next period, an IAP containing only the current period, stale/conflicting plans, a timezone-free IAP, configured incident schedules, weekend operations, and a solar/16-hour fallback with missing location or calendar context.
+
 ## System prompt changes to propose
 
 Update the cloud-path `COPILOT_RULES` and prompt builders in both `src/data/copilotPrompt.js` and `streamlit/copilot_prompt.py`, keeping semantic parity. Add a versioned Request scope block through code rather than embedding today's date as a permanent string.
