@@ -7,6 +7,9 @@ import {resolveRequestScope,scopedWeather,renderRequestScope,civil,sunrise,insta
 import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
 import {COPILOT_RULES,buildCopilotSystemPrompt} from '../src/data/copilotPrompt.js'
 const cases=JSON.parse(readFileSync(new URL('./fixtures/scope/request-windows.json',import.meta.url)))
+const captured=JSON.parse(readFileSync(new URL('../docs/long-island/acceptance/cloud-preview-2026-11-14/client-request.json',import.meta.url)))
+const capturedCase={id:'captured-point-hourly-grid',question:captured.messages.at(-1).content,requestedAt:'2026-11-14T14:56:24Z',jurisdiction:cases[0].jurisdiction,weather:captured.scope_input.weather,files:[],expected:{status:'resolved',method:'source_period',start:'2026-11-14T23:00:00Z',end:'2026-11-15T11:00:00Z'}}
+cases.push(capturedCase)
 function project(c) {
  const input={...structuredClone(c),policy:c.policy||policy}
  if('sunrise_clock' in c)input.sunriseFn=(date,ref)=>c.sunrise_clock?civil(date,c.sunrise_clock,c.jurisdiction.timezone):NaN
@@ -108,4 +111,19 @@ test('real React streaming function sends versioned scope snapshots and retains 
  for await(const token of stream([{role:'user',content:'Assess tonight.'}],'FULL_KB\n'+uploadedDocumentContext([doc]),undefined,'recording-only-key','Long Island',[doc],input))answer+=token
  assert.equal(answer,'recorded');assert.equal(calls.length,1);assert.deepEqual(calls[0].body.scope_input,input)
  assert.ok(calls[0].body.messages[0].content.includes(doc.content))
+})
+
+test('captured point/hourly/grid selection retains exact overlapping intervals and source values',()=>{
+ const before=structuredClone(capturedCase),{scope,weather}=project(capturedCase)
+ assert.equal(scope.interval.start_local,'2026-11-14T18:00:00-05:00')
+ assert.equal(scope.interval.end_local,'2026-11-15T06:00:00-05:00')
+ const hourly=weather.find(s=>s.id==='nws_hourly'),gust=weather.find(s=>s.id==='nws_grid').series.windGust.values
+ assert.equal(hourly.periods.length,12)
+ assert.ok(gust.some(r=>r.validTime==='2026-11-14T23:00:00+00:00/PT1H'&&r.value===29.632))
+ assert.ok(!gust.some(r=>r.validTime==='2026-11-14T18:00:00+00:00/PT1H'))
+ assert.deepEqual(capturedCase,before)
+ const hourlyOnly={...capturedCase,weather:capturedCase.weather.filter(s=>s.id==='nws_hourly')}
+ assert.equal(project(hourlyOnly).scope.status,'clarify')
+ const renamed=structuredClone(hourlyOnly);renamed.weather[0].data.properties.periods.forEach(p=>p.name='Tonight')
+ assert.equal(project(renamed).scope.status,'clarify')
 })

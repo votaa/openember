@@ -61,9 +61,10 @@ def interval(start,end,zone):
 def matching_period(weather,date,night,zone,now,overnight=False):
     unique={}
     for source in weather:
-        if source.get('state') in ('unavailable','stale'):continue
+        if source.get('state') in ('unavailable','stale') or re.search(r'/forecast/hourly(?:[?#]|$)',source.get('url',''),re.I):continue
         for p in source.get('data',{}).get('properties',{}).get('periods',[]):
             start,end=instant(p.get('startTime')),instant(p.get('endTime'))
+            if not isinstance(p.get('name'),str) or not p['name'].strip():continue
             if type(p.get('isDaytime')) is not bool or p['isDaytime'] is night or not math.isfinite(start) or not math.isfinite(end):continue
             if (start<=now<end) if overnight else local_stamp(start,zone)[:10]==date and int(local_stamp(start,zone)[11:13])>=12:
                 unique[p['startTime']+'|'+p['endTime']]=dict(p=p,ref=dict(source=source['id'],url=source['url'],start=p['startTime'],end=p['endTime'],geography=source['geography']))

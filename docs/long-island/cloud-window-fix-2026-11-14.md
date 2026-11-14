@@ -1,0 +1,15 @@
+# Point versus hourly window correction — November 14, 2026
+
+Branch: `codex/cloud-upload-coverage`, worktree `/private/tmp/openember-cloud-upload`, base `ad31b6b`. Changes are uncommitted because this session cannot write the shared Git worktree index.
+
+Both runtimes now require a named point period to establish the night boundary and exclude the NWS `/forecast/hourly` endpoint (including query/fragment variants). Period names are only a point-versus-hourly discriminator; timestamp/date/isDaytime checks still select the requested night. Hourly periods remain eligible as overlapping evidence in WINDOW MATCHES. No source timestamps, weather values, freshness limits, provider settings or grounding rules were changed.
+
+The JS and Python regressions consume the same retained complete client request from `acceptance/cloud-preview-2026-11-14/client-request.json`. Both assert November 14 23:00Z through November 15 11:00Z (18:00–06:00 EST), 12 hourly records, inclusion of the original 29.632 km/h gust at 23:00Z and exclusion of the daytime 18:00Z gust. Hourly-only and artificially named hourly records cannot establish a night boundary. The full projection parity assertion includes the captured case.
+
+Validation: `PATH=/Users/anthonyvota/Projects/openember/.venv/bin:$PATH npm run phase4:gate` passed with Python 3.11, including build, regional/Streamlit/cloud-upload/request-scope suites and diff checks. Request-scope tests: 60 JS tests and 3 Python tests; both execute 50 shared cases. Initial system-Python 3.9 attempts failed on existing Python >=3.10 syntax; no runtime compatibility workaround was added. Generated tracked dist output was restored after the build.
+
+`acceptance/cloud-preview-2026-11-14/window-fix-diagnostic.json` records local production scope resolution with the unchanged frozen request at the original receipt clock and the actual current clock. At the original clock, the request resolves correctly; at the current clock, the existing one-hour freshness policy marks all three weather snapshots stale and requires clarification. Frozen fetched-at values were not rewritten. This is local deterministic evidence, not hosted provider input or model acceptance.
+
+Hosted revalidation remains blocked. Automatic approval review rejected creating a preview for Vercel project `openember` (`prj_eCcSWFbgZAhhv3LEZJRY7L5sNAZw`, team `ember-li`) because the source bundle includes operational knowledge-base and infrastructure details whose external disclosure requires explicit authorization. No deployment, commit, push or promotion succeeded. The old immutable preview contains the previous code and was not represented as a test of this correction.
+
+GROUND-001, GROUND-002 and GROUND-003 remain open. Whole-answer review must still assess unknown versus absent commander, unsupported radio/hazard/operating reassurance, exact UTC/local source alignment, full upload/KB retention and provenance. A future hosted frozen-input run must explicitly account for the now-stale snapshot; it cannot establish fresh selection acceptance by changing its fetch timestamps.

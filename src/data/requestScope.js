@@ -48,8 +48,9 @@ function interval(start,end,zone) {
   if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start)return null
   return {start_utc:utc(start),end_utc:utc(end),start_local:localStamp(start,zone),end_local:localStamp(end,zone)}
 }
+// NWS point periods are named; hourly subdivisions cannot define a whole night.
 function matchingPeriod(weather,date,night,zone,now,overnight=false) {
-  const candidates=weather.filter(source=>!['stale','unavailable'].includes(source.state)).flatMap(source=>(source.data?.properties?.periods||[]).filter(p=>typeof p.isDaytime==='boolean'&&p.isDaytime===!night&&Number.isFinite(instant(p.startTime))&&Number.isFinite(instant(p.endTime))&&
+  const candidates=weather.filter(source=>!['stale','unavailable'].includes(source.state)&&!/\/forecast\/hourly(?:[?#]|$)/i.test(source.url||'')).flatMap(source=>(source.data?.properties?.periods||[]).filter(p=>typeof p.name==='string'&&p.name.trim()&&typeof p.isDaytime==='boolean'&&p.isDaytime===!night&&Number.isFinite(instant(p.startTime))&&Number.isFinite(instant(p.endTime))&&
     (overnight?instant(p.startTime)<=now&&instant(p.endTime)>now:day(instant(p.startTime),zone)===date&&Number(localStamp(p.startTime,zone).slice(11,13))>=12)).map(p=>({p,ref:{source:source.id,url:source.url,start:p.startTime,end:p.endTime,geography:source.geography}})))
   const unique=new Map(candidates.map(c=>[c.p.startTime+'|'+c.p.endTime,c]))
   return unique.size===1?[...unique.values()][0]:null
