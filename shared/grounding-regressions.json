@@ -1,0 +1,40 @@
+{
+  "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+  "input_capture": "docs/long-island/acceptance/cloud-preview-2026-11-14/client-request.json",
+  "requested_at": "2026-11-14T14:56:24Z",
+  "provenance": "Four failures reported by the user for the next grounding slice; rejected wording is representative, not a claim of verbatim capture for every failure.",
+  "cases": [
+    {
+      "id": "commander",
+      "rejected_claim": "No incident commander is assigned.",
+      "required_rule": "Unknown commander assignment remains unknown throughout facts, possible impacts, gaps and any summary",
+      "review_requirement": "The plan does not specify a commander; actual assignment remains unknown in every section. Do not infer coordination problems from an absent commander."
+    },
+    {
+      "id": "cone_threshold",
+      "rejected_claim": "Cones are stable below 15 mph.",
+      "required_rule": "Do not invent a 15 mph or other cone-stability threshold",
+      "review_requirement": "No cone threshold is supplied. Retain conditional displacement possibility with missing specifications, ballast and placement."
+    },
+    {
+      "id": "drizzle_frost",
+      "rejected_claim": "Drizzle or frost is likely.",
+      "required_rule": "drizzle or frost likelihood and no threat to utilities remain unknown",
+      "review_requirement": "Precipitation probability and nighttime low alone do not establish drizzle/frost or their likelihood."
+    },
+    {
+      "id": "utility_reassurance",
+      "rejected_claim": "There is no threat to utilities.",
+      "required_rule": "operational reassurance require supplied supporting evidence applicable to the asset, place and time",
+      "review_requirement": "No threat to utilities, safe operation or asset stability requires applicable supporting evidence; a later gap does not repair reassurance."
+    }
+  ],
+  "conditional_analysis": "Cone displacement is possible, but stability cannot be assessed without cone specifications, ballast and placement.",
+  "positive_evidence_rule": "Retain thresholds, likelihoods and applicable procedures when explicitly supplied, with attribution and their scope.",
+  "review_requirements": [
+    "Review every section, including tables and conclusions, against the actual evidence.",
+    "Preserve CEDAR-731, 47 amber cones and DELTA-19, full enabled KB and applicable request-window evidence.",
+    "Preserve source offsets and geography; do not move daytime UTC grid values into tonight.",
+    "Do not treat passing prompt/regression checks as live model acceptance."
+  ]
+}
