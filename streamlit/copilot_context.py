@@ -5,6 +5,7 @@ import re
 from copilot_contract import POLICY, input_estimate
 from copilot_prompt import COPILOT_RULES
 from copilot_forecast import context_forecast_periods
+from copilot_window import request_windows, instant, covers_window
 
 CFG = POLICY['context']
 
@@ -82,34 +83,34 @@ def header(block):
 
 def projection(block,request,intent):
     out=header(block)
+    if block['kind'] in ('forecast','live') and request_windows(request)['requested']:
+        out['requested_windows']=request_windows(request)['windows']
     if block['kind']=='document': out['values']=retrieve(block,request['question'])
     elif block['kind']=='map_layer': out['values']=dict(complete_count=block['values']['complete_count'],unit=block['values'].get('unit'),samples=block['values'].get('samples',[])[:3],summary=block['values'].get('summary'))
     elif block['kind']=='forecast':
-        text=request['question'].lower()
-        named=re.search('tonight|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday',text)
         periods=block['values'].get('periods',[])
         exact=[op['scope']['interval'] for op in (intent or {}).get('operations',[]) if op['intent']=='forecast_facts' and op['status']=='ready']
         if exact:
-            from datetime import datetime
-            instant=lambda s:datetime.fromisoformat(s.replace('Z','+00:00'))
             periods=[p for p in periods if any(instant(p['startTime'])>=instant(i['start']) and instant(p['endTime'])<=instant(i['end']) for i in exact)]
-        elif named:
+        elif request_windows(request)['requested']:
             periods=context_forecast_periods(request,periods)
-            if not periods:out['limitations'].append('Requested forecast period is outside supplied point-forecast coverage.');out['state']['completeness']='partial'
+            if not request_windows(request)['windows'] or any(not covers_window(periods,w) for w in request_windows(request)['windows']):out['limitations'].append('Requested forecast window is not fully covered by supplied point-forecast intervals; uncovered times are unknown.');out['state']['completeness']='partial'
         fields=('name','isDaytime','startTime','endTime','temperature','temperatureUnit','windSpeed','windDirection','detailedForecast','shortForecast','probabilityOfPrecipitation')
         out['values']=dict(periods=[{k:p[k] for k in fields if k in p} for p in periods])
-    elif block['kind']=='live' and isinstance(block['values'].get('raw'),dict) and any((block['values']['raw'].get('properties',{}).get(k) or {}).get('values') for k in ('windGust','windSpeed','quantitativePrecipitation','probabilityOfPrecipitation')):
-        from datetime import datetime,timedelta
-        properties=block['values']['raw']['properties'];windows=context_forecast_periods(request,[p for b in request['evidence'] if b['kind']=='forecast' for p in b['values'].get('periods',[])])
+    elif block['kind']=='live' and isinstance(block['values'].get('raw'),dict) and any(isinstance((block['values']['raw'].get('properties',{}).get(k) or {}).get('values'),list) for k in ('windGust','windSpeed','quantitativePrecipitation','probabilityOfPrecipitation')):
+        from datetime import timedelta
+        properties=block['values']['raw']['properties'];scope=request_windows(request);windows=scope['windows']
         fields=['windGust','windSpeed'] if re.search('gust',request['question'],re.I) else ['quantitativePrecipitation'] if re.search('rainfall|rain amount',request['question'],re.I) else ['windSpeed','windGust','quantitativePrecipitation','probabilityOfPrecipitation']
         series={}
         def overlaps(row):
-            if not windows:return True
+            if not scope['requested']:return True
             parts=str(row.get('validTime','')).split('/')
             match=re.fullmatch(r'P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?',parts[1] if len(parts)>1 else '')
-            if not match:return True
-            start=datetime.fromisoformat(parts[0].replace('Z','+00:00'));end=start+timedelta(seconds=float(match[1] or 0)*86400+float(match[2] or 0)*3600+float(match[3] or 0)*60+float(match[4] or 0))
-            return any(start<datetime.fromisoformat(p['endTime'].replace('Z','+00:00')) and end>datetime.fromisoformat(p['startTime'].replace('Z','+00:00')) for p in windows)
+            if not match or len(parts)!=2:return False
+            try:start=instant(parts[0])
+            except (ValueError,TypeError):return False
+            end=start+timedelta(seconds=float(match[1] or 0)*86400+float(match[2] or 0)*3600+float(match[3] or 0)*60+float(match[4] or 0))
+            return end>start and any(start<instant(p['end']) and end>instant(p['start']) for p in windows)
         for key in fields:
             if key not in properties:continue
             values=[row for row in properties[key].get('values',[]) if overlaps(row)]

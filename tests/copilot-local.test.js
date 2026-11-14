@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs'
 import {execFileSync} from 'node:child_process'
 import {createChatHandler} from '../lib/chat-handler.js'
 import {createCopilot,synthesisMessages} from '../lib/copilot-service.js'
+import {COPILOT_RULES} from '../src/data/copilotPrompt.js'
 import {localAnswer} from '../lib/copilot-local-queries.js'
 import {planRequest} from '../lib/copilot-intent.js'
 import {adaptEvidence} from '../lib/copilot-evidence.js'
@@ -128,12 +129,14 @@ test('partial synthesis errors keep the committed response and never retry it',a
   assert.equal(result.at(-1).error.partial,true)
 })
 
-test('structured synthesis exactly preserves every retained legacy prompt in both interfaces',()=>{
+test('structured synthesis preserves legacy evidence/history with current grounding rules in both interfaces',()=>{
   const golden=JSON.parse(readFileSync(new URL('../shared/copilot/fixtures/legacy-prompts.json',import.meta.url)))
   for(const [runtime,scenarios] of Object.entries(golden)) for(const [id,messages] of Object.entries(scenarios)) {
     const context=/\n\nKNOWLEDGE BASE:\n([\s\S]*)\n\nRULES: /.exec(messages[0].content)[1]
     const request=withLegacyContext({...corpus.base_request,question:messages.at(-1).content,history:messages.slice(1,-1)},context,adaptEvidence)
-    assert.deepEqual(synthesisMessages(request),messages,`${runtime}/${id}`)
+    const expected=structuredClone(messages)
+    expected[0].content=expected[0].content.replace(/RULES: [\s\S]*$/, 'RULES: '+COPILOT_RULES)
+    assert.deepEqual(synthesisMessages(request),expected,`${runtime}/${id}`)
   }
 })
 

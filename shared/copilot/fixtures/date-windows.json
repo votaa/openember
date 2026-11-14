@@ -1,0 +1,20 @@
+{
+  "timezone": "America/New_York",
+  "cases": [
+    {"id":"local-date-before-UTC-midnight", "period":"today", "at":"2026-11-14T02:00:00Z", "start":"2026-11-13T05:00:00Z", "end":"2026-11-14T05:00:00Z"},
+    {"id":"spring-day", "period":"tomorrow", "at":"2026-03-07T17:00:00Z", "start":"2026-03-08T05:00:00Z", "end":"2026-03-09T04:00:00Z"},
+    {"id":"fall-day", "period":"tomorrow", "at":"2026-10-31T16:00:00Z", "start":"2026-11-01T04:00:00Z", "end":"2026-11-02T05:00:00Z"},
+    {"id":"spring-night", "period":"tonight", "at":"2026-03-07T17:00:00Z", "start":"2026-03-07T23:00:00Z", "end":"2026-03-08T10:00:00Z"},
+    {"id":"fall-night", "period":"tomorrow night", "at":"2026-10-30T16:00:00Z", "start":"2026-10-31T22:00:00Z", "end":"2026-11-01T11:00:00Z"},
+    {"id":"weekday-today", "period":"saturday", "at":"2026-11-14T17:00:00Z", "start":"2026-11-14T05:00:00Z", "end":"2026-11-15T05:00:00Z"},
+    {"id":"weekday-next-occurrence", "period":"monday", "at":"2026-11-14T17:00:00Z", "start":"2026-11-16T05:00:00Z", "end":"2026-11-17T05:00:00Z"},
+    {"id":"weekday-night", "period":"sunday night", "at":"2026-10-31T16:00:00Z", "start":"2026-11-01T23:00:00Z", "end":"2026-11-02T11:00:00Z"},
+    {"id":"leap-day", "period":"2028-02-29", "at":"2026-11-14T17:00:00Z", "start":"2028-02-29T05:00:00Z", "end":"2028-03-01T05:00:00Z"},
+    {"id":"inclusive-calendar-range", "period":"2026-03-07 to 2026-03-08", "at":"2026-11-14T17:00:00Z", "start":"2026-03-07T05:00:00Z", "end":"2026-03-09T04:00:00Z"},
+    {"id":"explicit-offset-range", "period":"2026-11-01T01:00:00-04:00 to 2026-11-01T01:00:00-05:00", "at":"2026-11-14T17:00:00Z", "start":"2026-11-01T05:00:00Z", "end":"2026-11-01T06:00:00Z"},
+    {"id":"invalid-calendar", "period":"2026-02-30", "at":"2026-11-14T17:00:00Z"},
+    {"id":"reversed-range", "period":"2026-11-15 to 2026-11-14", "at":"2026-11-14T17:00:00Z"},
+    {"id":"empty-range", "period":"2026-11-14T12:00:00Z to 2026-11-14T12:00:00Z", "at":"2026-11-14T17:00:00Z"},
+    {"id":"naive-request", "period":"today", "at":"2026-11-14T17:00:00"}
+  ]
+}

@@ -6,6 +6,8 @@ Status: phase 5 validation is complete; native grounding and synthesis usability
 
 November 13 follow-up: shared local grounding and concise-response guidance, retained failure fixtures and a repeated native comparison are documented in [grounding and conciseness results](copilot-grounding-and-conciseness-2026-11-13.md). Native grounding remains a failed promotion gate; hybrid stays experimental.
 
+November 14 follow-up: the [shared date/window contract](copilot-date-window-contract.md) now drives timestamp-based forecast and independent grid selection in both runtimes, with shared regression cases and aligned base grounding rules. Native model acceptance remains open.
+
 Reference: AIDA's current `CopilotService`, `CopilotContextBuilder`, response contract, and provider-bypass tests
 
 ## 1. Problem and intended behavior

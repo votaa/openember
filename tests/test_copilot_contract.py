@@ -85,6 +85,9 @@ class CopilotContractTests(unittest.TestCase):
         data = json.loads((FIXTURES / 'legacy-input.json').read_text())
         expected = json.loads((FIXTURES / 'legacy-prompts.json').read_text())['streamlit']
         actual = {s['id']: legacy_streamlit(data, s) for s in data['scenarios']}
+        from copilot_prompt import COPILOT_RULES
+        for messages in expected.values():
+            messages[0]['content']=messages[0]['content'].split('RULES: ')[0]+'RULES: '+COPILOT_RULES
         self.assertEqual(actual, expected)
         full = actual['whole-kb'][0]['content']
         self.assertIn('LATE-KB-DELTA-19', full)

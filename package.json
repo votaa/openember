@@ -18,7 +18,7 @@
     "start": "node server.js",
     "test:ollama": "node --test tests/ollama.test.js tests/ollama-node.test.js && python3 -m unittest tests/test_ollama_provider.py tests/test_chat_job.py",
     "test:ollama:local": "node scripts/test-ollama-local.js",
-    "test:copilot-contract": "node --test tests/copilot-contract.test.js && python3 -m unittest tests/test_copilot_contract.py",
+    "test:copilot-contract": "node --test tests/copilot-contract.test.js tests/copilot-window.test.js && python3 -m unittest tests/test_copilot_contract.py tests/test_copilot_window.py",
     "test:copilot-local": "node --test tests/copilot-local.test.js && python3 -m unittest tests/test_copilot_local.py",
     "local-first:gate": "npm run phase4:gate && npm run test:ollama && npm run test:copilot-contract && npm run test:copilot-local && npm run test:copilot-context && npm run test:copilot-fallback && npm run test:copilot-acceptance && python3 -m py_compile streamlit/ollama_provider.py streamlit/chat_job.py streamlit/copilot_contract.py streamlit/copilot_evidence.py streamlit/copilot_intent.py streamlit/copilot_forecast.py streamlit/copilot_local_queries.py streamlit/copilot_service.py streamlit/copilot_fallback.py streamlit/copilot_snapshot.py streamlit/copilot_context.py streamlit/copilot_acquisition.py && git diff --check",
     "test:copilot-context": "node --test tests/copilot-context.test.js && python3 -m unittest tests/test_copilot_context.py",

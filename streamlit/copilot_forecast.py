@@ -1,13 +1,9 @@
 """Calendar-aware selection without modifying forecast values or offsets."""
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from copilot_window import instant, local_date, resolve_window, request_windows, overlaps
 
 
 def forecast_periods(periods,scope,requested_at):
     if scope['period']=='first period': return periods[:1]
-    exact=[p for p in periods if p.get('name','').lower()==scope['period']]
-    if exact and scope['period'] not in ('today','tonight','tomorrow','tomorrow night'): return exact
-    def instant(stamp): return datetime.fromisoformat(stamp.replace('Z','+00:00').replace('z','+00:00'))
     interval=(scope['period'] or '').split(' to ')
     if len(interval)==2:
         try:
@@ -17,27 +13,16 @@ def forecast_periods(periods,scope,requested_at):
             if not rows or instant(rows[0]['startTime'])>start or instant(rows[-1]['endTime'])<end or any(instant(p['startTime'])!=instant(rows[i-1]['endTime']) for i,p in enumerate(rows) if i): return []
             return rows
         except (ValueError,TypeError,KeyError): return []
-    if scope['period'] not in ('today','tonight','tomorrow','tomorrow night'): return []
-    tz=ZoneInfo(scope['timezone'])
-    wanted=instant(requested_at).astimezone(tz).date()
-    if scope['period'].startswith('tomorrow'): wanted+=timedelta(days=1)
-    dated_exact=[p for p in exact if instant(p['startTime']).astimezone(tz).date()==wanted]
-    if dated_exact: return dated_exact
+    window=resolve_window(scope['period'],requested_at,scope['timezone'])
+    if not window:return []
+    wanted=local_date(window['start'],scope['timezone'])
     night='night' in scope['period'] or 'low' in scope['fields']
-    return [p for p in periods if instant(p['startTime']).astimezone(tz).date()==wanted and p.get('isDaytime') is (not night)]
+    def selected(p):
+        try:return local_date(p['startTime'],scope['timezone'])==wanted and p.get('isDaytime') is (not night)
+        except (ValueError,TypeError,KeyError):return False
+    return [p for p in periods if selected(p)]
 
 
 def context_forecast_periods(request,periods):
-    import re
-    text=request['question'].lower()
-    if re.match(r'what about\b',text) and not re.search('tonight|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday',text):text+=' '+' '.join(m['content'] for m in [m for m in request['history'] if m['role']=='user'][-2:]).lower()
-    names=re.findall(r'tomorrow night|tonight|today|tomorrow|(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?: night)?',text)
-    if not names:return periods
-    selected=[]
-    for name in names:
-        scope=dict(period=name,timezone=request['jurisdiction']['timezone'],fields=['low'] if re.search(r'\blow\b',text) else ['high'] if re.search(r'\bhigh\b',text) else ['temperature'])
-        selected.extend(forecast_periods(periods,scope,request['requested_at']))
-        if not re.search(r'\blow\b|\bhigh\b',text) and 'night' not in name:
-            scope['period']='tonight' if name=='today' else name+' night'
-            selected.extend(forecast_periods(periods,scope,request['requested_at']))
-    return sorted({p['startTime']:p for p in selected}.values(),key=lambda p:datetime.fromisoformat(p['startTime'].replace('Z','+00:00')))
+    scope=request_windows(request)
+    return [p for p in periods if any(overlaps(p.get('startTime'),p.get('endTime'),w) for w in scope['windows'])] if scope['requested'] else periods

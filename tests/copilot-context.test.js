@@ -59,6 +59,7 @@ test('mandatory budget failure is a local processing limit, not an automatic clo
 })
 
 import {createCloudContextBroker} from '../lib/copilot-cloud-context.js'
+import {requestWindows,overlaps} from '../lib/copilot-window.js'
 import {contextForecastPeriods} from '../lib/copilot-forecast.js'
 import {sourceNeeded,scopeKey} from '../lib/copilot-context.js'
 import {withSynthesisSnapshot} from '../src/data/copilotSnapshot.js'
@@ -70,7 +71,7 @@ test('projection leaves the request immutable; explicit new follow-up date overr
  buildLocalContext(request,32768,planRequest(request));assert.equal(JSON.stringify(request),before)
  request.question='What about tomorrow’s gusts?';request.history=[{role:'user',content:'What is tonight’s wind?'}]
  const periods=request.evidence.filter(b=>b.kind==='forecast').flatMap(b=>b.values.periods)
- assert.ok(contextForecastPeriods(request,periods).every(p=>!/^tonight$/i.test(p.name)))
+ assert.ok(contextForecastPeriods(request,periods).every(p=>requestWindows(request).windows.some(w=>overlaps(p.startTime,p.endTime,w))))
 })
 test('KB-only questions acquire no live endpoints; relevant gust grids remain eligible',()=>{
  const request=structuredClone(fixture.cases[0].request)
