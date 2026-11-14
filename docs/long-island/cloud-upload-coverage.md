@@ -47,6 +47,12 @@ Browser checks used isolated ports 5189/8559 with recording inference and unavai
 
 No paid cloud generation was performed. These checks establish full-text construction, delivery and overflow behavior, **not model answer accuracy**. Hosted preview acceptance and a real cloud answer for the late-passage case remain pending the user's release/test workflow. There is no guarantee that a model will use every supplied fact correctly.
 
+## Hosted follow-up — November 14, 2026
+
+The user-provided response from preview commit `4d6d24f` recovers CEDAR-731, 47 amber cones, DELTA-19 and commander unspecified. Mark the positive hosted late-passage check passed on that evidence. The actual cloud request was not captured, and hosted overflow acceptance is not established by this one answer.
+
+The response also contains date/window errors and unsupported operational conclusions. These are tracked separately as GROUND-001/002/003 in [cloud mixed-source grounding issues](cloud-mixed-source-grounding-issues.md), with proposed code/prompt fixes and acceptance criteria. The earlier pending hosted-test language above records the state at implementation closeout; this follow-up updates the positive document-retrieval result only.
+
 ## Review and release
 
 Reproduce checks from this worktree with Python dependencies available:
