@@ -35,6 +35,11 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
   if(['cone_specifications','cone_ballast','cone_placement'].includes(field))return t.assets&&t.impacts||new RegExp(field.split('_')[1],'i').test(question)
   return t[fieldTopic[field]]
  }
+ if(scope.selected_location) {
+  const selected=scope.selected_location
+  if(selected.status==='selected')add('Facts',`Selected map location: ${escape(selected.location.display_name)} (source snapshot: ${escape(selected.location.source_name)}). Local jurisdiction and facility footprint are unresolved.`, 'selected_location','location')
+  else add('Gaps','The selected location does not match this question. Confirm the intended place before using site evidence.','selected_location','gap')
+ }
  for(const row of kbAnswerRecords(context,question,scope,files))add(row.section,row.text,row.source,row.kind)
  const docs=documentEvidence(files)
  for(const file of files) {
@@ -114,6 +119,7 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
  if(files.length&&(t.facility||t.documents||t.assets||t.command||t.radio||t.procedures||t.thresholds))for(const file of files)add('Sources',`Uploaded source: ${escape(file.name)}. Full text is available under Request sources.`,file.name,'navigation',false)
  if(!Object.values(t).some(Boolean))add('Gaps','This request needs source interpretation beyond the validated record types. Inspect the full request sources; no operational requirement has been inferred.')
  if(!records.length)add('Gaps','No matching validated answer records were extracted. Inspect the full request sources for information not represented by these record types.')
+ if(scope.selected_location?.status==='clarify')records.splice(0,records.length,...records.filter(r=>r.source==='selected_location'&&r.kind==='gap'))
  const facts=records.filter(r=>r.section==='Facts'),gaps=records.filter(r=>r.section==='Gaps').map(r=>r.text)
  return {version:ANSWER_VERSION,route:'bounded_query_records',topics:t,records,facts,gaps,references:records.filter(r=>r.kind==='navigation')}
 }

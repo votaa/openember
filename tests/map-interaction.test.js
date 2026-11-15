@@ -5,13 +5,16 @@ import { mapFeatureChatPrompt, normalizeMapFeature } from "../src/data/mapIntera
 import { buildCopilotSystemPrompt } from "../src/data/copilotPrompt.js"
 
 test("normalizes map selections across legacy and regional field names", () => {
-  assert.deepEqual(normalizeMapFeature({
+  const {selected_location,...normalized} = normalizeMapFeature({
     title: "LIRR Main Line",
     description: "Rail corridor",
     source_name: "LIRR branches",
     geometry_type: "LineString",
     observed_at: "2026-08-31T12:00:00Z",
-  }), {
+  })
+  assert.equal(selected_location.display_name,"LIRR Main Line")
+  assert.ok(selected_location.unknowns.includes("geometry"))
+  assert.deepEqual(normalized, {
     title: "LIRR Main Line",
     name: "LIRR Main Line",
     description: "Rail corridor",

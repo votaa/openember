@@ -19,7 +19,7 @@
     "test:cloud-uploads": "node --test tests/cloud-uploads.test.js && python3 -m unittest tests/test_cloud_uploads.py",
     "test:grounding": "node --test tests/grounding.test.js && python3 -m unittest tests/test_grounding.py",
     "test:evidence": "node --test tests/evidence-summary.test.js && python3 -m unittest tests/test_evidence_summary.py",
-    "test:corrective": "node --test tests/corrective.test.js tests/focused-correction.test.js tests/kfrg.test.js tests/emergency-context.test.js && python3 -m unittest tests/test_corrective.py tests/test_focused_correction.py tests/test_kfrg.py tests/test_emergency_context.py"
+    "test:corrective": "node --test tests/corrective.test.js tests/focused-correction.test.js tests/kfrg.test.js tests/emergency-context.test.js tests/selected-location.test.js && python3 -m unittest tests/test_corrective.py tests/test_focused_correction.py tests/test_kfrg.py tests/test_emergency_context.py tests/test_selected_location.py"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",

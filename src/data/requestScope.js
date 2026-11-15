@@ -1,3 +1,4 @@
+import {locationScope} from './selectedLocation.js'
 import configuration from '../../config/jurisdiction.generated.json' assert {type:'json'}
 import weatherPolicy from '../../shared/request-scope-policy.json' assert {type:'json'}
 const GRID_FIELDS=weatherPolicy.weather.grid_fields
@@ -256,15 +257,22 @@ export function scopeSegments(scope) {
 
 export function resolveRequestScope(input) {
   let scope=resolveScope(input)
-  const selected=input.selection?.kind==='nws_observation'&&configuration.nws.obs_stations.some(s=>s.id===input.selection.station_id)?input.selection.station_id:null
-  if(selected&&scope.status==='unspecified') {
-    scope=resolveScope({...input,question:'Current observations at '+selected})
+  const location=locationScope(input.selectedLocation,input.question,input.jurisdiction.name)
+  const selectedStation=location?.status==='selected'?location.location.station_id:null
+  const candidate=selectedStation || input.selection?.station_id
+  const selectedId=configuration.nws.obs_stations.some(s=>s.id===candidate)?candidate:null
+  if(selectedId&&scope.status==='unspecified') {
+    scope=resolveScope({...input,question:'Current observations at '+selectedId})
     scope.assumptions.push('Current observation scope comes from the selected map station.')
   }
   if(scope.method==='current_observation') {
     const q=input.question.toLowerCase()
-    const named=selected?[selected]:configuration.nws.obs_stations.filter(s=>[s.id,s.id.slice(1),s.name].some(name=>new RegExp('\\b'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(q))).map(s=>s.id)
+    const named=selectedId?[selectedId]:configuration.nws.obs_stations.filter(s=>[s.id,s.id.slice(1),s.name].some(name=>new RegExp('\\b'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(q))).map(s=>s.id)
     scope.observation_selection={mode:named.length?'named_station':'regional_overview',stations:named.length?named:configuration.nws.obs_stations.map(s=>s.id),facility_applicability:'not established by station readings'}
+  }
+  if(location) {
+    scope.selected_location=location
+    if(location.status==='clarify') {scope.status='clarify';scope.method='location_clarification';scope.interval=null;delete scope.observation_selection;scope.assumptions.push('Selected location does not match this question. Confirm the intended place before using site evidence.')}
   }
   scope.segments=scopeSegments(scope)
   if(scope.interval)scope.historical=scope.method!=='current_observation'&&instant(scope.interval.end_utc)<=instant(scope.request_utc)

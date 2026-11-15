@@ -1,0 +1,10 @@
+[
+ {"name":"KFRG — Republic Airport","source_name":"Wind Observations","source_id":"nws_observations","station_id":"KFRG","id":"KFRG","lat":40.7288,"lng":-73.4134,"observed_at":"2026-11-15T16:00:00Z","fetched_at":"2026-11-15T17:07:10Z","source_url":"https://api.weather.gov/stations/KFRG/observations/latest"},
+ {"title":"Example Hospital","source_name":"Facility listing","feature_type":"hospital","id":17,"geometry":{"type":"Point","coordinates":[-73.5,40.8]},"attributes":{"designation":"unverified source assertion"}},
+ {"title":"Boundary-crossing road","feature_type":"road","source_id":"road-fixture","geometry":{"type":"LineString","coordinates":[[-73.8,40.7],[-73.3,40.8],[-72.8,40.9]]}},
+ {"name":"Creek","feature_type":"waterway","geometry":{"type":"MultiLineString","coordinates":[[[-73.2,40.7],[-73.1,40.8]],[[-73.1,40.8],[-73,40.9]]]}},
+ {"name":"Shelter listing","feature_type":"shelter","geometry":{"type":"Polygon","coordinates":[[[-73,40],[-72.9,40],[-72.9,40.1],[-73,40]]]}},
+ {"name":"Two-part area","geometry":{"type":"MultiPolygon","coordinates":[[[[-73,40],[-72.9,40],[-72.9,40.1],[-73,40]]],[[[-72,40],[-71.9,40],[-71.9,40.1],[-72,40]]]]}},
+ {"name":"Ordinary point","lat":40.8,"lng":-73.1},
+ {"name":"Ambiguous place"}
+]

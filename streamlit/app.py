@@ -56,6 +56,7 @@ from weather_context import summarize_weather
 from answer_presentation import answer_markdown
 from coops_evidence import coops_snapshots, select_coops
 from evidence_summary import evidence_summary, strip_weather_context
+from selected_location import selected_location_from_feature
 from request_scope import resolve_request_scope, render_request_scope, weather_snapshots, needs_scope_refresh, instant as scope_instant
 from esri_presentation import (
     build_presentation,
@@ -618,19 +619,20 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
         status  = ld.get("status", "NORMAL")
         station_name = str(ld.get("station_name") or sid or "Tidal gauge")
         gauge_description = f"Water level: {lft:.2f}ft MLLW · {status}"
+        location_feature = dict(lat=lat,lng=lng,station_id=None,feature_id=str(sid),source_id="coops",feature_type="tidal_gauge")
         popup_h = map_feature_popup_html(
             build_gauge_popup(gd),
             station_name,
             "Live Tidal Gauges (CO-OPS)",
             "Point",
-            gauge_description,
+            gauge_description, location_feature=location_feature,
         )
         tooltip_h = map_feature_tooltip_html(
             f"🌊 {station_name} — {lft:.2f}ft MLLW — {status}",
             station_name,
             "Live Tidal Gauges (CO-OPS)",
             "Point",
-            gauge_description,
+            gauge_description, location_feature=location_feature,
         )
 
         # Pulsing circle — outer ring shows flood status, inner solid
@@ -693,12 +695,13 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                     f'{reading.get("status", "").upper()}'
                 ).strip(" ·")
                 description = " · ".join(filter(None, [description, reading_description]))
+            location_feature = dict(f,source_id=str(key),layer_id=str(key))
             popup_html = map_feature_popup_html(
                 popup_html,
                 str(f.get("name") or layer["label"]),
                 str(layer["label"]),
                 "Point",
-                description,
+                description, location_feature=location_feature,
             )
             tooltip_label = f'{f["name"]}' + (
                 f' — {reading.get("level", "?")} {reading.get("unit", "")}'
@@ -709,7 +712,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 str(f.get("name") or layer["label"]),
                 str(layer["label"]),
                 "Point",
-                description,
+                description, location_feature=location_feature,
             )
             folium.CircleMarker(
                 location=[f["lat"], f["lng"]], radius=8,
@@ -742,19 +745,20 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 f'<span style="color:#556">{_html.escape(str(record.get("attribution", "")))}</span></div>'
             )
             geometry_type = geometry.get("type")
+            location_feature = dict(record,feature_id=record.get("id") or record.get("properties",{}).get("source_record_id"),source_id=source_id,layer_id=source_id,source_url=record.get("source_url") or source.get("url"))
             popup_h = map_feature_popup_html(
                 popup_body,
                 str(record.get("title") or source["name"]),
                 str(record.get("source_name") or source["name"]),
                 str(geometry_type or "unknown"),
-                str(record.get("description") or record.get("category") or ""),
+                str(record.get("description") or record.get("category") or ""), location_feature=location_feature,
             )
             tooltip_h = map_feature_tooltip_html(
                 str(record.get("title", source["name"]))[:80],
                 str(record.get("title") or source["name"]),
                 str(record.get("source_name") or source["name"]),
                 str(geometry_type or "unknown"),
-                str(record.get("description") or record.get("category") or ""),
+                str(record.get("description") or record.get("category") or ""), location_feature=location_feature,
             )
             if geometry_type == "Point" and len(geometry.get("coordinates", [])) >= 2:
                 longitude, latitude = geometry["coordinates"][:2]
@@ -801,19 +805,20 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
             + (f' · Temp: {int(o["temp_f"])}°F' if o.get("temp_f") is not None else '')
             + (f' · {o["desc"]}' if o.get("desc") else '')
         )
+        location_feature = dict(lat=o["lat"],lng=o["lng"],station_id=o["id"],feature_id=o["id"],source_id="nws_observations",observation=o.get("observation"),observed_at=(o.get("observation") or {}).get("data",{}).get("properties",{}).get("timestamp"),fetched_at=(o.get("observation") or {}).get("fetched_at"))
         popup_h = map_feature_popup_html(
             f'<div style="font-family:monospace;font-size:11px">{popup_txt}</div>',
             title,
             "Wind Observations",
             "Point",
-            description,
+            description, location_feature=location_feature,
         )
         tooltip_h = map_feature_tooltip_html(
             f"{title} · {spd}mph",
             title,
             "Wind Observations",
             "Point",
-            description,
+            description, location_feature=location_feature,
         )
         folium.Marker(
             location=[o["lat"], o["lng"]],
@@ -847,11 +852,12 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                     f'<b style="color:{lcolor}">{feat.get("label","") or layer["name"]}</b></div>'
                 )
             )
+            location_feature = dict(feat,source_id=str(layer.get("id") or layer["name"]),source_url=layer.get("url"))
             popup_h = map_feature_popup_html(
                 popup_body,
                 str(label or layer["name"]),
                 str(layer["name"]),
-                str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))),
+                str(feat.get("geometry", {}).get("type", feat.get("type", "unknown"))), location_feature=location_feature,
             )
             geometry_type = str(
                 feat.get("geometry", {}).get("type", feat.get("type", "unknown"))
@@ -860,7 +866,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                 str(label or layer["name"])[:80],
                 str(label or layer["name"]),
                 str(layer["name"]),
-                geometry_type,
+                geometry_type, location_feature=location_feature,
             )
 
             if ftype == "point":
@@ -1868,6 +1874,7 @@ if selected_map_feature:
             st.session_state.selected_map_feature = None
             station=next((o for o in st.session_state.get('wind_obs',[]) if selected_map_feature.get('source_name')=='Wind Observations' and selected_title.startswith(o['id']+' — ')),None)
             st.session_state.pending_observation=station.get('observation') if station else None
+            st.session_state.pending_location=selected_location_from_feature(selected_map_feature)
             st.session_state.pending_query = prompt
             st.rerun()
     with close_col:
@@ -2486,6 +2493,7 @@ with tab_chat:
 
     def run_query(prompt):
         selected_observation=st.session_state.pop('pending_observation',None)
+        selected_location=st.session_state.pop('pending_location',None)
         requested_at = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
@@ -2507,7 +2515,8 @@ with tab_chat:
                 age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
                 if not (-300000 <= age <= 3600000): source['state'] = 'stale'
             coops = coops_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results)
-            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files,selection=dict(kind='nws_observation',station_id=selected_observation['url'].split('/stations/')[1].split('/')[0]) if selected_observation else None)
+            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files,selection=dict(kind='nws_observation',station_id=selected_observation['url'].split('/stations/')[1].split('/')[0]) if selected_observation else None,selected_location=selected_location)
+            if selected_location:st.session_state.messages[assistant_index-1]["selected_location"]=selected_location
             st.session_state.messages[assistant_index]["scope"] = request_scope
             ctx  = build_context(
                 st.session_state.files, st.session_state.api_results,
@@ -2517,6 +2526,7 @@ with tab_chat:
                 st.session_state.phase4_results,
             )
             ctx += map_layer_context(current_map_evidence(prompt))
+            if selected_location:ctx+='\nSELECTED MAP LOCATION (unverified source snapshot):\n'+json.dumps(selected_location)
             if selected_observation:ctx+='\nSELECTED MAP OBSERVATION (client snapshot):\n'+json.dumps(selected_observation)
             st.session_state.messages[assistant_index]["sourceMaterial"] = ctx
         except UploadError as exc:

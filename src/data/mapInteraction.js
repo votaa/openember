@@ -1,6 +1,8 @@
+import {selectedLocationFromFeature,selectedLocationQuestion} from './selectedLocation.js'
 export function normalizeMapFeature(feature = {}) {
   const title = feature.title || feature.name || "Map feature"
   return {
+    selected_location:selectedLocationFromFeature(feature),
     title,
     name: feature.name || title,
     description: feature.description || feature.note || "",
@@ -17,5 +19,5 @@ export function normalizeMapFeature(feature = {}) {
 
 export function mapFeatureChatPrompt(feature = {}) {
   const normalized = normalizeMapFeature(feature)
-  return `Tell me about emergency considerations for ${normalized.name} — ${normalized.description}`
+  return selectedLocationQuestion(normalized.selected_location)
 }

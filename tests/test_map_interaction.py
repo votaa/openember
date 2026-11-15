@@ -1,3 +1,4 @@
+import sys
 import importlib.util
 import html
 import json
@@ -7,6 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT / "streamlit"))
 MODULE_PATH = ROOT / "streamlit" / "map_interaction.py"
 SPEC = importlib.util.spec_from_file_location("map_interaction", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)

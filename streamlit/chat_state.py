@@ -16,6 +16,7 @@ def begin_chat_response(messages: list[dict], prompt: str) -> int:
 def update_chat_response(messages: list[dict], assistant_index: int, content: str) -> None:
     """Persist partial output so an unexpected rerun cannot erase it."""
     messages[assistant_index] = {
+        **messages[assistant_index],
         "role": "assistant",
         "content": f"{content}▋",
         "streaming": True,
@@ -24,7 +25,8 @@ def update_chat_response(messages: list[dict], assistant_index: int, content: st
 
 def finish_chat_response(messages: list[dict], assistant_index: int, content: str) -> None:
     """Replace the streaming placeholder with the durable final response."""
-    messages[assistant_index] = {"role": "assistant", "content": content}
+    messages[assistant_index] = {**messages[assistant_index], "role": "assistant", "content": content}
+    messages[assistant_index].pop("streaming", None)
 
 
 def recover_interrupted_responses(messages: list[dict]) -> int:

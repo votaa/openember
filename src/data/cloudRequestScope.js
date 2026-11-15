@@ -1,3 +1,4 @@
+import {validateSelectedLocation} from './selectedLocation.js'
 import {selectCoops} from './coopsEvidence.js'
 import {buildOperationalEvidence,operationalInstruction} from './operationalEvidence.js'
 import {evidenceSummary,stripWeatherContext} from './evidenceSummary.js'
@@ -12,6 +13,13 @@ import {UploadError,validateCloudMessages} from './cloudUploads.js'
 export function scopedCloudMessages(body,receivedAt) {
   const input=body.scope_input
   if(input!==undefined&&(!input||input.version!==SCOPE_VERSION||!Array.isArray(input.weather)||input.weather.length>32))throw new UploadError('Invalid request scope metadata. Refresh the app and retry.','scope_invalid',400)
+  let selectedLocation
+  if(input?.selected_location!==undefined) {
+    try {selectedLocation=validateSelectedLocation(input.selected_location)}
+    catch {throw new UploadError("Invalid selected location. Refresh the map.","location_invalid",400)}
+    if(selectedLocation.station_id&&!configuration.nws.obs_stations.some(s=>s.id===selectedLocation.station_id))throw new UploadError("Invalid selected location station.","location_invalid",400)
+    if(input.selection&&input.selection.station_id!==selectedLocation.station_id)throw new UploadError("Selected station conflicts with location.","location_invalid",400)
+  }
   const selection=input?.selection
   if(selection!==undefined) {
     // Validate against the server-owned station catalog below, never an arbitrary client place.
@@ -31,7 +39,7 @@ export function scopedCloudMessages(body,receivedAt) {
   }
   const user=body.messages.filter(m=>m.role==='user').at(-1)
   if(!user||body.messages[0].role!=='system')throw new UploadError('A system context and user question are required.','scope_invalid',400)
-  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy,selection})
+  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy,selection,selectedLocation})
   // All requests use the bounded route: absence of trigger keywords is not proof of non-operational intent.
   const messages=body.messages.map(m=>({...m}))
   const cleanContext=stripWeatherContext(messages[0].content,body.uploads||[])

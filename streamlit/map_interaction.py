@@ -1,5 +1,7 @@
 """Pure helpers for map selection state and explicit chat actions."""
 
+from selected_location import selected_location_from_feature, selected_location_question
+
 import base64
 import html
 import json
@@ -67,6 +69,7 @@ def map_feature_popup_html(
     source_name: str,
     geometry_type: str,
     description: str = "",
+    location_feature: Optional[dict] = None,
 ) -> str:
     """Wrap popup HTML with metadata that survives Streamlit-Folium ``innerText``.
 
@@ -78,6 +81,8 @@ def map_feature_popup_html(
     feature = _normalized_feature(
         title, source_name, geometry_type, description
     )
+    if location_feature is not None:
+        feature["selected_location"] = selected_location_from_feature(dict(location_feature,title=feature["title"],description=feature["description"],source_name=feature["source_name"]))
     return (
         f'<div data-feature-title="{html.escape(feature["title"], quote=True)}" '
         f'data-source-name="{html.escape(feature["source_name"], quote=True)}" '
@@ -93,11 +98,14 @@ def map_feature_tooltip_html(
     source_name: str,
     geometry_type: str,
     description: str = "",
+    location_feature: Optional[dict] = None,
 ) -> str:
     """Return visible tooltip text plus selection metadata for GeoJSON clicks."""
     feature = _normalized_feature(
         title, source_name, geometry_type, description
     )
+    if location_feature is not None:
+        feature["selected_location"] = selected_location_from_feature(dict(location_feature,title=feature["title"],description=feature["description"],source_name=feature["source_name"]))
     return f"{html.escape(str(label or title or 'Map feature'))}{_feature_metadata_span(feature)}"
 
 
@@ -108,6 +116,7 @@ def map_feature_from_popup(popup_html: str) -> dict:
     if metadata:
         title = str(metadata.get("title") or metadata.get("name") or "Map feature")
         return {
+            **({"selected_location": selected_location_from_feature(metadata)} if metadata.get("selected_location") else {}),
             "title": title,
             "name": title,
             "description": str(metadata.get("description") or ""),
@@ -153,6 +162,7 @@ def map_feature_from_map_data(map_data: Optional[dict]) -> Optional[dict]:
         if metadata:
             title = str(metadata.get("title") or metadata.get("name") or "Map feature")
             return {
+                **({"selected_location": selected_location_from_feature(metadata)} if metadata.get("selected_location") else {}),
                 "title": title,
                 "name": title,
                 "description": str(metadata.get("description") or ""),
@@ -210,6 +220,4 @@ def leaflet_geometry_parts(geometry: dict) -> list:
 
 
 def map_feature_chat_prompt(feature: dict) -> str:
-    title = feature.get("title") or feature.get("name") or "Map feature"
-    description = feature.get("description") or feature.get("note") or ""
-    return f"Tell me about emergency considerations for {title} — {description}"
+    return selected_location_question(selected_location_from_feature(feature))

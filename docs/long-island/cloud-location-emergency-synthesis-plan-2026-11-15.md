@@ -1,6 +1,6 @@
 # Restore location-specific emergency assessments in the preview
 
-Date: 2026-11-15. Planning only; no implementation or hosted acceptance performed.
+Date: 2026-11-15. Original planning baseline. Implementation has started in the [selected-location transport increment](cloud-selected-location-implementation-2026-11-15.md); the full plan and hosted acceptance remain open.
 
 Target checkout: `/private/tmp/openember-cloud-upload`, branch `codex/cloud-upload-coverage`, inspected at `7ab50d9` (`fix(copilot): include KB context in emergency assessments`). Recheck branch, changes and deployment identity before implementation. The separate local-first checkout is not the implementation target.
 

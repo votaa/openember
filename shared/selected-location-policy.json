@@ -1,0 +1,9 @@
+{
+  "version": "selected-location-v1",
+  "max_bytes": 49152,
+  "max_positions": 1024,
+  "max_attributes": 16,
+  "max_text": 1024,
+  "crs": "EPSG:4326",
+  "provenance": "client_source_snapshot"
+}

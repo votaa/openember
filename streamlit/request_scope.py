@@ -1,3 +1,4 @@
+from selected_location import location_scope
 """Versioned pure request-time/window contract; parity fixtures also run in JS."""
 import json,math,re
 from datetime import datetime,timedelta,timezone
@@ -286,8 +287,10 @@ def scope_segments(scope):
     return [dict(evidence=evidence,**interval(a,b,scope['timezone'])) for evidence,a,b in [('observations',start,min(end,now)),('hourly_and_grid',max(start,now),min(end,cutoff)),('point_periods_and_grid',max(start,cutoff),end)] if a<b]
 
 
-def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise,selection=None):
+def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise,selection=None,selected_location=None):
     scope=_resolve_scope(question,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
+    location=location_scope(selected_location,question,jurisdiction['name'])
+    if location and location['status']=='selected' and location['location']['station_id']:selection=dict(kind='nws_observation',station_id=location['location']['station_id'])
     selected=selection.get('station_id') if selection and selection.get('kind')=='nws_observation' and any(s['id']==selection.get('station_id') for s in CONFIG['nws']['obs_stations']) else None
     if selected and scope['status']=='unspecified':
         scope=_resolve_scope('Current observations at '+selected,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
@@ -295,6 +298,11 @@ def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=
     if scope.get('method')=='current_observation':
         named=[selected] if selected else [s['id'] for s in CONFIG['nws']['obs_stations'] if any(re.search(r'\b'+re.escape(name)+r'\b',question,re.I) for name in (s['id'],s['id'][1:],s['name']))]
         scope['observation_selection']=dict(mode='named_station' if named else 'regional_overview',stations=named or [s['id'] for s in CONFIG['nws']['obs_stations']],facility_applicability='not established by station readings')
+    if location:
+        scope['selected_location']=location
+        if location['status']=='clarify':
+            scope.update(status='clarify',method='location_clarification',interval=None);scope.pop('observation_selection',None)
+            scope['assumptions'].append('Selected location does not match this question. Confirm the intended place before using site evidence.')
     scope['segments']=scope_segments(scope)
     if scope['interval']:scope['historical']=scope['method']!='current_observation' and instant(scope['interval']['end_utc'])<=instant(scope['request_utc'])
     scope['coverage']=[dict(id=s['id'],url=s['url'],area=s['area'],coordinates=s['coordinates'],updated_at=s['updated_at'],fetched_at=s['fetched_at'],selected_interval=s.get('selected_interval'),observed_at=s.get('observation',{}).get('timestamp'),state=s['state'],coverage=s['coverage'],fields={k:v['coverage'] for k,v in s['series'].items()}) for s in scoped_weather(weather or [],scope)]

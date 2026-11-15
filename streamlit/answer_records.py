@@ -36,6 +36,10 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
     files=files or [];operational=operational or dict(records=[],issues=[]);records=[];t=query_topics(question)
     def add(section,text,source='application',kind='fact',required=True):
         if not any(r['section']==section and r['text']==text for r in records):records.append(dict(id='a'+str(len(records)),section=section,text=text,source=source,kind=kind,required=required))
+    if scope.get('selected_location'):
+        selected=scope['selected_location']
+        if selected['status']=='selected':add('Facts',f"Selected map location: {escape(selected['location']['display_name'])} (source snapshot: {escape(selected['location']['source_name'])}). Local jurisdiction and facility footprint are unresolved.",'selected_location','location')
+        else:add('Gaps','The selected location does not match this question. Confirm the intended place before using site evidence.','selected_location','gap')
     def relevant(field):
         if field=='assignment_status':return bool(re.search('assignment status|vacant|unassigned|assigned',question,re.I))
         if field=='facility_id':return bool(re.search(r'facility (?:id|identifier)',question,re.I))
@@ -131,6 +135,7 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
         for file in files:add('Sources',f"Uploaded source: {escape(file['name'])}. Full text is available under Request sources.",file['name'],'navigation',False)
     if not any(t.values()):add('Gaps','This request needs source interpretation beyond the validated record types. Inspect the full request sources; no operational requirement has been inferred.')
     if not records:add('Gaps','No matching validated answer records were extracted. Inspect the full request sources for information not represented by these record types.')
+    if scope.get('selected_location',{}).get('status')=='clarify':records=[r for r in records if r['source']=='selected_location' and r['kind']=='gap']
     return dict(version=ANSWER_VERSION,route='bounded_query_records',topics=t,records=records,facts=[r for r in records if r['section']=='Facts'],gaps=[r['text'] for r in records if r['section']=='Gaps'],references=[r for r in records if r['kind']=='navigation'])
 def answer_instruction(evidence):return '\nCONTROLLED OUTPUT CONTRACT: Answer only the user question. Return JSON {"version":"'+ANSWER_VERSION+'","records":[]}. Select the smallest useful set of relevant application record IDs, up to 24; an empty optional selection is allowed. Required records are rendered independently. Do not add prose, values, procedures or source paragraphs. Enabled evidence is not automatically relevant. Registry: '+json.dumps([{k:r[k] for k in ('id','section','text','required')} for r in evidence['records']],ensure_ascii=False,separators=(',',':'))
 def render_answer_records(raw,evidence,scope,complete=True):
