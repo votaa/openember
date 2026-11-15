@@ -1,0 +1,8 @@
+{
+  "base_commit": "2c1186391bec4fac98febf8b473d00e7d3431e45",
+  "javascript_checks": 207,
+  "python_test_runs": 161,
+  "workerd_before_after_passed": true,
+  "hosted_retest": "pending new deployment",
+  "cloud_model_calls": 0
+}

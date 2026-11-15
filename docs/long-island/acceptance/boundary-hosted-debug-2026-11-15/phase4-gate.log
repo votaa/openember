@@ -1,0 +1,1266 @@
+
+> ember-nyc@1.0.0 phase4:gate
+> npm run phase3:gate && node scripts/validate-phase-4.js && PYTHONPYCACHEPREFIX=/private/tmp/openember-phase4-pycache python3 -m py_compile streamlit/arcgis_map_layers.py streamlit/map_layer_evidence.py streamlit/phase4_sources.py streamlit/map_builder_filters.py streamlit/map_builder_state.py && npm run test:cloud-uploads && npm run test:request-scope && npm run test:grounding && npm run test:evidence && npm run test:corrective && git diff --check
+
+
+> ember-nyc@1.0.0 phase3:gate
+> npm run validate-config && npm run test:regional && npm run test:streamlit && npm run build && node scripts/validate-phase-3.js && PYTHONPYCACHEPREFIX=/private/tmp/openember-phase3-pycache python3 -m py_compile streamlit/config_loader.py streamlit/copilot_prompt.py streamlit/map_interaction.py streamlit/regional_normalization.py streamlit/regional_geography.py streamlit/regional_observations.py streamlit/tidal_gauges.py streamlit/app.py && git diff --check
+
+
+> ember-nyc@1.0.0 validate-config
+> npm run build-config && node scripts/validate-regional-config.js
+
+
+> ember-nyc@1.0.0 build-config
+> node scripts/build-config.js
+
+✓ src/config/jurisdiction.js written from config/jurisdiction.yaml
+✓ regional config valid: 3 regions, 25 sources
+
+> ember-nyc@1.0.0 test:regional
+> npm run build-config && node --test tests/map-overlay-selection.test.js tests/map-layer-evidence.test.js tests/esri-layers.test.js tests/map-builder-filters.test.js tests/regional-normalization.test.js tests/regional-geography.test.js tests/regional-observations.test.js tests/phase4-sources.test.js tests/report-window.test.js tests/map-interaction.test.js tests/weather-context.test.js && python3 -m unittest tests/test_config_loader.py tests/test_copilot_prompt.py tests/test_map_builder_filters.py tests/test_regional_normalization.py tests/test_regional_geography.py tests/test_regional_observations.py tests/test_phase4_sources.py tests/test_map_interaction.py
+
+
+> ember-nyc@1.0.0 build-config
+> node scripts/build-config.js
+
+✓ src/config/jurisdiction.js written from config/jurisdiction.yaml
+TAP version 13
+# Subtest: recognizes queryable ArcGIS service URLs only
+ok 1 - recognizes queryable ArcGIS service URLs only
+  ---
+  duration_ms: 1.736
+  ...
+# Subtest: discovers a nonzero sublayer instead of assuming layer zero
+ok 2 - discovers a nonzero sublayer instead of assuming layer zero
+  ---
+  duration_ms: 1.565167
+  ...
+# Subtest: loads GeoJSON with WGS84 output and a bounded record count
+ok 3 - loads GeoJSON with WGS84 output and a bounded record count
+  ---
+  duration_ms: 2.126958
+  ...
+# Subtest: applies a server-side geography geometry before the 500-record cap
+ok 4 - applies a server-side geography geometry before the 500-record cap
+  ---
+  duration_ms: 0.897417
+  ...
+# Subtest: falls back to ArcGIS JSON and normalizes point, path, and ring geometry
+ok 5 - falls back to ArcGIS JSON and normalizes point, path, and ring geometry
+  ---
+  duration_ms: 4.438416
+  ...
+# Subtest: drops unsupported geometry without discarding valid features
+ok 6 - drops unsupported geometry without discarding valid features
+  ---
+  duration_ms: 0.1195
+  ...
+# Subtest: search, quick-add, and pasted URL paths share the expected geography results
+ok 7 - search, quick-add, and pasted URL paths share the expected geography results
+  ---
+  duration_ms: 4.199875
+  ...
+# Subtest: React and Streamlit Map Builder filters match the shared fixture
+ok 8 - React and Streamlit Map Builder filters match the shared fixture
+  ---
+  duration_ms: 116.288625
+  ...
+# Subtest: unsupported layers remain explicitly unfiltered
+ok 9 - unsupported layers remain explicitly unfiltered
+  ---
+  duration_ms: 0.505917
+  ...
+# Subtest: missing masks disclose an unfiltered fallback
+ok 10 - missing masks disclose an unfiltered fallback
+  ---
+  duration_ms: 0.412667
+  ...
+# Subtest: a failed server-side filtered refresh keeps the last successful records
+ok 11 - a failed server-side filtered refresh keeps the last successful records
+  ---
+  duration_ms: 0.266
+  ...
+# (node:94584) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:94584) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: normalizes map selections across legacy and regional field names
+ok 12 - normalizes map selections across legacy and regional field names
+  ---
+  duration_ms: 3.335542
+  ...
+# Subtest: map selection does not create a chat prompt until explicitly requested
+ok 13 - map selection does not create a chat prompt until explicitly requested
+  ---
+  duration_ms: 0.834
+  ...
+# Subtest: Montauk map prompt includes the feature description
+ok 14 - Montauk map prompt includes the feature description
+  ---
+  duration_ms: 0.483833
+  ...
+# Subtest: Copilot system prompt is jurisdiction grounded and recognizes ESRI
+ok 15 - Copilot system prompt is jurisdiction grounded and recognizes ESRI
+  ---
+  duration_ms: 0.170792
+  ...
+# Subtest: all add paths ground full inventory separately from capped browse
+ok 16 - all add paths ground full inventory separately from capped browse
+  ---
+  duration_ms: 6.608375
+  ...
+# Subtest: geography and attribute constraints match source queries in both runtimes
+ok 17 - geography and attribute constraints match source queries in both runtimes
+  ---
+  duration_ms: 129.015166
+  ...
+# Subtest: failed and missing filters, hidden layers and unsupported types never broaden
+ok 18 - failed and missing filters, hidden layers and unsupported types never broaden
+  ---
+  duration_ms: 0.262458
+  ...
+# Subtest: valid zero is distinct from errors, malformed counts and partial counts
+ok 19 - valid zero is distinct from errors, malformed counts and partial counts
+  ---
+  duration_ms: 1.88975
+  ...
+# Subtest: summaries use field definitions and labels and reconcile to the complete count
+ok 20 - summaries use field definitions and labels and reconcile to the complete count
+  ---
+  duration_ms: 6.835041
+  ...
+# Subtest: refresh queries anew and empty current evidence removes earlier layer claims
+ok 21 - refresh queries anew and empty current evidence removes earlier layer claims
+  ---
+  duration_ms: 0.241458
+  ...
+# Subtest: a successful empty browse stays loadable
+ok 22 - a successful empty browse stays loadable
+  ---
+  duration_ms: 0.556708
+  ...
+# Subtest: stale geography and changed source masks withhold exact counts
+ok 23 - stale geography and changed source masks withhold exact counts
+  ---
+  duration_ms: 0.151208
+  ...
+# Subtest: count responses with a transfer-limit flag cannot establish a total
+ok 24 - count responses with a transfer-limit flag cannot establish a total
+  ---
+  duration_ms: 0.220792
+  ...
+# Subtest: aggregate covers empty, all, mixed and off without treating empty data as hidden
+ok 25 - aggregate covers empty, all, mixed and off without treating empty data as hidden
+  ---
+  duration_ms: 0.760875
+  ...
+# Subtest: hidden added layers remain loaded but cannot render or ground visible evidence
+ok 26 - hidden added layers remain loaded but cannot render or ground visible evidence
+  ---
+  duration_ms: 0.467875
+  ...
+# Subtest: Phase 4 participates only after individual activation, independent of current visibility
+ok 27 - Phase 4 participates only after individual activation, independent of current visibility
+  ---
+  duration_ms: 0.083
+  ...
+# Subtest: React and Streamlit derive identical Phase 4 cards
+ok 28 - React and Streamlit derive identical Phase 4 cards
+  ---
+  duration_ms: 168.577791
+  ...
+# Subtest: Phase 4 orchestration fetches authoritative masks before dependent sources
+ok 29 - Phase 4 orchestration fetches authoritative masks before dependent sources
+  ---
+  duration_ms: 59.017834
+  ...
+# Subtest: Socrata timeout retries with app token and succeeds on the third attempt
+ok 30 - Socrata timeout retries with app token and succeeds on the third attempt
+  ---
+  duration_ms: 0.42075
+  ...
+# Subtest: Socrata retries HTTP 429 and 5xx responses
+ok 31 - Socrata retries HTTP 429 and 5xx responses
+  ---
+  duration_ms: 0.346083
+  ...
+# Subtest: Socrata does not retry non-transient 4xx responses
+ok 32 - Socrata does not retry non-transient 4xx responses
+  ---
+  duration_ms: 0.17775
+  ...
+# Subtest: failed Socrata refresh preserves 500 last-good records as stale
+ok 33 - failed Socrata refresh preserves 500 last-good records as stale
+  ---
+  duration_ms: 0.415541
+  ...
+# Subtest: successful Socrata results are cached for the configured refresh period
+ok 34 - successful Socrata results are cached for the configured refresh period
+  ---
+  duration_ms: 0.457625
+  ...
+# Subtest: activated Phase 4 sources retain a visible display contract
+ok 35 - activated Phase 4 sources retain a visible display contract
+  ---
+  duration_ms: 0.095333
+  ...
+# Subtest: React and Streamlit normalize the shared geography fixture identically
+ok 36 - React and Streamlit normalize the shared geography fixture identically
+  ---
+  duration_ms: 124.002125
+  ...
+# Subtest: authoritative geography contracts produce the expected masks
+ok 37 - authoritative geography contracts produce the expected masks
+  ---
+  duration_ms: 0.331875
+  ...
+# Subtest: query builders constrain official ArcGIS and Socrata geometry sources
+ok 38 - query builders constrain official ArcGIS and Socrata geometry sources
+  ---
+  duration_ms: 2.566583
+  ...
+# Subtest: operational mode retains municipal assets while PSEG mode excludes them
+ok 39 - operational mode retains municipal assets while PSEG mode excludes them
+  ---
+  duration_ms: 2.250125
+  ...
+# Subtest: point, line, and polygon predicates respect holes and disconnected polygons
+ok 40 - point, line, and polygon predicates respect holes and disconnected polygons
+  ---
+  duration_ms: 1.101291
+  ...
+# Subtest: missing, malformed, rejected, and stale boundary results remain explicit
+ok 41 - missing, malformed, rejected, and stale boundary results remain explicit
+  ---
+  duration_ms: 0.694833
+  ...
+# Subtest: React and Streamlit normalize the shared Rockaway fixture identically
+ok 42 - React and Streamlit normalize the shared Rockaway fixture identically
+  ---
+  duration_ms: 119.6565
+  ...
+# Subtest: electric-hazard view includes non-electric road blockages
+ok 43 - electric-hazard view includes non-electric road blockages
+  ---
+  duration_ms: 0.270791
+  ...
+# Subtest: electric-hazard source defines uncapped full-inventory aggregate queries
+ok 44 - electric-hazard source defines uncapped full-inventory aggregate queries
+  ---
+  duration_ms: 0.723667
+  ...
+# Subtest: React and Streamlit spatially qualify NYPD, NYCHA, and evacuation-center records identically
+ok 45 - React and Streamlit spatially qualify NYPD, NYCHA, and evacuation-center records identically
+  ---
+  duration_ms: 55.471083
+  ...
+# Subtest: a healthy inventory with no CB14 facilities is not reported as zero active centers
+ok 46 - a healthy inventory with no CB14 facilities is not reported as zero active centers
+  ---
+  duration_ms: 0.169208
+  ...
+# Subtest: an empty evacuation inventory remains distinct from an empty local scope
+ok 47 - an empty evacuation inventory remains distinct from an empty local scope
+  ---
+  duration_ms: 0.079333
+  ...
+# Subtest: malformed evacuation records cannot masquerade as no local facilities
+ok 48 - malformed evacuation records cannot masquerade as no local facilities
+  ---
+  duration_ms: 0.138917
+  ...
+# Subtest: spatial sources fail closed when the authoritative CB14 mask is missing
+ok 49 - spatial sources fail closed when the authoritative CB14 mask is missing
+  ---
+  duration_ms: 0.104083
+  ...
+# Subtest: out-of-scope rows make a response partial instead of a false current zero
+ok 50 - out-of-scope rows make a response partial instead of a false current zero
+  ---
+  duration_ms: 0.193667
+  ...
+# Subtest: empty and malformed payloads are not current zero-event responses
+ok 51 - empty and malformed payloads are not current zero-event responses
+  ---
+  duration_ms: 0.156375
+  ...
+# Subtest: stale evaluation overrides otherwise valid records
+ok 52 - stale evaluation overrides otherwise valid records
+  ---
+  duration_ms: 0.117417
+  ...
+# Subtest: React and Streamlit derive equivalent Phase 4 source cards
+ok 53 - React and Streamlit derive equivalent Phase 4 source cards
+  ---
+  duration_ms: 59.435958
+  ...
+# Subtest: bounded source queries carry their approved filter and limit
+ok 54 - bounded source queries carry their approved filter and limit
+  ---
+  duration_ms: 0.737875
+  ...
+# Subtest: React and Streamlit normalize NOAA, USGS, and DEC fixtures identically
+ok 55 - React and Streamlit normalize NOAA, USGS, and DEC fixtures identically
+  ---
+  duration_ms: 122.729292
+  ...
+# Subtest: CO-OPS contracts preserve station roles, datum, quality, and latest observation
+ok 56 - CO-OPS contracts preserve station roles, datum, quality, and latest observation
+  ---
+  duration_ms: 1.215542
+  ...
+# Subtest: USGS contracts keep only the latest approved site and parameter observation
+ok 57 - USGS contracts keep only the latest approved site and parameter observation
+  ---
+  duration_ms: 0.875375
+  ...
+# Subtest: DEC records require matching county attributes and authoritative polygons
+ok 58 - DEC records require matching county attributes and authoritative polygons
+  ---
+  duration_ms: 0.413667
+  ...
+# Subtest: query builders enforce bounded and source-specific request contracts
+ok 59 - query builders enforce bounded and source-specific request contracts
+  ---
+  duration_ms: 1.075
+  ...
+# Subtest: stale, empty, malformed, and missing-mask states fail visibly
+ok 60 - stale, empty, malformed, and missing-mask states fail visibly
+  ---
+  duration_ms: 0.149416
+  ...
+# Subtest: React and Streamlit windows match across daylight saving transitions
+ok 61 - React and Streamlit windows match across daylight saving transitions
+  ---
+  duration_ms: 106.294792
+  ...
+# Subtest: browse and all aggregate requests share bounded seven-day filters
+ok 62 - browse and all aggregate requests share bounded seven-day filters
+  ---
+  duration_ms: 5.05925
+  ...
+# Subtest: empty period differs from failures and stale records expire
+ok 63 - empty period differs from failures and stale records expire
+  ---
+  duration_ms: 0.807542
+  ...
+# Subtest: both runtimes return identical seven-day results and empty cards
+ok 64 - both runtimes return identical seven-day results and empty cards
+  ---
+  duration_ms: 132.371
+  ...
+# Subtest: forecast retains Sunday beyond the previous four-period cutoff, detail and valid times in both apps
+ok 65 - forecast retains Sunday beyond the previous four-period cutoff, detail and valid times in both apps
+  ---
+  duration_ms: 35.907542
+  ...
+# Subtest: precipitation grids retain units, intervals, zero values and missing values consistently
+ok 66 - precipitation grids retain units, intervals, zero values and missing values consistently
+  ---
+  duration_ms: 31.134916
+  ...
+# Subtest: ordinary questions and refreshed evidence use the same grounding rules in both versions
+ok 67 - ordinary questions and refreshed evidence use the same grounding rules in both versions
+  ---
+  duration_ms: 33.701958
+  ...
+1..67
+# tests 67
+# suites 0
+# pass 67
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 482.912667
+........................................
+----------------------------------------------------------------------
+Ran 40 tests in 0.007s
+
+OK
+
+> ember-nyc@1.0.0 test:streamlit
+> python3 -m unittest tests/test_map_overlay_selection.py tests/test_arcgis_map_layers.py tests/test_arcgis_map_widgets.py tests/test_map_layer_evidence.py tests/test_chat_state.py tests/test_config_loader.py tests/test_copilot_prompt.py tests/test_esri_presentation.py tests/test_map_builder_filters.py tests/test_map_builder_presets.py tests/test_map_builder_state.py tests/test_regional_normalization.py tests/test_regional_geography.py tests/test_regional_observations.py tests/test_phase4_sources.py tests/test_map_interaction.py
+
+.......2026-11-15 15:31:51.742 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+............2026-11-15 15:31:51.955 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+.2026-11-15 15:31:52.042 Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+............................................................
+----------------------------------------------------------------------
+Ran 80 tests in 0.470s
+
+OK
+
+> ember-nyc@1.0.0 prebuild
+> npm run build-config
+
+
+> ember-nyc@1.0.0 build-config
+> node scripts/build-config.js
+
+✓ src/config/jurisdiction.js written from config/jurisdiction.yaml
+
+> ember-nyc@1.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+✓ src/config/jurisdiction.js written from config/jurisdiction.yaml
+transforming...
+✓ 308 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                        0.88 kB │ gzip:   0.48 kB
+dist/assets/index-UgC2b2d-.css         2.32 kB │ gzip:   0.89 kB
+dist/assets/leaflet-src-DQkCuL7V.js  149.98 kB │ gzip:  43.47 kB
+dist/assets/index-DvTw8IkR.js        521.00 kB │ gzip: 162.08 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.30s
+✓ Phase 3 contract gate valid: 6 Rockaway sources, 4 CO-OPS stations, 3 USGS sites, DEC and regional polygons
+✓ Phase 4 closeout gate valid: 15 active sources, Map Builder parity, cooling centers visibly gated
+
+> ember-nyc@1.0.0 test:cloud-uploads
+> node --test tests/cloud-uploads.test.js && python3 -m unittest tests/test_cloud_uploads.py
+
+TAP version 13
+# (node:94971) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:94971) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: production React context includes full upload with late passage without losing KB or live evidence
+ok 1 - production React context includes full upload with late passage without losing KB or live evidence
+  ---
+  duration_ms: 1.495542
+  ...
+# Subtest: UTF-8 file boundaries, invalid encodings, extensions, duplicates and total limits
+ok 2 - UTF-8 file boundaries, invalid encodings, extensions, duplicates and total limits
+  ---
+  duration_ms: 1.561791
+  ...
+# Subtest: combined messages are measured as UTF-8 bytes with a strict boundary and valid history
+ok 3 - combined messages are measured as UTF-8 bytes with a strict boundary and valid history
+  ---
+  duration_ms: 0.371834
+  ...
+# Subtest: actual Edge proxy forwards every document byte, preserves streaming, and rejects overflow before provider
+ok 4 - actual Edge proxy forwards every document byte, preserves streaming, and rejects overflow before provider
+  ---
+  duration_ms: 37.289666
+  ...
+# Subtest: JavaScript and Python policy, document rendering, boundary and error semantics agree
+ok 5 - JavaScript and Python policy, document rendering, boundary and error semantics agree
+  ---
+  duration_ms: 154.99275
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 259.390583
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.011s
+
+OK
+
+> ember-nyc@1.0.0 test:request-scope
+> node --test tests/request-scope.test.js && python3 -m unittest tests/test_request_scope.py
+
+TAP version 13
+# (node:95004) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95004) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: request window: tonight-regression
+ok 1 - request window: tonight-regression
+  ---
+  duration_ms: 14.032625
+  ...
+# Subtest: request window: expired-tonight
+ok 2 - request window: expired-tonight
+  ---
+  duration_ms: 1.198667
+  ...
+# Subtest: request window: missing-tonight
+ok 3 - request window: missing-tonight
+  ---
+  duration_ms: 0.230834
+  ...
+# Subtest: request window: refresh-failed
+ok 4 - request window: refresh-failed
+  ---
+  duration_ms: 0.33025
+  ...
+# Subtest: request window: stale-source
+ok 5 - request window: stale-source
+  ---
+  duration_ms: 0.250875
+  ...
+# Subtest: request window: historical-night
+ok 6 - request window: historical-night
+  ---
+  duration_ms: 1.227166
+  ...
+# Subtest: request window: early-morning-tonight
+ok 7 - request window: early-morning-tonight
+  ---
+  duration_ms: 1.758584
+  ...
+# Subtest: request window: early-morning-overnight
+ok 8 - request window: early-morning-overnight
+  ---
+  duration_ms: 1.423584
+  ...
+# Subtest: request window: this-afternoon
+ok 9 - request window: this-afternoon
+  ---
+  duration_ms: 1.564792
+  ...
+# Subtest: request window: later-today
+ok 10 - request window: later-today
+  ---
+  duration_ms: 1.81625
+  ...
+# Subtest: request window: tomorrow-am
+ok 11 - request window: tomorrow-am
+  ---
+  duration_ms: 1.948291
+  ...
+# Subtest: request window: tomorrow-afternoon
+ok 12 - request window: tomorrow-afternoon
+  ---
+  duration_ms: 1.582334
+  ...
+# Subtest: request window: day-after-tomorrow
+ok 13 - request window: day-after-tomorrow
+  ---
+  duration_ms: 1.367583
+  ...
+# Subtest: request window: two-days-from-now
+ok 14 - request window: two-days-from-now
+  ---
+  duration_ms: 1.414542
+  ...
+# Subtest: request window: weekday
+ok 15 - request window: weekday
+  ---
+  duration_ms: 1.516959
+  ...
+# Subtest: request window: ambiguous-next-weekday
+ok 16 - request window: ambiguous-next-weekday
+  ---
+  duration_ms: 0.278833
+  ...
+# Subtest: request window: conflicting-date
+ok 17 - request window: conflicting-date
+  ---
+  duration_ms: 0.22125
+  ...
+# Subtest: request window: explicit-historical
+ok 18 - request window: explicit-historical
+  ---
+  duration_ms: 1.310417
+  ...
+# Subtest: request window: month-implied-year
+ok 19 - request window: month-implied-year
+  ---
+  duration_ms: 1.901083
+  ...
+# Subtest: request window: invalid-date
+ok 20 - request window: invalid-date
+  ---
+  duration_ms: 0.308125
+  ...
+# Subtest: request window: local-clock-range
+ok 21 - request window: local-clock-range
+  ---
+  duration_ms: 1.976584
+  ...
+# Subtest: request window: clock-range
+ok 22 - request window: clock-range
+  ---
+  duration_ms: 1.887458
+  ...
+# Subtest: request window: explicit-offset-fold
+ok 23 - request window: explicit-offset-fold
+  ---
+  duration_ms: 0.776916
+  ...
+# Subtest: request window: ambiguous-fold
+ok 24 - request window: ambiguous-fold
+  ---
+  duration_ms: 0.823375
+  ...
+# Subtest: request window: nonexistent-clock
+ok 25 - request window: nonexistent-clock
+  ---
+  duration_ms: 0.685084
+  ...
+# Subtest: request window: spring-calendar-day
+ok 26 - request window: spring-calendar-day
+  ---
+  duration_ms: 2.038916
+  ...
+# Subtest: request window: fall-calendar-day
+ok 27 - request window: fall-calendar-day
+  ---
+  duration_ms: 1.868083
+  ...
+# Subtest: request window: calendar-offset-not-48h
+ok 28 - request window: calendar-offset-not-48h
+  ---
+  duration_ms: 1.301583
+  ...
+# Subtest: request window: local-date-at-utc-midnight
+ok 29 - request window: local-date-at-utc-midnight
+  ---
+  duration_ms: 1.635459
+  ...
+# Subtest: request window: freeform-kb
+ok 30 - request window: freeform-kb
+  ---
+  duration_ms: 0.243
+  ...
+# Subtest: request window: iap-next-defined
+ok 31 - request window: iap-next-defined
+  ---
+  duration_ms: 1.495292
+  ...
+# Subtest: request window: iap-incident-ambiguous
+ok 32 - request window: iap-incident-ambiguous
+  ---
+  duration_ms: 0.8395
+  ...
+# Subtest: request window: iap-conflict
+ok 33 - request window: iap-conflict
+  ---
+  duration_ms: 0.353375
+  ...
+# Subtest: request window: iap-timezone-free
+ok 34 - request window: iap-timezone-free
+  ---
+  duration_ms: 0.230917
+  ...
+# Subtest: request window: iap-stale
+ok 35 - request window: iap-stale
+  ---
+  duration_ms: 0.234542
+  ...
+# Subtest: request window: explicit-overrides-iap
+ok 36 - request window: explicit-overrides-iap
+  ---
+  duration_ms: 1.865916
+  ...
+# Subtest: request window: sunrise-weekend-fallback
+ok 37 - request window: sunrise-weekend-fallback
+  ---
+  duration_ms: 1.740416
+  ...
+# Subtest: request window: iap-current-only
+ok 38 - request window: iap-current-only
+  ---
+  duration_ms: 1.7075
+  ...
+# Subtest: request window: unavailable-sunrise
+ok 39 - request window: unavailable-sunrise
+  ---
+  duration_ms: 0.199625
+  ...
+# Subtest: request window: sunrise-dst-duration
+ok 40 - request window: sunrise-dst-duration
+  ---
+  duration_ms: 1.740209
+  ...
+# Subtest: request window: holiday-fallback
+ok 41 - request window: holiday-fallback
+  ---
+  duration_ms: 1.762834
+  ...
+# Subtest: request window: configured-schedule
+ok 42 - request window: configured-schedule
+  ---
+  duration_ms: 1.309125
+  ...
+# Subtest: request window: stale-configured-schedule
+ok 43 - request window: stale-configured-schedule
+  ---
+  duration_ms: 0.219375
+  ...
+# Subtest: request window: afternoon-and-night
+ok 44 - request window: afternoon-and-night
+  ---
+  duration_ms: 0.20175
+  ...
+# Subtest: request window: multiple-weekdays
+ok 45 - request window: multiple-weekdays
+  ---
+  duration_ms: 0.133583
+  ...
+# Subtest: request window: invalid-offset
+ok 46 - request window: invalid-offset
+  ---
+  duration_ms: 0.130833
+  ...
+# Subtest: request window: invalid-12h-clock
+ok 47 - request window: invalid-12h-clock
+  ---
+  duration_ms: 0.414917
+  ...
+# Subtest: request window: next-working-day-includes-sunday
+ok 48 - request window: next-working-day-includes-sunday
+  ---
+  duration_ms: 1.714792
+  ...
+# Subtest: request window: other-jurisdiction-cannot-resolve-tonight
+ok 49 - request window: other-jurisdiction-cannot-resolve-tonight
+  ---
+  duration_ms: 0.199709
+  ...
+# Subtest: request window: rolling-cutoff
+ok 50 - request window: rolling-cutoff
+  ---
+  duration_ms: 3.4845
+  ...
+# Subtest: request window: near-night-values
+ok 51 - request window: near-night-values
+  ---
+  duration_ms: 1.873208
+  ...
+# Subtest: request window: tomorrow-crosses-cutoff
+ok 52 - request window: tomorrow-crosses-cutoff
+  ---
+  duration_ms: 2.975625
+  ...
+# Subtest: request window: calendar-today
+ok 53 - request window: calendar-today
+  ---
+  duration_ms: 3.005666
+  ...
+# Subtest: request window: exact-cutoff
+ok 54 - request window: exact-cutoff
+  ---
+  duration_ms: 1.57525
+  ...
+# Subtest: request window: later-day
+ok 55 - request window: later-day
+  ---
+  duration_ms: 1.995167
+  ...
+# Subtest: request window: current-observation
+ok 56 - request window: current-observation
+  ---
+  duration_ms: 1.926458
+  ...
+# Subtest: request window: stale-observation
+ok 57 - request window: stale-observation
+  ---
+  duration_ms: 2.087
+  ...
+# Subtest: request window: missing-observation
+ok 58 - request window: missing-observation
+  ---
+  duration_ms: 1.504708
+  ...
+# Subtest: request window: dst-rolling
+ok 59 - request window: dst-rolling
+  ---
+  duration_ms: 1.548166
+  ...
+# Subtest: request window: midnight-rolling
+ok 60 - request window: midnight-rolling
+  ---
+  duration_ms: 1.6265
+  ...
+# Subtest: request window: past-only
+ok 61 - request window: past-only
+  ---
+  duration_ms: 2.015667
+  ...
+# Subtest: request window: broad-source-horizon
+ok 62 - request window: broad-source-horizon
+  ---
+  duration_ms: 4.213416
+  ...
+# Subtest: request window: explicit-seven-days
+ok 63 - request window: explicit-seven-days
+  ---
+  duration_ms: 2.670583
+  ...
+# Subtest: request window: captured-point-hourly-grid
+ok 64 - request window: captured-point-hourly-grid
+  ---
+  duration_ms: 6.239417
+  ...
+# Subtest: complete JS and Python scope, coverage and system blocks agree
+ok 65 - complete JS and Python scope, coverage and system blocks agree
+  ---
+  duration_ms: 148.555791
+  ...
+# Subtest: solar calculation uses the configured reference and explicitly fails without sunrise
+ok 66 - solar calculation uses the configured reference and explicitly fails without sunrise
+  ---
+  duration_ms: 0.249
+  ...
+# Subtest: independent grid coverage retains nulls, excludes outside intervals, respects geography and does not mutate
+ok 67 - independent grid coverage retains nulls, excludes outside intervals, respects geography and does not mutate
+  ---
+  duration_ms: 1.308416
+  ...
+# Subtest: server receipt time and jurisdiction override hostile browser hints without changing provider policy or full documents
+ok 68 - server receipt time and jurisdiction override hostile browser hints without changing provider policy or full documents
+  ---
+  duration_ms: 5.188208
+  ...
+# Subtest: snapshot excludes observation scalar winds and both prompt builders preserve supplied SOPs and explicit gaps
+ok 69 - snapshot excludes observation scalar winds and both prompt builders preserve supplied SOPs and explicit gaps
+  ---
+  duration_ms: 30.828333
+  ...
+# Subtest: actual Edge handler streams once with authoritative scope, full KB/upload and exact source intervals
+ok 70 - actual Edge handler streams once with authoritative scope, full KB/upload and exact source intervals
+  ---
+  duration_ms: 36.666708
+  ...
+# Subtest: expired requested coverage refreshes configured sources; scalar observations do not create grid snapshots
+ok 71 - expired requested coverage refreshes configured sources; scalar observations do not create grid snapshots
+  ---
+  duration_ms: 0.922166
+  ...
+# Subtest: real React runtime config carries jurisdiction timezone independently of browser timezone
+ok 72 - real React runtime config carries jurisdiction timezone independently of browser timezone
+  ---
+  duration_ms: 3.535792
+  ...
+# Subtest: real React streaming function sends versioned scope snapshots and retains the complete upload
+ok 73 - real React streaming function sends versioned scope snapshots and retains the complete upload
+  ---
+  duration_ms: 1.376209
+  ...
+# Subtest: captured point/hourly/grid selection retains exact overlapping intervals and source values
+ok 74 - captured point/hourly/grid selection retains exact overlapping intervals and source values
+  ---
+  duration_ms: 9.608334
+  ...
+1..74
+# tests 74
+# suites 0
+# pass 74
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 413.198375
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.023s
+
+OK
+
+> ember-nyc@1.0.0 test:grounding
+> node --test tests/grounding.test.js && python3 -m unittest tests/test_grounding.py
+
+TAP version 13
+# (node:95046) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95046) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: both runtime prompts carry every reported failure rule and preserve conditional analysis
+ok 1 - both runtime prompts carry every reported failure rule and preserve conditional analysis
+  ---
+  duration_ms: 23.174333
+  ...
+# Subtest: same captured mixed-source request retains full evidence, resolved night and final authoritative rules
+ok 2 - same captured mixed-source request retains full evidence, resolved night and final authoritative rules
+  ---
+  duration_ms: 27.632166
+  ...
+# Subtest: actual Edge proxy delivers strengthened rules and whole uploaded plan to a recording provider
+ok 3 - actual Edge proxy delivers strengthened rules and whole uploaded plan to a recording provider
+  ---
+  duration_ms: 16.842959
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 130.845459
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.010s
+
+OK
+
+> ember-nyc@1.0.0 test:evidence
+> node --test tests/evidence-summary.test.js && python3 -m unittest tests/test_evidence_summary.py
+
+TAP version 13
+# (node:95082) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95082) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: source-scoped document facts, conflicts, explicit gaps and extraction uncertainty agree in JS/Python
+ok 1 - source-scoped document facts, conflicts, explicit gaps and extraction uncertainty agree in JS/Python
+  ---
+  duration_ms: 36.2325
+  ...
+# Subtest: legacy live weather is removed while complete document text and unrelated alerts remain
+ok 2 - legacy live weather is removed while complete document text and unrelated alerts remain
+  ---
+  duration_ms: 31.775959
+  ...
+# Subtest: actual Edge recording receives selected values without duplicate live weather, with complete uploads
+ok 3 - actual Edge recording receives selected values without duplicate live weather, with complete uploads
+  ---
+  duration_ms: 30.507083
+  ...
+# Subtest: real React context assembly excludes ordinary weather summaries and preserves other live evidence
+ok 4 - real React context assembly excludes ordinary weather summaries and preserves other live evidence
+  ---
+  duration_ms: 3.182333
+  ...
+# Subtest: weather navigation retains normalized source facts, units, freshness, coverage and limitations across runtimes
+ok 5 - weather navigation retains normalized source facts, units, freshness, coverage and limitations across runtimes
+  ---
+  duration_ms: 139.5745
+  ...
+# Subtest: cross-cutoff windows explicitly label near/later grid segments without rewriting original intervals
+ok 6 - cross-cutoff windows explicitly label near/later grid segments without rewriting original intervals
+  ---
+  duration_ms: 3.094709
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 305.950291
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.011s
+
+OK
+
+> ember-nyc@1.0.0 test:corrective
+> node --test tests/corrective.test.js tests/focused-correction.test.js tests/kfrg.test.js tests/emergency-context.test.js tests/selected-location.test.js tests/jurisdiction-lookup.test.js && python3 -m unittest tests/test_corrective.py tests/test_focused_correction.py tests/test_kfrg.py tests/test_emergency_context.py tests/test_selected_location.py tests/test_jurisdiction_lookup.py
+
+TAP version 13
+# (node:95185) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95185) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: REG-TIDE-WINDOW: select instants, never use out-of-window extrema
+ok 1 - REG-TIDE-WINDOW: select instants, never use out-of-window extrema
+  ---
+  duration_ms: 21.24425
+  ...
+# Subtest: all historical failure transformations are contained across every output section
+ok 2 - all historical failure transformations are contained across every output section
+  ---
+  duration_ms: 4.28175
+  ...
+# Subtest: supplied commander, deployed subset, threshold and authorized radio procedure survive
+ok 3 - supplied commander, deployed subset, threshold and authorized radio procedure survive
+  ---
+  duration_ms: 2.894416
+  ...
+# Subtest: expired, mismatched target, altered sentence, wrong units and conflicting triggers are not promoted
+ok 4 - expired, mismatched target, altered sentence, wrong units and conflicting triggers are not promoted
+  ---
+  duration_ms: 2.321083
+  ...
+# Subtest: null/stale/failed/ambiguous samples and exact end boundary cannot become future evidence
+ok 5 - null/stale/failed/ambiguous samples and exact end boundary cannot become future evidence
+  ---
+  duration_ms: 3.377792
+  ...
+# Subtest: explicit station scope excludes unrelated reference stations without inventing facility linkage
+ok 6 - explicit station scope excludes unrelated reference stations without inventing facility linkage
+  ---
+  duration_ms: 0.242792
+  ...
+# Subtest: legacy CO-OPS summaries are stripped but complete document quotations survive
+ok 7 - legacy CO-OPS summaries are stripped but complete document quotations survive
+  ---
+  duration_ms: 57.266584
+  ...
+# Subtest: shared JS/Python selection, states, positive records and exact rendering agree
+ok 8 - shared JS/Python selection, states, positive records and exact rendering agree
+  ---
+  duration_ms: 150.404833
+  ...
+# Subtest: invalid envelope, forged references, extra text and truncated responses fail closed
+ok 9 - invalid envelope, forged references, extra text and truncated responses fail closed
+  ---
+  duration_ms: 0.856583
+  ...
+# Subtest: actual Edge buffering never emits unvalidated prose; protected audit captures actual payload only in preview
+ok 10 - actual Edge buffering never emits unvalidated prose; protected audit captures actual payload only in preview
+  ---
+  duration_ms: 19.596208
+  ...
+# Subtest: supported gauge linkage is retained while unlinked and conflicting linkages stay unknown
+ok 11 - supported gauge linkage is retained while unlinked and conflicting linkages stay unknown
+  ---
+  duration_ms: 41.241459
+  ...
+# Subtest: malformed and interrupted actual Edge output cannot return a successful envelope
+ok 12 - malformed and interrupted actual Edge output cannot return a successful envelope
+  ---
+  duration_ms: 5.85075
+  ...
+# Subtest: unresolved scope prompts clarification and planning assumptions remain explicit
+ok 13 - unresolved scope prompts clarification and planning assumptions remain explicit
+  ---
+  duration_ms: 34.883792
+  ...
+# (node:95186) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95186) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: map-generated emergency request includes supported flooding, evacuation and facilities in the answer, not only raw sources
+ok 14 - map-generated emergency request includes supported flooding, evacuation and facilities in the answer, not only raw sources
+  ---
+  duration_ms: 24.594208
+  ...
+# Subtest: weather-only question stays concise and uses the observation shortcut without KB expansion
+ok 15 - weather-only question stays concise and uses the observation shortcut without KB expansion
+  ---
+  duration_ms: 3.128333
+  ...
+# Subtest: disabled or changed modules do not produce remembered KB facts; source bodies cannot bypass operational enforcement
+ok 16 - disabled or changed modules do not produce remembered KB facts; source bodies cannot bypass operational enforcement
+  ---
+  duration_ms: 3.483042
+  ...
+# Subtest: emergency KB records and rendering agree in JS and Python
+ok 17 - emergency KB records and rendering agree in JS and Python
+  ---
+  duration_ms: 56.238916
+  ...
+# Subtest: generic map features receive regional KB context; explicit KB facts cannot take the weather shortcut
+ok 18 - generic map features receive regional KB context; explicit KB facts cannot take the weather shortcut
+  ---
+  duration_ms: 5.153334
+  ...
+# Subtest: an uploaded copy cannot impersonate an enabled KB module
+ok 19 - an uploaded copy cannot impersonate an enabled KB module
+  ---
+  duration_ms: 1.983375
+  ...
+# (node:95187) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95187) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: captured reference bypass cannot print unchecked evacuation/heat policies or filler in any answer section
+ok 20 - captured reference bypass cannot print unchecked evacuation/heat policies or filler in any answer section
+  ---
+  duration_ms: 149.88175
+  ...
+# Subtest: captured current measured request retains fresh JFK data, excludes unrelated cones and forecasts
+ok 21 - captured current measured request retains fresh JFK data, excludes unrelated cones and forecasts
+  ---
+  duration_ms: 19.264625
+  ...
+# Subtest: captured supplied facts and applicable threshold/radio procedure remain usable when requested
+ok 22 - captured supplied facts and applicable threshold/radio procedure remain usable when requested
+  ---
+  duration_ms: 55.8135
+  ...
+# Subtest: all fifteen historical cases preserve JS/Python record and renderer parity with concise outputs
+ok 23 - all fifteen historical cases preserve JS/Python record and renderer parity with concise outputs
+  ---
+  duration_ms: 1012.090916
+  ...
+# Subtest: regional observation overview retains all eligible configured stations and labels references; named requests do not substitute
+ok 24 - regional observation overview retains all eligible configured stations and labels references; named requests do not substitute
+  ---
+  duration_ms: 39.918208
+  ...
+# Subtest: plain policy fields and malformed scalar inventory cannot reproduce mandates through Facts or Gaps
+ok 25 - plain policy fields and malformed scalar inventory cannot reproduce mandates through Facts or Gaps
+  ---
+  duration_ms: 15.016667
+  ...
+# Subtest: radio authorization does not add an unrequested water threshold; commander-only questions do not add radio procedures
+ok 26 - radio authorization does not add an unrequested water threshold; commander-only questions do not add radio procedures
+  ---
+  duration_ms: 41.381542
+  ...
+# (node:95188) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95188) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"incomplete_or_invalid_response","failure_stage":"normalize","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"incomplete_or_invalid_response","failure_stage":"normalize","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"invalid_boundary_record","failure_stage":"normalize","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"boundary_http_error","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":6,"reason":"boundary_http_error","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":7,"reason":"boundary_http_error","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"boundary_retrieval_failed","failure_stage":"fetch","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":6,"reason":"boundary_retrieval_failed","failure_stage":"fetch","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":7,"reason":"boundary_retrieval_failed","failure_stage":"fetch","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"boundary_response_too_large","failure_stage":"response_read","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":6,"reason":"boundary_response_too_large","failure_stage":"response_read","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":7,"reason":"boundary_response_too_large","failure_stage":"response_read","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"boundary_redirect_rejected","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":6,"reason":"boundary_redirect_rejected","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":7,"reason":"boundary_redirect_rejected","failure_stage":"response_headers","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":2,"reason":"boundary_invalid_json","failure_stage":"decode","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":6,"reason":"boundary_invalid_json","failure_stage":"decode","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# jurisdiction_lookup_failure {"layer_id":7,"reason":"boundary_invalid_json","failure_stage":"decode","error_type":"Error","failure_code":"UNCLASSIFIED"}
+# Subtest: KFRG gets source-attributed Suffolk/Babylon intersections through server answer assembly
+ok 27 - KFRG gets source-attributed Suffolk/Babylon intersections through server answer assembly
+  ---
+  duration_ms: 47.818209
+  ...
+# Subtest: full shapes and polygon holes are sent in fixed POST spatial queries without a centroid or client URL
+ok 28 - full shapes and polygon holes are sent in fixed POST spatial queries without a centroid or client URL
+  ---
+  duration_ms: 13.37125
+  ...
+# Subtest: multiple county/town matches stay multiple; failed or truncated results never select one
+ok 29 - multiple county/town matches stay multiple; failed or truncated results never select one
+  ---
+  duration_ms: 8.916292
+  ...
+# Subtest: no geometry, ambiguous name or changed question causes no boundary-service fetch
+ok 30 - no geometry, ambiguous name or changed question causes no boundary-service fetch
+  ---
+  duration_ms: 3.107208
+  ...
+# Subtest: client administrative claims cannot become server lookup facts; invalid requests make no egress
+ok 31 - client administrative claims cannot become server lookup facts; invalid requests make no egress
+  ---
+  duration_ms: 3.4545
+  ...
+# Subtest: bounded HTTP failure, redirect and oversized replies preserve unknowns
+ok 32 - bounded HTTP failure, redirect and oversized replies preserve unknowns
+  ---
+  duration_ms: 4.232834
+  ...
+# Subtest: JS/Python agree on request geometry, source normalization, scope and substantive answer records
+ok 33 - JS/Python agree on request geometry, source normalization, scope and substantive answer records
+  ---
+  duration_ms: 102.637166
+  ...
+# Subtest: actual Edge handler performs fixed-source lookups and retains them in the streamed answer
+ok 34 - actual Edge handler performs fixed-source lookups and retains them in the streamed answer
+  ---
+  duration_ms: 6.035875
+  ...
+# Subtest: real NYS village composite identifier is retained independently of county/town codes
+ok 35 - real NYS village composite identifier is retained independently of county/town codes
+  ---
+  duration_ms: 0.804167
+  ...
+# Subtest: lookup works when runtime permits manual redirect handling but rejects redirect:error
+ok 36 - lookup works when runtime permits manual redirect handling but rejects redirect:error
+  ---
+  duration_ms: 1.32325
+  ...
+# Subtest: manual redirects are rejected without following any returned location
+ok 37 - manual redirects are rejected without following any returned location
+  ---
+  duration_ms: 0.697917
+  ...
+# Subtest: failure diagnostics distinguish network and decoding failures without serializing error text
+ok 38 - failure diagnostics distinguish network and decoding failures without serializing error text
+  ---
+  duration_ms: 1.182584
+  ...
+# Subtest: a fully read successful response does not require cancelling its completed stream
+ok 39 - a fully read successful response does not require cancelling its completed stream
+  ---
+  duration_ms: 1.067292
+  ...
+# Subtest: Brentwood shelter survives the full Edge handler without inferring open shelter status or command authority
+ok 40 - Brentwood shelter survives the full Edge handler without inferring open shelter status or command authority
+  ---
+  duration_ms: 5.637209
+  ...
+# (node:95189) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95189) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: exact hosted most recent wording selects current KFRG observations
+ok 41 - exact hosted most recent wording selects current KFRG observations
+  ---
+  duration_ms: 19.150542
+  ...
+# Subtest: real observation source summary retains timestamp, measured fields and units rather than treating it as a grid
+ok 42 - real observation source summary retains timestamp, measured fields and units rather than treating it as a grid
+  ---
+  duration_ms: 0.208375
+  ...
+# Subtest: map handoff retains payload and resolves time/station independently of its display wording
+ok 43 - map handoff retains payload and resolves time/station independently of its display wording
+  ---
+  duration_ms: 6.985208
+  ...
+# Subtest: simple eligible observation answer does not call provider
+ok 44 - simple eligible observation answer does not call provider
+  ---
+  duration_ms: 17.545542
+  ...
+# Subtest: selected map evidence and controlled assessment have JS/Python parity
+ok 45 - selected map evidence and controlled assessment have JS/Python parity
+  ---
+  duration_ms: 71.652666
+  ...
+# Subtest: failed retrieval, malformed payload and stale measurements produce specific station gaps
+ok 46 - failed retrieval, malformed payload and stale measurements produce specific station gaps
+  ---
+  duration_ms: 5.189792
+  ...
+# Subtest: selection is catalog bounded and does not replace an explicit future interval
+ok 47 - selection is catalog bounded and does not replace an explicit future interval
+  ---
+  duration_ms: 3.144959
+  ...
+# (node:95190) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:95190) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: all feature shapes survive normalization, serialization, cloud scope and controlled assembly
+ok 48 - all feature shapes survive normalization, serialization, cloud scope and controlled assembly
+  ---
+  duration_ms: 28.352709
+  ...
+# Subtest: JS/Python shared fixtures preserve identical contracts and scopes
+ok 49 - JS/Python shared fixtures preserve identical contracts and scopes
+  ---
+  duration_ms: 62.364542
+  ...
+# Subtest: server rejects malformed, oversized or conflicting location input
+ok 50 - server rejects malformed, oversized or conflicting location input
+  ---
+  duration_ms: 1.96075
+  ...
+# Subtest: selection binds only the explicit map action, with focused clarification on mismatch
+ok 51 - selection binds only the explicit map action, with focused clarification on mismatch
+  ---
+  duration_ms: 4.110041
+  ...
+# Subtest: overcomplex footprint becomes explicitly unknown, without a centroid substitution
+ok 52 - overcomplex footprint becomes explicitly unknown, without a centroid substitution
+  ---
+  duration_ms: 0.463459
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1431.415042
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 0.076s
+
+OK

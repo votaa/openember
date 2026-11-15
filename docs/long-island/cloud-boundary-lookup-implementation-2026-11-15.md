@@ -2,6 +2,8 @@
 
 Base: `5d1d7b5`, branch `codex/cloud-upload-coverage`, checkout `/private/tmp/openember-cloud-upload`. Local implementation and review candidate for the remaining boundary lookup item in [Batch 1](cloud-location-emergency-synthesis-plan-2026-11-15.md). Hosted usefulness/grounding acceptance and GROUND-001/002/003 remain open.
 
+Hosted follow-up: KFRG and Brentwood smoke tests failed on `2c11863`. See the [Edge compatibility investigation and local correction](cloud-boundary-hosted-failure-2026-11-15.md). Hosted acceptance remains open.
+
 ## Source decision
 
 Use the existing configured **NYS Civil Boundaries** service, extending administrative lookup to its Counties (2), Cities_Towns (6) and Villages (7) layers. Keep the Nassau-only `nassau_town_boundaries` prototype disabled. Its current configuration still gates reuse/attribution/ownership/update-cadence confirmation and it provides no Suffolk coverage. The selected lookup is a separate server-owned policy; it does not change map overlay visibility, regional filtering or the configured application jurisdiction.

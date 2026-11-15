@@ -1,0 +1,104 @@
+{
+  "runtime": "workerd 2026-11-15",
+  "baseline": "2c1186391bec4fac98febf8b473d00e7d3431e45",
+  "captured_at": "2026-11-15T20:31:48.172Z",
+  "provenance": "Local workerd running original committed and current lookup bundles against live public NYS data; no cloud model calls.",
+  "records": [
+    {
+      "case": "kfrg",
+      "version": "original",
+      "elapsed_ms": 24,
+      "status": "unresolved",
+      "names": [],
+      "levels": [
+        {
+          "level": "county",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "city_town",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "village",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        }
+      ]
+    },
+    {
+      "case": "kfrg",
+      "version": "patched",
+      "elapsed_ms": 293,
+      "status": "matched",
+      "names": [
+        "County: Suffolk",
+        "Town: Babylon"
+      ],
+      "levels": [
+        {
+          "level": "county",
+          "status": "matched"
+        },
+        {
+          "level": "city_town",
+          "status": "matched"
+        },
+        {
+          "level": "village",
+          "status": "no_match"
+        }
+      ]
+    },
+    {
+      "case": "brentwood_shelter",
+      "version": "original",
+      "elapsed_ms": 1,
+      "status": "unresolved",
+      "names": [],
+      "levels": [
+        {
+          "level": "county",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "city_town",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "village",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        }
+      ]
+    },
+    {
+      "case": "brentwood_shelter",
+      "version": "patched",
+      "elapsed_ms": 78,
+      "status": "matched",
+      "names": [
+        "County: Suffolk",
+        "Town: Islip"
+      ],
+      "levels": [
+        {
+          "level": "county",
+          "status": "matched"
+        },
+        {
+          "level": "city_town",
+          "status": "matched"
+        },
+        {
+          "level": "village",
+          "status": "no_match"
+        }
+      ]
+    }
+  ]
+}

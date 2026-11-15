@@ -1,0 +1,101 @@
+{
+  "runtime": "workerd 2026-11-15",
+  "records": [
+    {
+      "case": "kfrg",
+      "version": "original",
+      "elapsed_ms": 16,
+      "status": "unresolved",
+      "names": [],
+      "levels": [
+        {
+          "level": "county",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "city_town",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "village",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        }
+      ]
+    },
+    {
+      "case": "kfrg",
+      "version": "patched",
+      "elapsed_ms": 703,
+      "status": "matched",
+      "names": [
+        "County: Suffolk",
+        "Town: Babylon"
+      ],
+      "levels": [
+        {
+          "level": "county",
+          "status": "matched"
+        },
+        {
+          "level": "city_town",
+          "status": "matched"
+        },
+        {
+          "level": "village",
+          "status": "no_match"
+        }
+      ]
+    },
+    {
+      "case": "brentwood_shelter",
+      "version": "original",
+      "elapsed_ms": 2,
+      "status": "unresolved",
+      "names": [],
+      "levels": [
+        {
+          "level": "county",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "city_town",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        },
+        {
+          "level": "village",
+          "status": "unavailable",
+          "reason": "boundary_retrieval_failed"
+        }
+      ]
+    },
+    {
+      "case": "brentwood_shelter",
+      "version": "patched",
+      "elapsed_ms": 80,
+      "status": "matched",
+      "names": [
+        "County: Suffolk",
+        "Town: Islip"
+      ],
+      "levels": [
+        {
+          "level": "county",
+          "status": "matched"
+        },
+        {
+          "level": "city_town",
+          "status": "matched"
+        },
+        {
+          "level": "village",
+          "status": "no_match"
+        }
+      ]
+    }
+  ]
+}

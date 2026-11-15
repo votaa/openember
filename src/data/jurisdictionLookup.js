@@ -50,16 +50,21 @@ export function normalizeBoundaryResponse(raw,layer,fetchedAt) {
   const matches=normalizedMatches(raw,layer)
   return {level:layer.level,layer_id:layer.layer_id,source_url:`${policy.service_root}/${layer.layer_id}/query`,fetched_at:fetchedAt,status:matches.length>1?'multiple':matches.length?'matched':'no_match',matches,raw_response:raw}
 }
-async function boundedJson(response) {
+async function boundedJson(response,onStage) {
+  onStage('response_headers')
+  if(response.status>=300&&response.status<400)throw Error('boundary_redirect_rejected')
   if(!response.ok)throw Error('boundary_http_error')
   if(Number(response.headers.get('content-length'))>policy.max_response_bytes)throw Error('boundary_response_too_large')
-  const reader=response.body.getReader(),chunks=[];let size=0
+  onStage('response_read')
+  const reader=response.body.getReader(),chunks=[];let size=0,finished=false
   try {
-    while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>policy.max_response_bytes)throw Error('boundary_response_too_large');chunks.push(value)}
-  }finally {await reader.cancel().catch(()=>{})}
+    while(true){const {done,value}=await reader.read();if(done){finished=true;break}size+=value.byteLength;if(size>policy.max_response_bytes)throw Error('boundary_response_too_large');chunks.push(value)}
+  }finally {if(!finished){try{await reader.cancel()}catch{}}reader.releaseLock()}
   const bytes=new Uint8Array(size);let at=0
   for(const chunk of chunks){bytes.set(chunk,at);at+=chunk.byteLength}
-  return JSON.parse(new TextDecoder().decode(bytes))
+  onStage('decode')
+  try{return JSON.parse(new TextDecoder().decode(bytes))}
+  catch{throw Error('boundary_invalid_json')}
 }
 export function assembleJurisdiction(levels) {
   const required=levels.filter(l=>l.level!=='village'),failed=levels.some(l=>l.status==='unavailable')
@@ -67,18 +72,37 @@ export function assembleJurisdiction(levels) {
   const names=levels.flatMap(l=>l.matches.map(m=>`${m.kind}: ${m.name}`))
   return {version:policy.version,status:hasRequired&&!failed?(levels.some(l=>l.status==='multiple')?'multiple':'matched'):names.length?'partial':'unresolved',names,source:policy.dataset_url,coverage:policy.coverage,publisher:policy.publisher,publication_date:policy.publication_date,relation:'intersects',geometry_reference:'selected_location.location.geometry',containment:'not_evaluated',levels,reason:hasRequired&&!failed?'Mapped administrative intersections returned.':'One or more administrative levels lack complete matching evidence.',limitation:policy.limitation}
 }
-export async function lookupJurisdiction(selectedLocation,question,{fetchImpl=fetch,clock=()=>new Date().toISOString()}={}) {
+function failureDetails(error,stage,timedOut) {
+  const known=['invalid_query_geometry','incomplete_or_invalid_response','invalid_boundary_record','boundary_response_too_large','boundary_http_error','boundary_redirect_rejected','boundary_invalid_json']
+  const reason=timedOut?'boundary_timeout':known.includes(error?.message)?error.message:'boundary_retrieval_failed'
+  const allowedCodes=['ENOTFOUND','EAI_AGAIN','ECONNRESET','ECONNREFUSED','ETIMEDOUT','CERT_HAS_EXPIRED','UNABLE_TO_VERIFY_LEAF_SIGNATURE','ERR_TLS_CERT_ALTNAME_INVALID','UND_ERR_CONNECT_TIMEOUT','UND_ERR_SOCKET']
+  let code=error?.cause?.code||error?.code
+  if(!allowedCodes.includes(code)) {
+    const message=String(error?.message||'')
+    code=/unsupported redirect mode|invalid redirect value|redirect mode.*not supported/i.test(message)?'UNSUPPORTED_REDIRECT_MODE':/illegal invocation/i.test(message)?'INVALID_FETCH_RECEIVER':'UNCLASSIFIED'
+  }
+  return {reason,failure_stage:stage,error_type:['TypeError','SyntaxError','AbortError','Error'].includes(error?.name)?error.name:'Error',failure_code:code}
+}
+export async function lookupJurisdiction(selectedLocation,question,{fetchImpl=(...args)=>globalThis.fetch(...args),clock=()=>new Date().toISOString(),onFailure=details=>console.warn('jurisdiction_lookup_failure',JSON.stringify(details))}={}) {
   const location=validateSelectedLocation(selectedLocation)
   if(question.trim()!==selectedLocationQuestion(location).trim()||!location.geometry)return {...assembleJurisdiction([]),reason:location.geometry?'Selected location does not match this question.':'Selected geometry is unknown; names and station labels are not geocoded.'}
   const levels=await Promise.all(policy.layers.map(async layer=>{
     const source_url=`${policy.service_root}/${layer.layer_id}/query`
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),policy.timeout_ms)
+    let stage='query'
     try {
       const params=boundaryQuery(location.geometry,layer)
-      const response=await fetchImpl(source_url,{method:'POST',redirect:'error',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params).toString(),signal:controller.signal})
-      const raw=await boundedJson(response)
+      stage='fetch'
+      const response=await fetchImpl(source_url,{method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams(params).toString(),signal:controller.signal})
+      const raw=await boundedJson(response,next=>{stage=next})
+      stage='normalize'
       return normalizeBoundaryResponse(raw,layer,clock())
-    }catch(error){return {level:layer.level,layer_id:layer.layer_id,source_url,fetched_at:clock(),status:'unavailable',matches:[],reason:controller.signal.aborted?'boundary_timeout':['invalid_query_geometry','incomplete_or_invalid_response','invalid_boundary_record','boundary_response_too_large','boundary_http_error'].includes(error.message)?error.message:'boundary_retrieval_failed'}}
+    }catch(error) {
+      const failure=failureDetails(error,stage,controller.signal.aborted)
+      // Deliberately omit error text, query geometry, headers and request bodies.
+      try{onFailure({layer_id:layer.layer_id,...failure})}catch{}
+      return {level:layer.level,layer_id:layer.layer_id,source_url,fetched_at:clock(),status:'unavailable',matches:[],...failure}
+    }
     finally{clearTimeout(timer)}
   }))
   return assembleJurisdiction(levels)

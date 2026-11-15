@@ -32,7 +32,7 @@ test('full shapes and polygon holes are sent in fixed POST spatial queries witho
   await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,fetchImpl:async(url,o)=>{calls.push({url,o});return fixtureFetch(url)}})
   assert.equal(calls.length,3)
   for(const {url,o} of calls) {
-   assert.ok(url.startsWith(policy.service_root));assert.equal(o.method,'POST');assert.equal(o.redirect,'error')
+   assert.ok(url.startsWith(policy.service_root));assert.equal(o.method,'POST');assert.equal(o.redirect,'manual')
    const p=new URLSearchParams(o.body);assert.equal(p.get('spatialRel'),'esriSpatialRelIntersects');assert.equal(p.get('inSR'),'4326');assert.equal(p.get('where'),'1=1')
    const g=JSON.parse(p.get('geometry'))
    if(geometry.type==='LineString')assert.deepEqual(g.paths,[geometry.coordinates])
@@ -118,4 +118,65 @@ test('real NYS village composite identifier is retained independently of county/
  const raw=JSON.parse(readFileSync(new URL('./fixtures/jurisdiction/crossing-villages.json',import.meta.url)))
  const row=normalizeBoundaryResponse(raw,policy.layers[2],now).matches[0]
  assert.equal(row.name,'Farmingdale');assert.equal(row.fips,'360595600025384');assert.equal(row.county,'Nassau');assert.equal(row.town,'Oyster Bay')
+})
+
+test('lookup works when runtime permits manual redirect handling but rejects redirect:error',async()=>{
+ const v=kfrg(),calls=[]
+ const result=await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,fetchImpl:async(url,options)=>{
+  calls.push(options.redirect)
+  if(options.redirect==='error')throw new TypeError('Unsupported redirect mode: error')
+  assert.equal(options.redirect,'manual')
+  return fixtureFetch(url)
+ }})
+ assert.deepEqual(result.names,['County: Suffolk','Town: Babylon'])
+ assert.deepEqual(calls,['manual','manual','manual'])
+})
+test('manual redirects are rejected without following any returned location',async()=>{
+ const v=kfrg(),urls=[]
+ const result=await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,fetchImpl:async url=>{urls.push(url);return new Response(null,{status:302,headers:{location:'https://untrusted.invalid/redirect'}})}})
+ assert.equal(urls.length,3);assert.ok(urls.every(url=>url.startsWith(policy.service_root)))
+ assert.ok(result.levels.every(l=>l.status==='unavailable'&&l.reason==='boundary_redirect_rejected'))
+})
+test('failure diagnostics distinguish network and decoding failures without serializing error text',async()=>{
+ const v=kfrg(),diagnostics=[]
+ const error=new TypeError('fetch failed; secret-test-marker');error.cause={code:'ECONNRESET',message:'secret-test-marker'}
+ const failed=await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,onFailure:d=>diagnostics.push(d),fetchImpl:async()=>{throw error}})
+ assert.ok(failed.levels.every(l=>l.failure_stage==='fetch'&&l.failure_code==='ECONNRESET'&&l.error_type==='TypeError'))
+ assert.equal(diagnostics.length,3);assert.ok(!JSON.stringify({failed,diagnostics}).includes('secret-test-marker'))
+ const invalid=await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,fetchImpl:async()=>new Response('not JSON')})
+ assert.ok(invalid.levels.every(l=>l.failure_stage==='decode'&&l.reason==='boundary_invalid_json'))
+})
+test('a fully read successful response does not require cancelling its completed stream',async()=>{
+ const v=kfrg()
+ const result=await lookupJurisdiction(v,selectedLocationQuestion(v),{clock,fetchImpl:async url=>{
+  const data=new TextEncoder().encode(JSON.stringify(fixtures[url.split('/').at(-2)]));let delivered=false
+  return {ok:true,status:200,headers:new Headers(),body:{getReader:()=>({read:async()=>delivered?{done:true}:(delivered=true,{done:false,value:data}),cancel:()=>{throw Error('completed stream cannot be cancelled')},releaseLock:()=>{}})}}
+ }})
+ assert.deepEqual(result.names,['County: Suffolk','Town: Babylon'])
+})
+
+test('Brentwood shelter survives the full Edge handler without inferring open shelter status or command authority',async()=>{
+ const original=globalThis.fetch
+ const source=selectedLocationFromFeature({name:'Brentwood HS',source_name:'Evac Shelters',description:'Evacuation Center | central Suffolk',geometry:{type:'Point',coordinates:[-73.246,40.7776]}})
+ globalThis.fetch=async(url,options)=>{
+  if(url.startsWith(policy.service_root)) {
+   if(options.redirect!=='manual')throw new TypeError('Unsupported redirect mode: error')
+   const id=url.split('/').at(-2)
+   return new Response(readFileSync(new URL(`./fixtures/jurisdiction/brentwood-${id}.json`,import.meta.url)))
+  }
+  assert.equal(url,'https://ollama.com/api/chat')
+  return new Response(JSON.stringify({message:{content:JSON.stringify({version:'operational-answer-v2',records:[]})},done:true,done_reason:'stop'})+'\n')
+ }
+ try {
+  const result=await handler(new Request('http://localhost/api/chat',{method:'POST',headers:{'Content-Type':'application/json','x-ollama-key':'recording-only'},body:JSON.stringify(body(source))}))
+  assert.equal(result.status,200)
+  const frames=(await result.text()).trim().split('\n').map(JSON.parse)
+  const selected=frames.find(f=>f.ember_scope).ember_scope.selected_location
+  assert.equal(selected.location.display_name,'Brentwood HS')
+  assert.deepEqual(selected.local_jurisdiction.names,['County: Suffolk','Town: Islip'])
+  const answer=frames.filter(f=>f.message).map(f=>f.message.content).join('')
+  assert.match(answer,/County: Suffolk; Town: Islip/)
+  assert.match(answer,/facility ownership and emergency authority are not established/)
+  assert.ok(!/shelter is (?:open|available)|shelter capacity is|assigned commander/i.test(answer))
+ }finally {globalThis.fetch=original}
 })
