@@ -46,6 +46,7 @@ import {
 import { mapFeatureChatPrompt, normalizeMapFeature } from "./data/mapInteraction.js"
 import { buildCopilotSystemPrompt } from "./data/copilotPrompt.js"
 import scopePolicy from '../shared/request-scope-policy.json'
+import {coopsSnapshots} from './data/coopsEvidence.js'
 import {weatherSnapshots,needsScopeRefresh,SCOPE_VERSION} from './data/requestScope.js'
 import AssistantMarkdown from './components/AssistantMarkdown.jsx'
 import { summarizeWeather } from "./data/weatherContext.js"
@@ -294,7 +295,7 @@ function buildContextRT(files, apiResults, activeKB, kb, jurisdictionName, phase
   }
   if (apiResults.length) {
     ctx += `--- LIVE API DATA (${new Date().toUTCString()}) ---\n`
-    apiResults.filter(r => !/^https:\/\/api\.weather\.gov\/(gridpoints|stations)\//i.test(r.url || "")).forEach(r => { ctx += summarizeAPIData(r) + "\n" })
+    apiResults.filter(r => !/api\.tidesandcurrents\.noaa\.gov/.test(r.url || "") && !/^https:\/\/api\.weather\.gov\/(gridpoints|stations)\//i.test(r.url || "")).forEach(r => { ctx += summarizeAPIData(r) + "\n" })
     ctx += "\n"
   }
   const hazardResult = phase4Results.nyc_311_electric_hazards_rockaway
@@ -392,12 +393,12 @@ const NOAA_ENDPOINTS = [
   {id:"nws_grid",      cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Wind & Precip Grid",                    url:`https://api.weather.gov/gridpoints/${_NWS.office||"OKX"}/${_NWS.grid_x||33},${_NWS.grid_y||37}`},
   {id:"nws_obs_kjfk",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Observations — JFK Airport",            url:"https://api.weather.gov/stations/KJFK/observations/latest",                                              mapKey:true},
   // CO-OPS
-  {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
-  {id:"coops_preds",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Tidal Predictions — Battery 48h",       url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER"},
-  {id:"coops_kings",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Kings Point",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
-  {id:"coops_montauk", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Montauk",                 url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
-  {id:"coops_sandy",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Sandy Hook",              url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", mapKey:true},
-  {id:"coops_wind",    cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Wind — The Battery",                    url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER"},
+  {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_preds",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Tidal Predictions — Battery 48h",       url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER"},
+  {id:"coops_kings",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Kings Point",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_montauk", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Montauk",                 url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_sandy",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — Sandy Hook",              url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", mapKey:true},
+  {id:"coops_wind",    cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Wind — The Battery",                    url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER"},
   // SPC / SWPC
   {id:"spc_watches",   cat:"SPC",    color:"#f87171", icon:"⚡", name:"Active SPC Watches",                    url:"https://api.weather.gov/alerts/active?status=actual&event=Tornado%20Watch,Severe%20Thunderstorm%20Watch&zone=NYC059,NYC103,NYC081"},
   {id:"spc_day1",      cat:"SPC",    color:"#f87171", icon:"⚡", name:"Day 1 Convective Outlook",              url:"https://www.spc.noaa.gov/products/outlook/day1otlk.txt",                                                text:true},
@@ -699,7 +700,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
         const key = Object.keys(liveReadings).find(k => !k.startsWith("__") && (k.toLowerCase().includes(f.name.split(",")[0].toLowerCase().split(" ")[0]) || f.name.toLowerCase().includes(k.toLowerCase().split(" at ")[0])))
         const reading = key ? liveReadings[key] : null
         if (!reading) return
-        const statusColor = {flood:"#f87171",elevated:"#facc15",normal:"#4ade80"}[reading.status]||"#4ade80"
+        const statusColor = {flood:"#f87171",elevated:"#facc15",normal:"#4ade80"}[reading.status]||"#94a3b8"
         mk.setPopupContent(`<div style="font-family:monospace;font-size:11px"><b style="color:${statusColor}">📡 ${f.name}</b><br><span style="color:#aac">${f.note}</span><br><br><b style="color:${statusColor}">${reading.level} ${reading.unit}</b> <span style="color:#556;font-size:9px">${(reading.status||"").toUpperCase()}</span><br><span style="color:#446;font-size:9px">${reading.source} · live</span></div>`)
         mk.setIcon(L.divIcon({className:"",iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-16],html:`<div style="width:28px;height:28px;border-radius:50%;background:${statusColor}22;border:2px solid ${statusColor};display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 0 8px ${statusColor}44">📡</div>`}))
       })
@@ -1037,7 +1038,7 @@ export default function App() {
         for (const ts of r.data.value.timeSeries) {
           const site = ts.sourceInfo?.siteName||""
           const val  = ts.values?.[0]?.value?.[0]?.value
-          if (val!=null) readings[site] = {level:parseFloat(val).toFixed(2),unit:"ft",source:"USGS",status:parseFloat(val)>10?"flood":parseFloat(val)>5?"elevated":"normal"}
+          if (val!=null) readings[site] = {level:parseFloat(val).toFixed(2),unit:"ft",source:"USGS",status:"classification unavailable"}
         }
       }
     }
@@ -1058,7 +1059,7 @@ export default function App() {
     // Refresh missing/stale weather before constructing this request, so the
     // first ordinary question gets the same forecast evidence as Streamlit.
     let full = "", requestMetadata = null
-    setMessages(p=>[...p,{role:"assistant",content:"▋"}])
+    setMessages(p=>[...p,{role:"assistant",content:"Checking supplied evidence… ▋"}])
     try {
       await initialNoaaFetchRef.current
       const refreshed = await Promise.all(weatherEndpoints.filter(ep => {
@@ -1079,12 +1080,13 @@ export default function App() {
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT)}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata}]) },
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT),coops:coopsSnapshots([...Object.values(noaaCacheRef.current),...apiResults])}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata}]) },
       )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋",scope:requestMetadata}])
       }
     } catch(e) {
+      if (e.name==="AbortError" && !full) full = "⚠ Response stopped before a validated answer was available."
       if (e.name!=="AbortError") full += `\n\n⚠ Error: ${e.message}`
     }
     setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full,scope:requestMetadata}])

@@ -45,11 +45,11 @@ test('combined messages are measured as UTF-8 bytes with a strict boundary and v
 
 test('actual Edge proxy forwards every document byte, preserves streaming, and rejects overflow before provider',async()=>{
  const original=globalThis.fetch,calls=[]
- globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response('{"message":{"content":"recorded"},"done":true}\n')}
+ globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
  try{
   const uploads=[doc],messages=[{role:'system',content:uploadedDocumentContext(uploads)},{role:'user',content:'Read the radio channel and commander.'}]
   const response=await handler(jsonRequest({messages,uploads}))
-  assert.equal(response.status,200);assert.match(await response.text(),/recorded/)
+  assert.equal(response.status,200);assert.match(await response.text(),/validated_envelope/)
   assert.deepEqual(calls[0].body.messages.slice(1),messages.slice(1))
   assert.ok(calls[0].body.messages[0].content.includes(messages[0].content))
   assert.match(calls[0].body.messages[0].content,/REQUEST SCOPE/)

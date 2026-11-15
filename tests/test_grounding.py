@@ -27,9 +27,9 @@ class GroundingTests(unittest.TestCase):
         self.assertEqual(resolved['interval']['end_utc'],'2026-11-15T11:00:00Z')
         with patch.object(requests,'post') as post:
             response=post.return_value.__enter__.return_value
-            response.iter_lines.return_value=[json.dumps(dict(message=dict(content='recorded'),done=True)).encode()]
+            response.iter_lines.return_value=[json.dumps(dict(message=dict(content=json.dumps(dict(version='operational-answer-v1',references=[]))),done=True)).encode()]
             output=''.join(scope['stream_ollama']([dict(role='user',content=FIXTURE['question'])],CAPTURED['messages'][0]['content'],resolved,weather))
-            self.assertEqual(output,'recorded');self.assertEqual(post.call_count,1)
+            self.assertIn('Application-rendered evidence',output);self.assertEqual(post.call_count,1)
             prompt=post.call_args.kwargs['json']['messages'][0]['content']
             for case in FIXTURE['cases']:self.assertIn(case['required_rule'],prompt)
             for upload in CAPTURED['uploads']:self.assertIn(upload['content'],prompt)

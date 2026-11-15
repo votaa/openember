@@ -789,6 +789,7 @@ nws:
     lat: 41.1635
     lng: -73.1262
 
+# Legacy numeric levels below are retained for audit only; no operational flood classification is enabled.
 coops_stations:
 - id: '8516945'
   name: Kings Point (LI Sound)

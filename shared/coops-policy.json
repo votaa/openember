@@ -1,0 +1,18 @@
+{
+  "station_names": {
+    "8518750": [
+      "The Battery",
+      "Battery Park"
+    ],
+    "8516945": [
+      "Kings Point"
+    ],
+    "8510560": [
+      "Montauk"
+    ],
+    "8531680": [
+      "Sandy Hook"
+    ]
+  },
+  "observation_max_age_seconds": 1080
+}

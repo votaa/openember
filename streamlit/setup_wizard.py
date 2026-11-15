@@ -139,7 +139,6 @@ def render_wizard():
         coops_stations = []
         for idx in range(min(8, max(len(base_coops), 2))):
             prev = base_coops[idx] if idx < len(base_coops) else {}
-            prev_thresh = prev.get("flood_thresholds", {})
             with st.container():
                 st.markdown(f"**Station {idx+1}**")
                 gc1, gc2, gc3, gc4 = st.columns([2, 3, 2, 2])
@@ -148,12 +147,8 @@ def render_wizard():
                 with gc3: glat = st.number_input("Lat",        value=float(prev.get("lat",0)), key=f"coops_lat_{idx}", format="%.4f")
                 with gc4: glng = st.number_input("Lng",        value=float(prev.get("lng",0)), key=f"coops_lng_{idx}", format="%.4f")
 
-                ft1, ft2, ft3, ft4, ft5 = st.columns([1,1,1,1,2])
-                with ft1: fa = st.number_input("Action (ft)", value=float(prev_thresh.get("action",4.5)), key=f"coops_fa_{idx}", format="%.1f", step=0.5)
-                with ft2: fm = st.number_input("Minor (ft)",  value=float(prev_thresh.get("minor",5.5)),  key=f"coops_fm_{idx}", format="%.1f", step=0.5)
-                with ft3: fo = st.number_input("Moderate",    value=float(prev_thresh.get("moderate",6.5)),key=f"coops_fo_{idx}", format="%.1f", step=0.5)
-                with ft4: fj = st.number_input("Major (ft)",  value=float(prev_thresh.get("major",8.5)),  key=f"coops_fj_{idx}", format="%.1f", step=0.5)
-                with ft5: is_pri = st.checkbox("Primary gauge", value=prev.get("is_primary", idx==0), key=f"coops_pri_{idx}")
+                st.caption("Flood classifications are unavailable until station thresholds, units, datum and authority are audited. Numeric defaults are not operational guidance.")
+                is_pri = st.checkbox("Primary gauge", value=prev.get("is_primary", idx==0), key=f"coops_pri_{idx}")
                 st.markdown("---")
 
                 if gid:
@@ -163,7 +158,7 @@ def render_wizard():
                         "lat":        glat,
                         "lng":        glng,
                         "is_primary": is_pri,
-                        "flood_thresholds": {"action": fa, "minor": fm, "moderate": fo, "major": fj},
+                        "flood_thresholds": {},
                     })
 
     # ── Section 4: Knowledge Base ──────────────────────────────────────────────

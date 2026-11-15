@@ -34,12 +34,12 @@ test('legacy live weather is removed while complete document text and unrelated 
 test('actual Edge recording receives selected values without duplicate live weather, with complete uploads',async()=>{
  const c=fixture[1],OriginalDate=globalThis.Date,original=globalThis.fetch,calls=[]
  globalThis.Date=class extends OriginalDate {constructor(...args){super(...(args.length?args:[c.requestedAt]))}static now(){return OriginalDate.parse(c.requestedAt)}}
- globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response('{"message":{"content":"recorded"},"done":true}\n')}
+ globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
  try {
   const context='FULL_KB\n'+uploadedDocumentContext(documents)+'\n--- NOAA DATA ---\n[NOAA: Point]\nSource: '+c.weather[0].url+'\nUNFILTERED_LATER_SENTINEL\n'
   const body={messages:[{role:'system',content:buildCopilotSystemPrompt('Long Island',context)},{role:'user',content:'tonight'}],uploads:documents,scope_input:{version:'request-scope-v1',weather:c.weather}}
   const response=await handler(new Request('http://localhost/api/chat',{method:'POST',headers:{'content-type':'application/json','x-ollama-key':'recording-only'},body:JSON.stringify(body)}))
-  assert.equal(response.status,200);const wire=await response.text();assert.match(wire,/recorded/);assert.equal(calls.length,1)
+  assert.equal(response.status,200);const wire=await response.text();assert.match(wire,/validated_envelope/);assert.equal(calls.length,1)
   const metadata=JSON.parse(wire.split('\n')[0]).ember_scope
   assert.equal(metadata.request_utc,c.requestedAt)
   const prompt=calls[0].messages[0].content

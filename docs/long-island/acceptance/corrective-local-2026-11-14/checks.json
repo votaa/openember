@@ -1,0 +1,58 @@
+{
+  "recorded_at": "2026-11-14T21:35:02.919116+00:00",
+  "base_commit": "4ce55af",
+  "changes": "uncommitted",
+  "phase4_gate": {
+    "status": "PASS",
+    "command": "PATH=\"/Users/anthonyvota/Projects/openember/.venv/bin:$PATH\" npm run phase4:gate",
+    "javascript_checks": 168,
+    "python_test_runs": 137,
+    "javascript_suites": [
+      67,
+      5,
+      74,
+      3,
+      6,
+      13
+    ],
+    "python_suites": [
+      40,
+      80,
+      5,
+      3,
+      2,
+      3,
+      4
+    ],
+    "log_sha256": "2cb218b5e171e0188fc946892bb66f6288a2c1737bb5a7c6c1d519e7a33279f0",
+    "log_path": "/private/tmp/corrective-phase4-final.log"
+  },
+  "browser": {
+    "status": "PASS",
+    "runner": "scripts/verify-corrective-ui.js",
+    "transport": "Real React app to local actual Edge handler to recording provider",
+    "requests": 3,
+    "positive_evidence_preserved": true,
+    "invalid_trigger_contained": true,
+    "no_claims_before_validation": true,
+    "stop_before_validation": true,
+    "retained_answers": 2,
+    "cloud_model_calls": 0,
+    "screenshot_path": "/private/tmp/openember-cloud-upload/output/playwright/corrective-boundary.png"
+  },
+  "dry_runs": {
+    "status": "PASS",
+    "live": false,
+    "cases": [
+      "original mixed-source upload",
+      "positive structured evidence"
+    ],
+    "source_revision": "Previously retained c68d4c6 weather capture, not fresh weather",
+    "output_path": "/private/tmp/openember-corrective-preflight"
+  },
+  "hosted": {
+    "status": "FAIL / corrective validation pending",
+    "new_hosted_generations": 0,
+    "required": "Verified corrective preview and complete repeated source/request/answer captures with section review"
+  }
+}

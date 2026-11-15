@@ -54,6 +54,7 @@ from copilot_prompt import (
 )
 from weather_context import summarize_weather
 from answer_presentation import answer_markdown
+from coops_evidence import coops_snapshots, select_coops
 from evidence_summary import evidence_summary, strip_weather_context
 from request_scope import resolve_request_scope, render_request_scope, weather_snapshots, needs_scope_refresh, instant as scope_instant
 from esri_presentation import (
@@ -234,12 +235,12 @@ NOAA_ENDPOINTS = [
         for s in WIND_STATIONS
     ],
     {"id": "nws_products_okx",  "cat": "NWS",    "color": "#60a5fa", "icon": "🌩", "name": f"Text Products — NWS {CFG.nws_office}", "url": f"https://api.weather.gov/products?office={CFG.nws_products_office}&limit=10", "desc": "Latest NWS text products: AFD, Coastal Hazards, etc.", "tags": ["AFD","forecast discussion","text products"]},
-    {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",          "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
-    {"id": "coops_montauk",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Montauk",              "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Real-time water level — eastern Long Island",              "tags": ["water level","montauk","east end"]},
-    {"id": "coops_sandy_hook",  "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Sandy Hook Reference", "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "Outer-harbor water-level reference",                       "tags": ["water level","sandy hook","reference"]},
-    {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery Reference","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=EMBER", "desc": "NY Harbor surge reference used for regional comparison",   "tags": ["water level","surge","battery","reference"]},
-    {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Kings Point 48h","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8516945&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
-    {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — Kings Point Station",        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=wind&time_zone=lst_ldt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at Kings Point",        "tags": ["wind","meteorological","long island sound"]},
+    {"id": "coops_kings_point", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Kings Point",          "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", "desc": "Real-time water level — Long Island Sound",               "tags": ["water level","long island sound"]},
+    {"id": "coops_montauk",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Montauk",              "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", "desc": "Real-time water level — eastern Long Island",              "tags": ["water level","montauk","east end"]},
+    {"id": "coops_sandy_hook",  "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — Sandy Hook Reference", "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", "desc": "Outer-harbor water-level reference",                       "tags": ["water level","sandy hook","reference"]},
+    {"id": "coops_battery",     "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Water Level — The Battery Reference","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", "desc": "NY Harbor surge reference used for regional comparison",   "tags": ["water level","surge","battery","reference"]},
+    {"id": "coops_predictions", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Tidal Predictions — Kings Point 48h","url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8516945&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER", "desc": "High/low tide predictions — next 48 hours",               "tags": ["tide predictions","high tide","low tide"]},
+    {"id": "coops_wind",        "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "Wind — Kings Point Station",        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=wind&time_zone=gmt&units=english&format=json&application=EMBER",                   "desc": "Real-time wind speed and direction at Kings Point",        "tags": ["wind","meteorological","long island sound"]},
     {"id": "coops_stations_ny", "cat": "CO-OPS", "color": "#34d399", "icon": "🌊", "name": "All CO-OPS Stations — NY",        "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/portsstation.json?ports=ny",                                                       "desc": "All CO-OPS stations in the New York port region",          "tags": ["stations","inventory"]},
     {"id": "ncei_datasets",     "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "NCEI Dataset Catalog",            "url": "https://www.ncei.noaa.gov/access/services/support/v3/datasets.json",                                                                    "desc": "Full catalog of all NCEI datasets",                        "tags": ["catalog","datasets","metadata"]},
     {"id": "ncei_daily_frg",    "cat": "NCEI",   "color": "#f59e0b", "icon": "📊", "name": "Daily Summaries — Republic Airport", "url": "DYNAMIC_FRG", "dynamic": True, "desc": "Last 7 days of daily weather from Republic Airport",      "tags": ["daily summaries","farmingdale","republic","wind"]},
@@ -336,7 +337,7 @@ def build_live_readings(api_results):
                     try:
                         fval = float(vals[-1].get("value", 0))
                         readings[site] = {"level": f"{fval:.2f}", "unit": "ft", "source": "USGS",
-                                          "status": "flood" if fval > 10 else "elevated" if fval > 5 else "normal"}
+                                          "status": "classification unavailable"}
                     except:
                         pass
         if r.get("type") == "weather" and isinstance(d, dict) and "features" in d:
@@ -444,7 +445,7 @@ def extract_map_readings_from_noaa():
                     fval = float(vals[-1].get("v", 0))
                     name = meta.get("name") or ep["name"]
                     readings[name] = {"level": f"{fval:.2f}", "unit": "ft MLLW", "source": f"CO-OPS @ {ts}",
-                                      "status": "flood" if fval > 10 else "elevated" if fval > 5 else "normal"}
+                                      "status": "classification unavailable"}
                 except:
                     pass
         # CO-OPS next HIGH tide
@@ -675,7 +676,7 @@ def build_map(active_layers, show_radar=True, show_wind=True, wind_obs=None,
                         break
             live_html = ""
             if reading:
-                sc = {"flood": "#f87171", "elevated": "#facc15", "normal": "#4ade80"}.get(reading.get("status","normal"), "#4ade80")
+                sc = {"flood": "#f87171", "elevated": "#facc15", "normal": "#4ade80"}.get(reading.get("status","classification unavailable"), "#94a3b8")
                 live_html = (f'<div style="border-top:1px solid #1e2a40;padding-top:5px;margin-top:4px">'
                              f'<span style="color:{sc};font-weight:700">{reading.get("level","?")} {reading.get("unit","")}</span>'
                              f'<span style="color:#556;font-size:9px;margin-left:4px">{reading.get("status","").upper()}</span><br>'
@@ -891,24 +892,11 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
     ctx = build_knowledge_base_context(
         KNOWLEDGE_BASE, active_modules, CFG.name,
     )
-    if gauge_data:
-        ctx += "--- LIVE TIDAL GAUGE READINGS (CO-OPS, 6-min updates) ---\n"
-        for sid, gd in gauge_data.items():
-            ld = gd.get("level")
-            if not ld: continue
-            nh = gd.get("next_high")
-            nl = gd.get("next_low")
-            ctx += (f"Station {sid} — {ld.get('station_name','?')}: "
-                    f"{ld.get('level_ft','?')} ft MLLW | {ld.get('status','?')} | "
-                    f"Trend: {ld.get('trend_str','?')} | "
-                    f"Next HIGH: {nh['level_ft']:.2f}ft @ {nh['time'] if nh else 'N/A'} | "
-                    f"Next LOW: {nl['level_ft']:.2f}ft @ {nl['time'] if nl else 'N/A'} | "
-                    f"Fetched: {gd.get('fetched_at','?')}\n")
-        ctx += "\n"
+    # Gauge popup prose is not synthesis evidence. Normalized CO-OPS snapshots are selected separately.
     if api_results:
         ctx += "--- LIVE API DATA ---\n"
         for r in api_results:
-            if not re.search(r"^https://api\.weather\.gov/(gridpoints|stations)/", r.get("url", ""), re.I): ctx += summarize_api(r) + "\n"
+            if not re.search(r"^https://(?:api\.weather\.gov/(gridpoints|stations)/|api\.tidesandcurrents\.noaa\.gov/)", r.get("url", ""), re.I): ctx += summarize_api(r) + "\n"
         ctx += "\n"
     hazard_result = (phase4_results or {}).get("nyc_311_electric_hazards_rockaway")
     if hazard_result:
@@ -935,13 +923,24 @@ def build_context(files, api_results, active_modules, esri_items, noaa_items=Non
         for item in esri_items: ctx += item["content"] + "\n\n"
     return ctx
 
-def stream_ollama(messages, context, request_scope=None, weather=None, files=None):
+def stream_ollama(messages, context, request_scope=None, weather=None, files=None, coops=None):
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
+    from operational_evidence import build_operational_evidence,operational_instruction,render_operational_answer
+    import datetime
+    from coops_evidence import select_coops,CONFIG
+    if request_scope is None:
+        clock=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z')
+        jurisdiction=CONFIG.get('jurisdiction',dict(name=CFG.name,timezone='America/New_York',center=[40.7891,-73.135]))
+        request_scope=resolve_request_scope(messages[-1]['content'],clock,jurisdiction,weather or [],files or [])
     context = strip_weather_context(context, files)
-    scope_context = render_request_scope(request_scope, weather) + evidence_summary(request_scope, weather, files) if request_scope else None
-    system_prompt = build_copilot_system_prompt(CFG.name, context, scope_context)
+    evidence=build_operational_evidence(request_scope,files,weather,coops,context,messages[-1]['content'])
+    request_scope['enforcement']=dict(version=evidence['version'],route=evidence['route'],status='awaiting_provider_envelope')
+    request_scope['coops']=select_coops(coops or [],request_scope,messages[-1]['content'])
+    scope_context = render_request_scope(request_scope, weather or []) + evidence_summary(request_scope, weather or [], files)
+    scope_context += '\nCO-OPS WINDOW EVIDENCE:\n'+json.dumps(request_scope['coops'])
+    system_prompt = build_copilot_system_prompt(CFG.name, context, scope_context)+operational_instruction(evidence)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "options": {"num_predict": UPLOAD_LIMITS['outputReserveTokens']},
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
@@ -954,18 +953,21 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
         with requests.post(f"{OLLAMA_HOST}/api/chat", json=payload,
                            headers=OLLAMA_HEADERS, stream=True, timeout=90) as resp:
             resp.raise_for_status()
+            content='';terminal=None;size=0
             for line in resp.iter_lines():
                 if line:
-                    obj   = json.loads(line)
-                    token = obj.get("message", {}).get("content", "")
-                    if token: yield token
-                    if obj.get("done"):
-                        if obj.get("done_reason") == "length": yield "\n\n⚠ The response reached its output limit. Ask a focused follow-up for the remaining details."
-                        return
-    except requests.exceptions.HTTPError as e:
-        yield f"\n\n⚠ Ollama Cloud error {e.response.status_code}: {e.response.text[:200]}"
-    except Exception as e:
-        yield f"\n\n⚠ Connection error: {e}"
+                    size+=len(line)
+                    if size>2*1024*1024:raise ValueError('Provider output exceeds capture limit')
+                    obj=json.loads(line)
+                    content+=obj.get('message',{}).get('content','')
+                    if obj.get('done'):
+                        terminal=obj;break
+            rendered=render_operational_answer(content,evidence,request_scope,bool(terminal) and terminal.get('done_reason') in (None,'stop'))
+            request_scope['enforcement']['status']=rendered['disposition']
+            yield rendered['answer']
+    except Exception:
+        request_scope['enforcement']['status']='incomplete'
+        yield render_operational_answer('',evidence,request_scope,False)['answer']
 
 def search_agol(query, filter_expr="", item_type="", num=8, start=1):
     q      = query.strip() or "*"
@@ -2487,6 +2489,7 @@ with tab_chat:
             for source in weather:
                 age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
                 if not (-300000 <= age <= 3600000): source['state'] = 'stale'
+            coops = coops_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results)
             request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files)
             st.session_state.messages[assistant_index]["scope"] = request_scope
             ctx  = build_context(
@@ -2509,10 +2512,11 @@ with tab_chat:
             with st.expander('Application request scope · source metadata'):
                 st.caption('Application metadata describes evidence selection; it does not verify the answer.')
                 st.json(request_scope)
+            st.caption("Preparing an evidence-backed answer; source claims are displayed after format validation.")
             placeholder = st.empty()
             full = ""
             try:
-                for token in stream_ollama(msgs, ctx, request_scope, weather, st.session_state.files):
+                for token in stream_ollama(msgs, ctx, request_scope, weather, st.session_state.files, coops):
                     full += token
                     update_chat_response(st.session_state.messages, assistant_index, full)
                     placeholder.markdown(answer_markdown(full) + "▋")

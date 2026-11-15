@@ -77,10 +77,9 @@ function generateJS(cfg) {
 
   const FLOOD_THRESHOLDS = {}
   coops.forEach(function(st) {
-    FLOOD_THRESHOLDS[st.id] = Object.assign(
-      { name: st.name },
-      st.flood_thresholds || { action: 4.5, minor: 5.5, moderate: 6.5, major: 8.5 }
-    )
+    // Bare config levels are retained for audit only, never operational classification.
+    FLOOD_THRESHOLDS[st.id] = { name: st.name, status: "unverified" }
+
   })
 
   const KNOWLEDGE_BASE = {

@@ -292,25 +292,12 @@ class JurisdictionConfig:
         return self.coops_stations[0] if self.coops_stations else None
 
     def flood_thresholds(self, station_id: str) -> dict:
-        for s in self.coops_stations:
-            if s["id"] == station_id:
-                return s.get("flood_thresholds", {
-                    "action": 4.5, "minor": 5.5, "moderate": 6.5, "major": 8.5
-                })
-        return {"action": 4.5, "minor": 5.5, "moderate": 6.5, "major": 8.5}
+        """Legacy numeric settings lack audited provenance and are not operational."""
+        return {}
 
     @property
     def flood_thresholds_dict(self) -> dict:
-        """Dict keyed by station_id for use in tidal_gauges module."""
-        return {
-            s["id"]: {
-                "name": s["name"],
-                **s.get("flood_thresholds", {
-                    "action": 4.5, "minor": 5.5, "moderate": 6.5, "major": 8.5
-                })
-            }
-            for s in self.coops_stations
-        }
+        return {s["id"]: {"name": s["name"], "status": "unverified"} for s in self.coops_stations}
 
     # ── Knowledge Base ─────────────────────────────────────────────────────────
     @property
@@ -558,9 +545,7 @@ def discover_coops_stations(bbox: dict, limit: int = 10) -> list[dict]:
                     "lat":  slat,
                     "lng":  slng,
                     "dist": dist,
-                    "flood_thresholds": {
-                        "action": 4.5, "minor": 5.5, "moderate": 6.5, "major": 8.5
-                    }
+                    "flood_thresholds": {}
                 })
 
         in_bbox.sort(key=lambda x: x["dist"])

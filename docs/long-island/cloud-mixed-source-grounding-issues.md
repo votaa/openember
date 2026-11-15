@@ -6,6 +6,8 @@ Status: all three issues remain open. Implementation commit `7bdb1f7` is availab
 
 Latest disposition: the [e480f23 review](cloud-preview-e480f23-answer-review-2026-11-14.md) also **FAILS**. The user-authorized [corrective scope and acceptance contract](cloud-grounding-corrective-scope-2026-11-14.md) supersede acceptance-only option A for operational triggers. Scope is recorded before implementation; no corrective hosted pass or issue closure is claimed.
 
+Corrective runtime work is now available for review in this checkout; see the [implementation/local verification report](cloud-grounding-corrective-implementation-2026-11-14.md). Local tests and recording-provider browser checks do not close these issues. Repeated complete hosted acceptance on the corrective commit remains required.
+
 ## Evidence and scope
 
 The user tested the mixed-source question on the `codex/cloud-upload-coverage` Vercel preview at commit `4d6d24f8653a8266acd1ec14c43b018693adaeb7`, uploading `synthetic-plan.txt`:

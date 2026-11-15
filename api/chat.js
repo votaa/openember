@@ -1,3 +1,4 @@
+import {renderOperationalAnswer} from '../src/data/operationalEvidence.js'
 import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
 import { UPLOAD_LIMITS, UploadError, validateCloudMessages, validateUploads, uploadedDocumentContext } from '../src/data/cloudUploads.js'
 
@@ -84,20 +85,49 @@ export default async function handler(req) {
       )
     }
 
-    // One application-owned metadata frame precedes untouched provider NDJSON.
-    // Body framing avoids HTTP header limits for source metadata and retains
-    // backpressure/cancellation; it does not buffer or validate model prose.
-    const reader = upstream.body.getReader()
+    // Preview-only request-scoped capture reflects this actual payload; never log keys or thinking.
+    const auditing = process.env.VERCEL_ENV === 'preview' && !!process.env.EMBER_PREVIEW_AUDIT_TOKEN
+      && req.headers.get('x-ember-audit-token') === process.env.EMBER_PREVIEW_AUDIT_TOKEN
+    const reader = upstream.body.getReader(), encoder = new TextEncoder(), decoder = new TextDecoder()
+    let buffer='', content='', terminal=null, finished=false, bytes=0
+    const emit=(controller,value)=>controller.enqueue(encoder.encode(JSON.stringify(value)+'\n'))
     const stream = new ReadableStream({
-      start(controller) { controller.enqueue(new TextEncoder().encode(JSON.stringify({ember_scope:scoped.scope})+'\n')) },
-      async pull(controller) {
-        try {
-          const {done,value} = await reader.read()
-          if(done)controller.close()
-          else controller.enqueue(value)
-        } catch(error) { controller.error(error) }
+      start(controller) {
+        emit(controller,{ember_scope:scoped.scope})
+        if(auditing)emit(controller,{ember_audit:{received_at:receivedAt,provider_url:ollamaHost+'/api/chat',payload}})
       },
-      cancel(reason) { return reader.cancel(reason) },
+      async pull(controller) {
+        if(finished)return
+        const started=Date.now()
+        try {
+          while(!terminal) {
+            const {done,value}=await reader.read()
+            if(done)break
+            bytes+=value.byteLength
+            if(bytes>2*1024*1024)throw new Error('Provider output exceeds capture limit')
+            buffer+=decoder.decode(value,{stream:true})
+            const lines=buffer.split('\n');buffer=lines.pop()
+            for(const line of lines)if(line.trim()) {
+              const frame=JSON.parse(line)
+              content+=frame.message?.content||''
+              if(frame.done)terminal=frame
+            }
+          }
+          if(!terminal&&buffer.trim()) {const frame=JSON.parse(buffer);content+=frame.message?.content||'';if(frame.done)terminal=frame}
+          const rendered=renderOperationalAnswer(content,scoped.evidence,scoped.scope,!!terminal&&(!terminal.done_reason||terminal.done_reason==='stop'))
+          scoped.scope.enforcement.status=rendered.disposition
+          emit(controller,{ember_scope:scoped.scope,ember_enforcement:{status:rendered.disposition,buffered:true,buffer_ms:Date.now()-started},message:{role:'assistant',content:rendered.answer}})
+          if(auditing)emit(controller,{ember_audit_response:{model:terminal?.model||ollamaModel,content,done_reason:terminal?.done_reason||'interrupted'}})
+          const metrics=Object.fromEntries(['model','total_duration','load_duration','prompt_eval_count','prompt_eval_duration','eval_count','eval_duration','done_reason'].filter(k=>terminal?.[k]!==undefined).map(k=>[k,terminal[k]]))
+          emit(controller,{...metrics,done:true});finished=true;controller.close()
+        } catch(error) {
+          if(auditing)emit(controller,{ember_audit_response:{content,completed:false,error_kind:'invalid_or_interrupted_provider_stream'}})
+          const rendered=renderOperationalAnswer('',scoped.evidence,scoped.scope,false)
+          emit(controller,{message:{role:'assistant',content:rendered.answer},ember_enforcement:{status:'incomplete'},done:true})
+          finished=true;controller.close()
+        } finally { if(!terminal)await reader.cancel().catch(()=>{}) }
+      },
+      cancel(reason) { finished=true;return reader.cancel(reason) },
     })
     return new Response(stream, {
       status:  200,
@@ -120,7 +150,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin":  "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, x-ollama-key",
+    "Access-Control-Allow-Headers": "Content-Type, x-ollama-key, x-ember-audit-token",
   }
 }
 

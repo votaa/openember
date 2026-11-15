@@ -30,8 +30,8 @@ class UploadTests(unittest.TestCase):
         from unittest.mock import patch
         with patch.object(requests,'post') as post:
             response=post.return_value.__enter__.return_value
-            response.iter_lines.return_value=[json.dumps(dict(message=dict(content='recorded'),done=True)).encode()]
-            self.assertEqual(''.join(scope['stream_ollama']([dict(role='user',content='Read the channel.')],context)),'recorded')
+            response.iter_lines.return_value=[json.dumps(dict(message=dict(content=json.dumps(dict(version='operational-answer-v1',references=[]))),done=True)).encode()]
+            self.assertIn('Application-rendered evidence', ''.join(scope['stream_ollama']([dict(role='user',content='Read the channel.')],context)))
             self.assertEqual(post.call_count,1)
             body=post.call_args.kwargs['json']
             self.assertIn(DOC['content'],body['messages'][0]['content'])
@@ -43,8 +43,8 @@ class UploadTests(unittest.TestCase):
         from unittest.mock import patch
         with patch.object(requests,'post') as post:
             response=post.return_value.__enter__.return_value
-            response.iter_lines.return_value=[json.dumps(dict(message=dict(content='recorded'),done=True)).encode()]
-            self.assertEqual(''.join(scope['stream_ollama']([dict(role='user',content=c['question'])],context,request_scope,c['weather'])),'recorded')
+            response.iter_lines.return_value=[json.dumps(dict(message=dict(content=json.dumps(dict(version='operational-answer-v1',references=[]))),done=True)).encode()]
+            self.assertIn('Application-rendered evidence', ''.join(scope['stream_ollama']([dict(role='user',content=c['question'])],context,request_scope,c['weather'])))
             self.assertEqual(post.call_count,1)
             prompt=post.call_args.kwargs['json']['messages'][0]['content']
             self.assertIn('request-scope-v1',prompt);self.assertIn('2026-11-14T22:30:00Z',prompt)

@@ -66,12 +66,12 @@ test('actual Edge handler streams once with authoritative scope, full KB/upload 
  const doc={name:'synthetic-plan.txt',content:readFileSync(new URL('./fixtures/uploads/synthetic-plan.txt',import.meta.url),'utf8')}
  const {uploadedDocumentContext}=await import('../src/data/cloudUploads.js')
  globalThis.Date=class extends OriginalDate {constructor(...args){super(...(args.length?args:['2026-11-14T13:13:00Z']))}static now(){return OriginalDate.parse('2026-11-14T13:13:00Z')}}
- globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response('{"message":{"content":"recorded"},"done":true}\n')}
+ globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
  try {
   const weather=structuredClone(cases[0].weather);weather[0].fetched_at='2026-11-14T13:10:00.123Z'
   const body={messages:[{role:'system',content:buildCopilotSystemPrompt('Long Island','FULL_ENABLED_KB_SENTINEL\n'+uploadedDocumentContext([doc]))},{role:'assistant',content:'Tonight was November 13.'},{role:'user',content:'Assess tonight and CEDAR-731.'}],uploads:[doc],scope_input:{version:SCOPE_VERSION,browser_requested_at:'2000-01-01T00:00:00Z',weather}}
   const request=()=>new Request('http://localhost/api/chat',{method:'POST',headers:{'Content-Type':'application/json','x-ollama-key':'recording-only-key'},body:JSON.stringify(body)})
-  const response=await handler(request());assert.equal(response.status,200);assert.match(await response.text(),/recorded/);assert.equal(calls.length,1)
+  const response=await handler(request());assert.equal(response.status,200);assert.match(await response.text(),/validated_envelope/);assert.equal(calls.length,1)
   const system=calls[0].body.messages[0].content,scope=JSON.parse(system.split('\n')[1])
   assert.equal(scope.request_utc,'2026-11-14T13:13:00Z');assert.equal(scope.interval.start_utc,'2026-11-14T22:30:00Z')
   assert.ok(system.includes('FULL_ENABLED_KB_SENTINEL'));assert.ok(system.includes(doc.content));assert.match(system,/2026-11-14T17:30:00-05:00/)

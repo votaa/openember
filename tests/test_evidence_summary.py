@@ -17,8 +17,8 @@ class EvidenceTests(unittest.TestCase):
         context=scope['build_context']([doc],[raw],['floodZones'],[],[dict(content='[NOAA: Point]\nSource: '+raw['url']+'\nUNFILTERED_LATER_SENTINEL\n')])
         with patch.object(requests,'post') as post:
             response=post.return_value.__enter__.return_value
-            response.iter_lines.return_value=[json.dumps(dict(message=dict(content='recorded'),done=True)).encode()]
-            self.assertEqual(''.join(scope['stream_ollama']([dict(role='user',content='tonight')],context,resolved,c['weather'],[doc])),'recorded')
+            response.iter_lines.return_value=[json.dumps(dict(message=dict(content=json.dumps(dict(version='operational-answer-v1',references=[]))),done=True)).encode()]
+            self.assertIn('Application-rendered evidence', ''.join(scope['stream_ollama']([dict(role='user',content='tonight')],context,resolved,c['weather'],[doc])))
             self.assertEqual(post.call_count,1)
             prompt=post.call_args.kwargs['json']['messages'][0]['content']
             for text in (doc['content'],'FULL_KB_SENTINEL','SOURCE FACTS AND KNOWN GAPS','"temperature":36'):self.assertIn(text,prompt)

@@ -1,0 +1,132 @@
+{
+  "version": "flood-threshold-audit-v1",
+  "entries": [
+    {
+      "station_id": "8518750",
+      "status": "unverified",
+      "configured": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8518750/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.040656+00:00",
+      "capture_sha256": "bbe379783358e93b2b35a33eb23f9e9b7c50e315984e540e0e52bd5d0d8c141e",
+      "captured": {
+        "nos_minor": 10.19,
+        "nos_moderate": 11.12,
+        "nos_major": 12.39,
+        "nws_minor": 10.49,
+        "nws_moderate": 11.74,
+        "nws_major": 13.24,
+        "action": 10.29,
+        "self": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8518750/floodlevels.json"
+      },
+      "reason": "Configured levels lack retained source, datum, effective dates and applicability. Official metadata values are not reconciled to configured datum; no authorized action procedure is supplied."
+    },
+    {
+      "station_id": "8516945",
+      "status": "unverified",
+      "configured": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8516945/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.177966+00:00",
+      "capture_sha256": "72277afc8bc2d1ef8b48d72709544f1e87cd116760951ced81e6ac8ed7abfa78",
+      "captured": {
+        "nos_minor": 22.64,
+        "nos_moderate": 23.55,
+        "nos_major": 24.84,
+        "nws_minor": 22.89,
+        "nws_moderate": 23.39,
+        "nws_major": 25.89,
+        "action": null,
+        "self": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8516945/floodlevels.json"
+      },
+      "reason": "Configured levels lack retained source, datum, effective dates and applicability. Official metadata values are not reconciled to configured datum; no authorized action procedure is supplied."
+    },
+    {
+      "station_id": "8531680",
+      "status": "unverified",
+      "configured": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8531680/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.318855+00:00",
+      "capture_sha256": "2bd6b4ebf5a4f10b7aeccee4a1adc84c6bbc86f317b2a784fd0da8ff60b560aa",
+      "captured": {
+        "nos_minor": 9.59,
+        "nos_moderate": 10.52,
+        "nos_major": 11.79,
+        "nws_minor": 9.21,
+        "nws_moderate": 10.24,
+        "nws_major": 11.24,
+        "action": 8.71,
+        "self": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8531680/floodlevels.json"
+      },
+      "reason": "Configured levels lack retained source, datum, effective dates and applicability. Official metadata values are not reconciled to configured datum; no authorized action procedure is supplied."
+    },
+    {
+      "station_id": "8510560",
+      "status": "unverified",
+      "configured": {
+        "action": 3.5,
+        "minor": 4.5,
+        "moderate": 5.5,
+        "major": 7.0
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8510560/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.536170+00:00",
+      "capture_sha256": "fcd168d79884d76e00bc5f93b89b3518d3836e7c8b5fd8fb3bac8404a3878c73",
+      "captured": {
+        "nos_minor": 8.13,
+        "nos_moderate": 9.09,
+        "nos_major": 10.33,
+        "nws_minor": 8.39,
+        "nws_moderate": 9.19,
+        "nws_major": 10.89,
+        "action": null,
+        "self": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8510560/floodlevels.json"
+      },
+      "reason": "Configured levels lack retained source, datum, effective dates and applicability. Official metadata values are not reconciled to configured datum; no authorized action procedure is supplied."
+    },
+    {
+      "station_id": "8518995",
+      "status": "unverified",
+      "configured": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8518995/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.669023+00:00",
+      "capture_sha256": null,
+      "captured": null,
+      "reason": "No station flood metadata retrieved (404); configured levels lack source, datum, effective dates and applicability."
+    },
+    {
+      "station_id": "8517741",
+      "status": "unverified",
+      "configured": {
+        "action": 4.5,
+        "minor": 5.5,
+        "moderate": 6.5,
+        "major": 8.5
+      },
+      "source_url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8517741/floodlevels.json?units=english",
+      "retrieved_at": "2026-11-14T21:15:23.821781+00:00",
+      "capture_sha256": null,
+      "captured": null,
+      "reason": "No station flood metadata retrieved (404); configured levels lack source, datum, effective dates and applicability."
+    }
+  ],
+  "approved_classifications": []
+}

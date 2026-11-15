@@ -44,6 +44,7 @@ nws:
 # ─── NOAA CO-OPS Tidal Gauges ─────────────────────────────────────────────────
 # Find station IDs at: https://tidesandcurrents.noaa.gov/map/
 # Or auto-discover via the Setup Wizard
+# Historical sample levels are unverified. They do not enable flood classifications or action guidance.
 coops_stations:
   - id: "8518750"
     name: "The Battery"

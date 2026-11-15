@@ -33,7 +33,7 @@ export function evidenceSummary(scope,weather,files=[]) {
 export function stripWeatherContext(context,files=[]) {
   const protectedText=files.map(f=>f.content)
   protectedText.forEach((text,i)=>{if(text)context=context.split(text).join(`EMBER_DOCUMENT_${i}_PROTECTED`)})
-  const cleaned = context.split(/(?=^--- )/m).map(section=>section.startsWith('--- UPLOADED DOCUMENTS')?section:section.replace(/^(\[(?:NOAA|NWS)[^\n]*\n[\s\S]*?)(?=^\[|^--- |^RULES:|^AUTHORITATIVE |$(?![\s\S]))/gm,block=>
-    /https:\/\/api\.weather\.gov\/(?:gridpoints\/|stations\/[^\s]+\/observations)/i.test(block)?'':block)).join('')
+  const cleaned = context.split(/(?=^--- )/m).map(section=>section.startsWith('--- LIVE TIDAL GAUGE')?'':section.startsWith('--- UPLOADED DOCUMENTS')?section:section.replace(/^(\[(?:NOAA|NWS|CO-OPS)[^\n]*\n[\s\S]*?)(?=^\[|^--- |^RULES:|^AUTHORITATIVE |$(?![\s\S]))/gm,block=>
+    /https:\/\/(?:api\.weather\.gov\/(?:gridpoints\/|stations\/[^\s]+\/observations)|api\.tidesandcurrents\.noaa\.gov\/api\/prod\/datagetter)/i.test(block)?'':block)).join('')
   return protectedText.reduce((text,document,i)=>text.split(`EMBER_DOCUMENT_${i}_PROTECTED`).join(document),cleaned)
 }

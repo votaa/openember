@@ -13,6 +13,7 @@ import {summarizeWeather} from '../src/data/weatherContext.js'
 import {reportWindowMessage} from '../src/data/regional/reportWindow.js'
 import {uploadedDocumentContext,validateUploads,validateCloudMessages} from '../src/data/cloudUploads.js'
 import {buildCopilotSystemPrompt} from '../src/data/copilotPrompt.js'
+import {coopsSnapshots} from '../src/data/coopsEvidence.js'
 import {weatherSnapshots,SCOPE_VERSION} from '../src/data/requestScope.js'
 import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
 const root=fileURLToPath(new URL('../',import.meta.url))
@@ -23,13 +24,15 @@ const previewCommit=process.env.PREVIEW_COMMIT||'7bdb1f723df99c7cb23a10420ccdf28
 if(!/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(preview)||! /^[a-f0-9]{40}$/.test(previewCommit))throw Error('Expected an immutable Vercel preview URL and full commit SHA')
 const send=process.argv.includes('--send')
 if(send&&(!process.env.PREVIEW_URL||!process.env.PREVIEW_COMMIT))throw Error('Live acceptance requires an explicitly verified PREVIEW_URL and PREVIEW_COMMIT; defaults are for dry runs only.')
+if(send&&!process.env.PREVIEW_AUDIT_TOKEN)throw Error('Live corrective acceptance requires a preview-scoped PREVIEW_AUDIT_TOKEN for observed provider egress capture.')
 const authenticated=process.argv.includes('--transport=vercel-cli')
 let curlTiming=null
 async function authenticatedFetch(path,options) {
  const dir=mkdtempSync(join(tmpdir(),'openember-preview-http-')),headers=join(dir,'headers'),raw=join(dir,'response')
  writeFileSync(headers,'',{mode:0o600});writeFileSync(raw,'',{mode:0o600})
  try {
-  const {stdout}=await promisify(execFile)(process.env.PREVIEW_VERCEL_CLI||'vercel',['curl',preview+path,'--','--request','POST','--header','Content-Type: application/json','--data-binary','@'+join(output,'client-request.json'),'--silent','--show-error','--no-buffer','--dump-header',headers,'--output',raw,'--max-time','180','--write-out','%{json}'],{timeout:190000,maxBuffer:1048576})
+  const auditHeaders=join(dir,'audit-headers');writeFileSync(auditHeaders,'x-ember-audit-token: '+process.env.PREVIEW_AUDIT_TOKEN+'\n',{mode:0o600})
+  const {stdout}=await promisify(execFile)(process.env.PREVIEW_VERCEL_CLI||'vercel',['curl',preview+path,'--','--request','POST','--header','Content-Type: application/json','--header','@'+auditHeaders,'--data-binary','@'+join(output,'client-request.json'),'--silent','--show-error','--no-buffer','--dump-header',headers,'--output',raw,'--max-time','180','--write-out','%{json}'],{timeout:190000,maxBuffer:1048576})
   curlTiming=JSON.parse(stdout)
   const blocks=readFileSync(headers,'utf8').trim().split(/\r?\n\r?\n/),last=blocks.at(-1).split(/\r?\n/),status=Number(last[0].split(' ')[1])
   const filtered=Object.fromEntries(last.slice(1).map(line=>{const i=line.indexOf(':');return [line.slice(0,i).toLowerCase(),line.slice(i+1).trim()]}).filter(([key])=>['date','content-type','x-vercel-id','x-vercel-cache'].includes(key)))
@@ -53,9 +56,10 @@ const save=(name,value)=>writeFileSync(join(output,name),typeof value==='string'
 mkdirSync(output,{recursive:true})
 save('context.txt',context);save('upload.txt',doc.content);save('enabled-kb.json',{enabled,modules:KNOWLEDGE_BASE});save('question.txt',question+'\n')
 const requestedAt=new Date().toISOString()
-const input={version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots(results,JURISDICTION)}
+const input={version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots(results,JURISDICTION),coops:coopsSnapshots(results)}
 const streamSource=app.slice(app.indexOf('async function* streamOllama('),app.indexOf('// ── Full NOAA',app.indexOf('async function* streamOllama('))).replaceAll('import.meta.env','testEnv')
 let observedScope=null
+let observedProvider=null
 let body,wirePromise,wire='',http={},started,firstContent,finished,frameCount=0,thinkingFieldsOmitted=0,finalFrames=[]
 const transport=async(path,options)=>{
  body=JSON.parse(options.body);save('client-request.json',body);save('client-messages.json',body.messages)
@@ -65,7 +69,7 @@ const transport=async(path,options)=>{
  save('scope-RECONSTRUCTED.json',reconstructed.scope)
  if(!send)return new Response('{"message":{"content":"DRY RUN ONLY"},"done":true}\n')
  started=Date.now()
- const response=authenticated?await authenticatedFetch(path,options):await fetch(preview+path,{...options,signal:AbortSignal.timeout(180000)})
+ const response=authenticated?await authenticatedFetch(path,options):await fetch(preview+path,{...options,headers:{...options.headers,'x-ember-audit-token':process.env.PREVIEW_AUDIT_TOKEN},signal:AbortSignal.timeout(180000)})
  http={status:response.status,headers:Object.fromEntries([...response.headers].filter(([k])=>['date','content-type','x-vercel-id','x-vercel-cache'].includes(k))),request_started_utc:new Date(started).toISOString(),headers_received_utc:new Date().toISOString()}
  const [capture,delivery]=response.body.tee()
  wirePromise=(async()=>{const reader=capture.getReader(),decoder=new TextDecoder();while(true){const {value,done}=await reader.read();if(done)break;wire+=decoder.decode(value,{stream:true})}wire+=decoder.decode()})()
@@ -79,11 +83,11 @@ finished=Date.now()
 if(send){
  const rows=[]
  for(const line of wire.split('\n').filter(s=>s.trim())){
-  try {const row=JSON.parse(line);frameCount++;if(row.message?.thinking!==undefined){delete row.message.thinking;thinkingFieldsOmitted++}if(row.done||row.error)finalFrames.push(row);rows.push(row)}catch{rows.push({unparsed_response:line})}
+  try {const row=JSON.parse(line);frameCount++;if(row.ember_audit){observedProvider=row.ember_audit;save('provider-request-OBSERVED.json',{provenance:'Actual payload emitted by the preview Edge handler at the provider-call boundary; credential headers excluded.',...observedProvider})}if(row.ember_audit_response)save('provider-response-OBSERVED.json',row.ember_audit_response);if(row.message?.thinking!==undefined){delete row.message.thinking;thinkingFieldsOmitted++}if(row.done||row.error)finalFrames.push(row);rows.push(row)}catch{rows.push({unparsed_response:line})}
  }
  save('response.ndjson',rows.map(r=>JSON.stringify(r)).join('\n')+'\n');save('answer.md',answer+'\n')
 }
-const record={preview,transport:authenticated?'Vercel CLI authenticated HTTP (buffered delivery to React stream parser)':'Node fetch',curl_timing:curlTiming?{http_code:curlTiming.http_code,time_starttransfer:curlTiming.time_starttransfer,time_total:curlTiming.time_total,size_upload:curlTiming.size_upload,size_download:curlTiming.size_download}:null,commit:previewCommit,live:send,question,enabled_kb:enabled,history:'Clean-start initialization message; original hosted history was not captured.',upload:{name:doc.name,bytes:Buffer.byteLength(doc.content),sha256:sha(doc.content)},weather_capture_sha256:sha(readFileSync(join(output,'weather-capture.json'))),client_request_sha256:body?sha(readFileSync(join(output,'client-request.json'))):null,client_request_canonical_sha256:body?sha(JSON.stringify(body)):null,client_message_bytes:body?body.messages.reduce((n,m)=>n+Buffer.byteLength(m.content),0):null,provider_egress_observed:false,provider_config_evidence:{response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],code_default_host:'https://ollama.com',deployment_environment_independently_verified:false},http,frame_count:frameCount,thinking_fields_omitted:thinkingFieldsOmitted,response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],final_frames:finalFrames,error,timing_ms:started?{[authenticated?'buffered_parser_first_content':'stream_parser_first_content']:firstContent-started,total:finished-started}:null,answer_sha256:send?sha(answer):null,limitations:['Weather is the public snapshot retained in this run directory. Unless separately verified, this is not a byte-identical replay of an earlier weather revision.','Client request/messages and visible whole answer are actual captures. Provider egress is not observed; reconstructed files are explicitly labelled. When emitted, scope-OBSERVED.json records application-owned server receipt time, resolved window and source metadata, not model-answer verification.','Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run.']}
+const record={preview,transport:authenticated?'Vercel CLI authenticated HTTP (buffered delivery to React stream parser)':'Node fetch',curl_timing:curlTiming?{http_code:curlTiming.http_code,time_starttransfer:curlTiming.time_starttransfer,time_total:curlTiming.time_total,size_upload:curlTiming.size_upload,size_download:curlTiming.size_download}:null,commit:previewCommit,live:send,question,enabled_kb:enabled,history:'Clean-start initialization message; original hosted history was not captured.',upload:{name:doc.name,bytes:Buffer.byteLength(doc.content),sha256:sha(doc.content)},weather_capture_sha256:sha(readFileSync(join(output,'weather-capture.json'))),client_request_sha256:body?sha(readFileSync(join(output,'client-request.json'))):null,client_request_canonical_sha256:body?sha(JSON.stringify(body)):null,client_message_bytes:body?body.messages.reduce((n,m)=>n+Buffer.byteLength(m.content),0):null,provider_egress_observed:!!observedProvider,provider_config_evidence:{response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],code_default_host:'https://ollama.com',deployment_environment_independently_verified:false},http,frame_count:frameCount,thinking_fields_omitted:thinkingFieldsOmitted,response_models:[...new Set(finalFrames.map(f=>f.model).filter(Boolean))],final_frames:finalFrames,error,timing_ms:started?{[authenticated?'buffered_parser_first_content':'stream_parser_first_content']:firstContent-started,total:finished-started}:null,answer_sha256:send?sha(answer):null,limitations:['Weather is the public snapshot retained in this run directory. Unless separately verified, this is not a byte-identical replay of an earlier weather revision.',observedProvider?'Provider egress was captured at the Edge provider-call boundary. This does not certify source applicability or the whole answer.':'Provider egress was NOT observed; this run has incomplete acceptance evidence. Reconstructed files do not satisfy the capture requirement.','Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run.']}
 save(send?'run.json':'preflight.json',record)
 console.log(JSON.stringify({live:send,http:http.status,transport:record.transport,enabled,client_message_bytes:record.client_message_bytes,response_models:record.response_models,frame_count:frameCount,timing_ms:record.timing_ms,error,output},null,2))
-if(error||send&&http.status!==200)process.exitCode=1
+if(error||send&&(http.status!==200||!observedProvider))process.exitCode=1

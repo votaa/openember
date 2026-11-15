@@ -1,0 +1,42 @@
+[
+  {
+    "station": "8518750",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8518750/floodlevels.json?units=english",
+    "status": 200,
+    "sha256": "bbe379783358e93b2b35a33eb23f9e9b7c50e315984e540e0e52bd5d0d8c141e",
+    "retrieved_at": "2026-11-14T21:15:23.040656+00:00"
+  },
+  {
+    "station": "8516945",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8516945/floodlevels.json?units=english",
+    "status": 200,
+    "sha256": "72277afc8bc2d1ef8b48d72709544f1e87cd116760951ced81e6ac8ed7abfa78",
+    "retrieved_at": "2026-11-14T21:15:23.177966+00:00"
+  },
+  {
+    "station": "8531680",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8531680/floodlevels.json?units=english",
+    "status": 200,
+    "sha256": "2bd6b4ebf5a4f10b7aeccee4a1adc84c6bbc86f317b2a784fd0da8ff60b560aa",
+    "retrieved_at": "2026-11-14T21:15:23.318855+00:00"
+  },
+  {
+    "station": "8510560",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8510560/floodlevels.json?units=english",
+    "status": 200,
+    "sha256": "fcd168d79884d76e00bc5f93b89b3518d3836e7c8b5fd8fb3bac8404a3878c73",
+    "retrieved_at": "2026-11-14T21:15:23.536170+00:00"
+  },
+  {
+    "station": "8518995",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8518995/floodlevels.json?units=english",
+    "error": "HTTP Error 404: Not Found",
+    "retrieved_at": "2026-11-14T21:15:23.669023+00:00"
+  },
+  {
+    "station": "8517741",
+    "url": "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations/8517741/floodlevels.json?units=english",
+    "error": "HTTP Error 404: Not Found",
+    "retrieved_at": "2026-11-14T21:15:23.821781+00:00"
+  }
+]

@@ -25,28 +25,16 @@ COOPS_DATA_API = "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter"
 COOPS_META_API = "https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi"
 APP_NAME       = "EMBER"
 
-# ── Flood threshold reference levels (ft MLLW) for each station ───────────────
-# Based on NWS and CO-OPS flood stage definitions for NYC-area stations.
-# action = advisory, minor = nuisance flooding, moderate = significant, major = severe
-FLOOD_THRESHOLDS = {
-    "8518750": {"name": "The Battery",   "action": 4.5,  "minor": 5.5,  "moderate": 6.5,  "major": 8.5},
-    "8516945": {"name": "Kings Point",   "action": 4.5,  "minor": 5.5,  "moderate": 6.5,  "major": 8.5},
-    "8531680": {"name": "Sandy Hook",    "action": 4.5,  "minor": 5.5,  "moderate": 6.5,  "major": 8.5},
-    "8510560": {"name": "Montauk",       "action": 3.5,  "minor": 4.5,  "moderate": 5.5,  "major": 7.0},
-    "8518995": {"name": "Governors Is.", "action": 4.5,  "minor": 5.5,  "moderate": 6.5,  "major": 8.5},
-    "8517741": {"name": "Bergen Point",  "action": 4.5,  "minor": 5.5,  "moderate": 6.5,  "major": 8.5},
-}
+# Audited provenance is required before any stage classification is enabled.
+import json
+from pathlib import Path
+_AUDIT = json.loads((Path(__file__).resolve().parents[1]/"shared/flood-threshold-audit.json").read_text())
+FLOOD_THRESHOLDS = {r["station_id"]: {"status": "unverified"} for r in _AUDIT["entries"]}
 
 def get_flood_status(station_id: str, level_ft: float) -> dict:
-    """Return flood status dict for a given station and water level."""
-    thresh = FLOOD_THRESHOLDS.get(station_id, {"action": 4.5, "minor": 5.5, "moderate": 6.5, "major": 8.5})
-    if   level_ft >= thresh["major"]:    status, color = "MAJOR FLOOD",    "#dc2626"
-    elif level_ft >= thresh["moderate"]: status, color = "MODERATE FLOOD", "#f87171"
-    elif level_ft >= thresh["minor"]:    status, color = "MINOR FLOOD",    "#fb923c"
-    elif level_ft >= thresh["action"]:   status, color = "ACTION STAGE",   "#facc15"
-    else:                                status, color = "NORMAL",          "#4ade80"
-    return {"status": status, "color": color, "level_ft": level_ft,
-            "thresholds": thresh, "pct_to_minor": min(100, (level_ft / thresh["minor"]) * 100)}
+    """Raw level is available; unaudited stage levels never produce an all-clear."""
+    return {"status": "CLASSIFICATION UNAVAILABLE — thresholds unverified", "color": "#94a3b8",
+            "level_ft": level_ft, "thresholds": {}, "pct_to_minor": None}
 
 
 def fetch_station_list(state: str = "NY") -> list[dict]:
@@ -91,7 +79,7 @@ def fetch_water_level(station_id: str) -> dict | None:
                 "station":     station_id,
                 "product":     "water_level",
                 "datum":       "MLLW",
-                "time_zone":   "lst_ldt",
+                "time_zone":   "gmt",
                 "units":       "english",
                 "format":      "json",
                 "application": APP_NAME,
@@ -126,7 +114,7 @@ def fetch_water_level(station_id: str) -> dict | None:
             "level_ft":    round(level, 2),
             "trend_ft":    trend_val,
             "trend_str":   trend_str,
-            "timestamp":   latest.get("t", ""),
+            "timestamp":   latest.get("t", "").replace(" ", "T") + ":00Z",
             "quality":     latest.get("q", ""),
             "lat":         float(meta.get("lat", 0)),
             "lng":         float(meta.get("lon", 0)),
@@ -150,7 +138,7 @@ def fetch_predictions(station_id: str, hours: int = 48) -> list[dict]:
                 "station":     station_id,
                 "product":     "predictions",
                 "datum":       "MLLW",
-                "time_zone":   "lst_ldt",
+                "time_zone":   "gmt",
                 "interval":    "hilo",
                 "units":       "english",
                 "format":      "json",
@@ -164,10 +152,11 @@ def fetch_predictions(station_id: str, hours: int = 48) -> list[dict]:
             {
                 "type":     "HIGH" if p["type"] == "H" else "low",
                 "level_ft": float(p["v"]),
-                "time":     p["t"],
+                "time":     p["t"].replace(" ", "T") + ":00Z",
                 "is_high":  p["type"] == "H",
             }
             for p in preds
+            if _dt.datetime.fromisoformat(p["t"]).replace(tzinfo=_dt.timezone.utc) >= _dt.datetime.now(_dt.timezone.utc)
         ]
     except Exception:
         return []
@@ -186,7 +175,7 @@ def fetch_gauge_full(station_id: str) -> dict:
 
     chart_url = f"https://tidesandcurrents.noaa.gov/stationhome.html?id={station_id}"
     api_url   = (f"{COOPS_DATA_API}?date=recent&station={station_id}"
-                 f"&product=water_level&datum=MLLW&time_zone=lst_ldt&units=english&format=json")
+                 f"&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json")
 
     return {
         "station_id":  station_id,
@@ -196,7 +185,7 @@ def fetch_gauge_full(station_id: str) -> dict:
         "predictions": preds,
         "next_high":   next_high,
         "next_low":    next_low,
-        "fetched_at":  _dt.datetime.now().strftime("%H:%M:%S"),
+        "fetched_at":  _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
     }
 
 
@@ -264,7 +253,7 @@ def build_gauge_popup(gauge_data: dict, station_meta: dict | None = None) -> str
     status   = level_data["status"]
     trend    = level_data["trend_str"]
     thresh   = level_data.get("thresholds", {})
-    pct      = min(100, level_data.get("pct_to_minor", 0))
+    pct      = 0  # No percentage against an unverified stage.
 
     # Build a tiny inline progress bar showing level vs flood stage
     bar_fill  = f'background:{color};width:{pct:.0f}%;height:6px;border-radius:3px;display:inline-block'
@@ -287,10 +276,7 @@ def build_gauge_popup(gauge_data: dict, station_meta: dict | None = None) -> str
     {status} &nbsp;·&nbsp; {trend}
   </div>
 
-  <div style="{bar_track}"><div style="{bar_fill}"></div></div>
-  <div style="font-size:8px;color:#446;margin-bottom:8px">
-    Minor flood: {minor_thresh}ft &nbsp;|&nbsp; Major flood: {major_thresh}ft
-  </div>
+  <div style="font-size:8px;color:#778;margin-bottom:8px">Flood classification unavailable; source thresholds require verification.</div>
 
   <div style="border-top:1px solid #1e2a40;padding-top:6px;margin-bottom:6px">
     <div style="color:#aab;margin-bottom:2px">

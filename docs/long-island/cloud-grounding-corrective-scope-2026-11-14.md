@@ -132,3 +132,7 @@ Keep e480f23's historical result **FAIL** permanently. A future passing report m
 Runtime implementation has not started in this scope deliverable. Hosted acceptance is still **FAIL / corrective validation pending**. No commit, push, deployment or production promotion is performed by writing this document.
 
 Recommended scope commit: `docs(copilot): define corrective grounding scope and acceptance gates`.
+
+## Implementation follow-up
+
+The [corrective implementation and local verification report](cloud-grounding-corrective-implementation-2026-11-14.md) records the subsequent runtime work, conservative supported source format, default bounded routing, provider compatibility limit, local checks and pending hosted matrix. Those implementation details do not relax the acceptance criteria above. Historical e480f23 acceptance remains **FAIL**; the corrective hosted gate has not run.

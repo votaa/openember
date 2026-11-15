@@ -28,7 +28,7 @@ test('same captured mixed-source request retains full evidence, resolved night a
  assert.equal(out.scope.interval.start_utc,'2026-11-14T23:00:00Z')
  assert.equal(out.scope.interval.end_utc,'2026-11-15T11:00:00Z')
  const prompt=out.messages[0].content
- assert.ok(prompt.endsWith('AUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES))
+ assert.ok(prompt.includes('AUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES)&&prompt.includes('CONTROLLED OUTPUT CONTRACT:'))
  assert.ok(prompt.includes('=== LONG ISLAND EMERGENCY MANAGEMENT KNOWLEDGE BASE ==='))
  assert.ok(!prompt.includes('2026-11-18T11:00:00-05:00')) // out-of-window prose removed
  for(const upload of body.uploads)assert.ok(prompt.includes(upload.content))
@@ -38,13 +38,13 @@ test('same captured mixed-source request retains full evidence, resolved night a
 
 test('actual Edge proxy delivers strengthened rules and whole uploaded plan to a recording provider',async()=>{
  const original=globalThis.fetch,calls=[]
- globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response('{"message":{"content":"recording provider, not model acceptance"},"done":true}\n')}
+ globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
  try{
   const response=await handler(new Request('http://localhost/api/chat',{method:'POST',headers:{'content-type':'application/json','x-ollama-key':'recording-only-key'},body:JSON.stringify(captured)}))
-  assert.equal(response.status,200);assert.match(await response.text(),/recording provider/)
+  assert.equal(response.status,200);assert.match(await response.text(),/validated_envelope/)
   assert.equal(calls.length,1)
   const prompt=calls[0].messages[0].content
-  assert.ok(prompt.endsWith('AUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES))
+  assert.ok(prompt.includes('AUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES)&&prompt.includes('CONTROLLED OUTPUT CONTRACT:'))
   for(const c of fixture.cases)assert.ok(prompt.includes(c.required_rule),c.id)
   for(const upload of captured.uploads)assert.ok(prompt.includes(upload.content))
   assert.equal(calls[0].messages.at(-1).content,fixture.question)

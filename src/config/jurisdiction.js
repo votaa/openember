@@ -1269,31 +1269,19 @@ export const COOPS_STATIONS = [
 export const FLOOD_THRESHOLDS = {
   "8510560": {
     "name": "Montauk",
-    "action": 3.5,
-    "minor": 4.5,
-    "moderate": 5.5,
-    "major": 7
+    "status": "unverified"
   },
   "8516945": {
     "name": "Kings Point (LI Sound)",
-    "action": 4.5,
-    "minor": 5.5,
-    "moderate": 6.5,
-    "major": 8.5
+    "status": "unverified"
   },
   "8518750": {
     "name": "Battery Park (NYC surge ref)",
-    "action": 4.5,
-    "minor": 5.5,
-    "moderate": 6.5,
-    "major": 8.5
+    "status": "unverified"
   },
   "8531680": {
     "name": "Sandy Hook (outer-harbor ref)",
-    "action": 4.5,
-    "minor": 5.5,
-    "moderate": 6.5,
-    "major": 8.5
+    "status": "unverified"
   }
 };
 export const KNOWLEDGE_BASE = {

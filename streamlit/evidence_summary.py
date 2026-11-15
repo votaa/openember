@@ -40,10 +40,11 @@ def strip_weather_context(context,files=None):
     protected=[f["content"] for f in files or []]
     for i,text in enumerate(protected):
         if text:context=context.replace(text,f"EMBER_DOCUMENT_{i}_PROTECTED")
-    pattern=r'^(\[(?:NOAA|NWS)[^\n]*\n[\s\S]*?)(?=^\[|^--- |^RULES:|^AUTHORITATIVE |\Z)'
+    pattern=r'^(\[(?:NOAA|NWS|CO-OPS)[^\n]*\n[\s\S]*?)(?=^\[|^--- |^RULES:|^AUTHORITATIVE |\Z)'
     def clean(section):
+        if section.startswith('--- LIVE TIDAL GAUGE'):return ''
         if section.startswith('--- UPLOADED DOCUMENTS'):return section
-        return re.sub(pattern,lambda m:'' if re.search(r'https://api\.weather\.gov/(?:gridpoints/|stations/[^\s]+/observations)',m[0],re.I) else m[0],section,flags=re.M)
+        return re.sub(pattern,lambda m:'' if re.search(r'https://(?:api\.weather\.gov/(?:gridpoints/|stations/[^\s]+/observations)|api\.tidesandcurrents\.noaa\.gov/api/prod/datagetter)',m[0],re.I) else m[0],section,flags=re.M)
 
     cleaned=''.join(clean(section) for section in re.split(r'(?=^--- )',context,flags=re.M))
 

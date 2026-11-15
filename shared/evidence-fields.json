@@ -20,5 +20,26 @@
   "radio_authority": [
     "Radio authority",
     "Authorized radio use"
+  ],
+  "inventory": [
+    "Inventory"
+  ],
+  "deployment": [
+    "Deployment",
+    "Deployed cones",
+    "Deployment details"
+  ],
+  "facility_id": [
+    "Facility ID"
+  ],
+  "radio_channel": [
+    "Radio channel"
+  ],
+  "assignment_status": [
+    "Commander assignment status"
+  ],
+  "command_succession": [
+    "Command succession",
+    "Command succession SOP"
   ]
 }
