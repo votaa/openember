@@ -1,0 +1,37 @@
+{
+  "base_commit": "88d2199",
+  "status": "LOCAL_PASS_HOSTED_FAIL",
+  "gate": {
+    "command": "PATH=\"/Users/anthonyvota/Projects/openember/.venv/bin:$PATH\" npm run phase4:gate",
+    "exit_code": 0,
+    "javascript_checks": 175,
+    "python_test_runs": 141,
+    "log": "phase4-gate.log",
+    "log_sha256": "708ea2824e6e3fb678a7cb63abd38a15316e54e85aad359471cc377469ca60bd"
+  },
+  "browser": {
+    "command": "playwright-cli -s=focused-correction run-code --filename scripts/verify-focused-correction-ui.js",
+    "clock": "2026-11-15T14:43:14Z",
+    "provider": "local recording fixture",
+    "requests": 4,
+    "cloud_calls": 0,
+    "passed": [
+      "positive facts and procedures",
+      "reference bypass containment",
+      "raw sources collapsed and inspectable",
+      "regional configured stations and coverage",
+      "current relevance",
+      "invalid output containment",
+      "Stop",
+      "retained history"
+    ]
+  },
+  "replays": {
+    "count": 15,
+    "min_words": 64,
+    "max_words": 237,
+    "provenance": "Deterministic local projections of retained inputs at original receipt times; no model generation."
+  },
+  "hosted_acceptance": "FAIL; previous matrix remains authoritative until repeated new preview acceptance",
+  "deployment_performed": false
+}

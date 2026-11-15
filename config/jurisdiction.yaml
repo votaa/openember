@@ -757,34 +757,42 @@ nws:
   alert_zone: NYZ178
   obs_stations:
   - id: KFRG
+    role: Long Island station
     name: Republic Airport (Farmingdale)
     lat: 40.7288
     lng: -73.4138
   - id: KISP
+    role: Long Island station
     name: Long Island MacArthur Airport
     lat: 40.7952
     lng: -73.1002
   - id: KHWV
+    role: Long Island station
     name: Brookhaven Airport
     lat: 40.8219
     lng: -72.8694
   - id: KFOK
+    role: Long Island station
     name: Gabreski Airport
     lat: 40.8437
     lng: -72.6318
   - id: KMTP
+    role: Long Island station
     name: Montauk Airport
     lat: 41.0765
     lng: -71.9208
   - id: KJFK
+    role: regional reference
     name: JFK Airport
     lat: 40.6413
     lng: -73.7781
   - id: KLGA
+    role: regional reference
     name: LaGuardia Airport
     lat: 40.7772
     lng: -73.8726
   - id: KBDR
+    role: regional reference
     name: Bridgeport Airport
     lat: 41.1635
     lng: -73.1262

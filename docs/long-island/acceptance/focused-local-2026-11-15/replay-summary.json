@@ -1,0 +1,122 @@
+[
+  {
+    "case": "missing-01",
+    "words": 190,
+    "bytes": 1486,
+    "record_count": 11,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "missing-02",
+    "words": 190,
+    "bytes": 1486,
+    "record_count": 11,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "missing-03",
+    "words": 190,
+    "bytes": 1486,
+    "record_count": 11,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "supplied-01",
+    "words": 226,
+    "bytes": 1803,
+    "record_count": 16,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "supplied-02",
+    "words": 226,
+    "bytes": 1803,
+    "record_count": 16,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "supplied-03",
+    "words": 226,
+    "bytes": 1803,
+    "record_count": 16,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "conflicting-01",
+    "words": 237,
+    "bytes": 1871,
+    "record_count": 18,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "conflicting-02",
+    "words": 237,
+    "bytes": 1871,
+    "record_count": 18,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "conflicting-03",
+    "words": 237,
+    "bytes": 1871,
+    "record_count": 18,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "rolling-24h",
+    "words": 197,
+    "bytes": 1438,
+    "record_count": 10,
+    "scope_method": "rolling",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "later-date",
+    "words": 70,
+    "bytes": 622,
+    "record_count": 5,
+    "scope_method": "explicit",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "named-station",
+    "words": 64,
+    "bytes": 724,
+    "record_count": 3,
+    "scope_method": "source_period",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "current-conditions",
+    "words": 75,
+    "bytes": 643,
+    "record_count": 3,
+    "scope_method": "current_observation",
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "missing-sources",
+    "words": 176,
+    "bytes": 1260,
+    "record_count": 8,
+    "scope_method": null,
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  },
+  {
+    "case": "stale-sources",
+    "words": 176,
+    "bytes": 1260,
+    "record_count": 8,
+    "scope_method": null,
+    "provenance": "Local deterministic replay at captured server receipt; no model call or hosted acceptance."
+  }
+]

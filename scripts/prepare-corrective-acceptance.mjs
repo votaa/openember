@@ -16,7 +16,7 @@ const positive=join(session,'positive-plan.md');writeFileSync(positive,fixture)
 const conflict=join(session,'conflicting-plan.md');writeFileSync(conflict,fixture+'\n\n'+fixture.replaceAll('Casey Example','Morgan Example').replaceAll('10 ft','11 ft').replaceAll('"value":10','"value":11').replaceAll('use DELTA-19 for those check-ins','use ECHO-20 for those check-ins'))
 const question="Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts."
 const matrix=[]
-for(const [scenario,upload]of [['missing',original],['supplied',positive],['conflicting',conflict]])for(let repeat=1;repeat<=3;repeat++)matrix.push({id:scenario+'-0'+repeat,scenario,repeat,upload,question})
+for(const [scenario,upload]of [['missing',original],['supplied',positive],['conflicting',conflict]])for(let repeat=1;repeat<=3;repeat++)matrix.push({id:scenario+'-0'+repeat,scenario,repeat,upload,question:scenario==='missing'?question:question+' Include applicable supplied thresholds and authorized procedures, and identify conflicts.'})
 for(const [id,q]of [
  ['rolling-24h','Using the uploaded plan and enabled KB, assess the next 24 hours for CEDAR-731. State the exact window, supplied wind and temperature evidence, commander, deployed equipment and authorized procedures.'],
  ['later-date','Using the uploaded plan and enabled KB, assess November 18, 2026 for CEDAR-731. State the exact window, source coverage, wind and temperature evidence and known gaps.'],

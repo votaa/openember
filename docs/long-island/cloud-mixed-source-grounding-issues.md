@@ -197,3 +197,6 @@ The next prompt/regression slice is implemented on this cloud branch. Both runti
 ## c68d4c6 live acceptance — November 14
 
 Verified READY preview for exact commit `c68d4c67be9c0ed86985d495b7b1bc4250bdf64a` and completed one unchanged mixed-source question with the same full upload, enabled KB and clean history, using refreshed public weather. **FAIL:** actual assignment remains unknown, but the answer still invents a qualitative cone tipping threshold, attributes 11% to drizzle, gives unsupported utility/flood/visibility likelihoods, and contradicts the supplied dates and complete gust coverage. See [whole-answer review and capture](cloud-grounding-c68d4c6-acceptance-2026-11-14.md). GROUND-001/002/003 remain open. New weather revision prevents a byte-identical historical comparison; actual provider egress remains unobserved. No production promotion was performed.
+
+
+November 15 focused correction: [local implementation and verification](cloud-focused-response-correction-2026-11-15.md) addresses reference-text bypass, current-measured selection and concise query relevance. Local checks pass; hosted acceptance remains **FAIL**, with all grounding issues open pending repeated new-preview review.

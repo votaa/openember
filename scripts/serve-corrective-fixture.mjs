@@ -1,6 +1,9 @@
 // Local-only recording provider for browser verification. Never calls a cloud model.
+import {readFileSync} from 'node:fs'
 import {createServer} from 'node:http'
 import handler from '../api/chat.js'
+const FixtureDate=Date,fixtureClock=FixtureDate.parse('2026-11-15T14:43:14Z')
+globalThis.Date=class extends FixtureDate {constructor(...args){super(...(args.length?args:[fixtureClock]))}static now(){return fixtureClock}}
 let calls=0
 const encoder=new TextEncoder()
 globalThis.fetch=async(url,options)=>{
@@ -8,11 +11,19 @@ globalThis.fetch=async(url,options)=>{
  const body=JSON.parse(options.body);calls++
  const question=body.messages.at(-1).content
  const invalid=question.includes('reject-envelope-fixture')
- const raw=invalid?'Alert if water rises > 1 ft above the low-tide mark.':JSON.stringify({version:'operational-answer-v1',references:[]})
+ const raw=invalid?'Alert if water rises > 1 ft above the low-tide mark.':JSON.stringify({version:'operational-answer-v2',records:[]})
  let timer
  return new Response(new ReadableStream({start(controller){timer=setTimeout(()=>{controller.enqueue(encoder.encode(JSON.stringify({model:'recording-provider',message:{content:raw},done:true,done_reason:'stop'})+'\n'));controller.close()},2000)},cancel(){clearTimeout(timer)}}))
 }
 createServer(async(req,res)=>{
+ if(req.url?.startsWith('/_fixture/sources/')) {
+  const key=req.url.split('/').at(-1),allowed=['nws_forecast','nws_hourly','nws_grid','nws_obs_kjfk','nws_obs_kisp']
+  if(!allowed.includes(key)){res.writeHead(404);res.end();return}
+  const file=key==='nws_obs_kisp'?'nws_obs_kjfk':key
+  const source=JSON.parse(readFileSync(new URL('../docs/long-island/acceptance/corrective-9862a66-2026-11-15-normalized/sources/'+file+'.raw.json',import.meta.url)))
+  if(key==='nws_obs_kisp'){source.geometry.coordinates=[-73.1,40.8];source.properties.station='https://api.weather.gov/stations/KISP';source.properties.temperature.value=10}
+  res.writeHead(200,{'access-control-allow-origin':'*','content-type':'application/json'});res.end(JSON.stringify(source));return
+ }
  if(req.url==='/_fixture/stats'){res.writeHead(200,{'access-control-allow-origin':'*','content-type':'application/json'});res.end(JSON.stringify({calls}));return}
  if(req.url!=='/api/chat'){res.writeHead(404);res.end();return}
  const chunks=[];for await(const chunk of req)chunks.push(chunk)

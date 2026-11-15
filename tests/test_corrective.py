@@ -12,12 +12,12 @@ POSITIVE=dict(name='positive-plan.md',content=(ROOT/'tests/fixtures/corrective/p
 
 class CorrectiveTests(unittest.TestCase):
     def test_real_streamlit_provider_and_rendering_preserve_positive_evidence_and_contain_prose(self):
-        for content,expected in [(json.dumps(dict(version='operational-answer-v1',references=[])),'validated_envelope'),('Alert if water rises > 1 ft above the low-tide mark.','incomplete')]:
+        for content,expected in [(json.dumps(dict(version='operational-answer-v2',records=[])),'validated_envelope'),('Alert if water rises > 1 ft above the low-tide mark.','incomplete')]:
             with self.subTest(expected=expected),patch.object(requests,'post') as post:
                 response=post.return_value.__enter__.return_value
                 response.iter_lines.return_value=[json.dumps(dict(message=dict(content=content),done=True)).encode()]
                 scope=json.loads(json.dumps(SCOPE))
-                text=''.join(app['stream_ollama']([dict(role='user',content='Assess CEDAR-731 tonight')],POSITIVE['content'],scope,[],[POSITIVE],[]))
+                text=''.join(app['stream_ollama']([dict(role='user',content='Assess CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight')],POSITIVE['content'],scope,[],[POSITIVE],[]))
                 self.assertEqual(post.call_count,1)
                 payload=post.call_args.kwargs['json']
                 self.assertIn(POSITIVE['content'],payload['messages'][0]['content'])
@@ -27,7 +27,7 @@ class CorrectiveTests(unittest.TestCase):
                 self.assertNotIn('Alert if water rises > 1 ft',text)
     def test_source_omission_does_not_override_supplied_assignment(self):
         missing=dict(name='missing.txt',content='Incident commander: not named')
-        evidence=build_operational_evidence(SCOPE,[missing,POSITIVE],question='CEDAR-731 tonight')
+        evidence=build_operational_evidence(SCOPE,[missing,POSITIVE],question='CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight')
         self.assertTrue(any('Casey Example' in r['text'] for r in evidence['facts']))
         self.assertFalse(any('actual incident status remains unknown' in g for g in evidence['gaps']))
     def test_no_default_flood_status_or_percent_for_known_or_unknown_stations(self):
@@ -35,10 +35,10 @@ class CorrectiveTests(unittest.TestCase):
             result=get_flood_status(station,5.5)
             self.assertIn('UNAVAILABLE',result['status']);self.assertIsNone(result['pct_to_minor']);self.assertEqual(result['thresholds'],{})
     def test_every_failure_in_every_section_fails_closed(self):
-        evidence=build_operational_evidence(SCOPE,[POSITIVE],question='CEDAR-731 tonight')
+        evidence=build_operational_evidence(SCOPE,[POSITIVE],question='CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight')
         for case in FIXTURE['cases']:
             for section in ['facts','impacts','gaps','suggestions']:
-                output=render_operational_answer(json.dumps(dict(version='operational-answer-v1',**{section:[case['rejected']]})),evidence,SCOPE)
+                output=render_operational_answer(json.dumps(dict(version='operational-answer-v2',**{section:[case['rejected']]})),evidence,SCOPE)
                 self.assertEqual(output['disposition'],'incomplete');self.assertNotIn(case['rejected'],output['answer'])
 
 if __name__=='__main__':unittest.main()

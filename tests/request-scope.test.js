@@ -66,7 +66,7 @@ test('actual Edge handler streams once with authoritative scope, full KB/upload 
  const doc={name:'synthetic-plan.txt',content:readFileSync(new URL('./fixtures/uploads/synthetic-plan.txt',import.meta.url),'utf8')}
  const {uploadedDocumentContext}=await import('../src/data/cloudUploads.js')
  globalThis.Date=class extends OriginalDate {constructor(...args){super(...(args.length?args:['2026-11-14T13:13:00Z']))}static now(){return OriginalDate.parse('2026-11-14T13:13:00Z')}}
- globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
+ globalThis.fetch=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v2",records:[]})},done:true})+"\n")}
  try {
   const weather=structuredClone(cases[0].weather);weather[0].fetched_at='2026-11-14T13:10:00.123Z'
   const body={messages:[{role:'system',content:buildCopilotSystemPrompt('Long Island','FULL_ENABLED_KB_SENTINEL\n'+uploadedDocumentContext([doc]))},{role:'assistant',content:'Tonight was November 13.'},{role:'user',content:'Assess tonight and CEDAR-731.'}],uploads:[doc],scope_input:{version:SCOPE_VERSION,browser_requested_at:'2000-01-01T00:00:00Z',weather}}

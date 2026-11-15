@@ -16,7 +16,7 @@ test('REG-TIDE-WINDOW: select instants, never use out-of-window extrema',()=>{
 test('all historical failure transformations are contained across every output section',()=>{
  const evidence=buildOperationalEvidence({scope,files:[{name:'plan.txt',content:'Inventory: 47 amber cones\nIncident commander: not named\nRadio channel: DELTA-19'}],weather:[],coops:[],context:'',question:'tonight'})
  for(const c of f.cases)for(const section of ['facts','impacts','gaps','suggestions']) {
-  const output=renderOperationalAnswer(JSON.stringify({version:'operational-answer-v1',[section]:[c.rejected]}),evidence,scope)
+  const output=renderOperationalAnswer(JSON.stringify({version:'operational-answer-v2',[section]:[c.rejected]}),evidence,scope)
   assert.equal(output.disposition,'incomplete')
   assert.ok(!output.answer.includes(c.rejected),c.id+' '+section)
  }
@@ -28,9 +28,9 @@ import handler from '../api/chat.js'
 import {uploadedDocumentContext} from '../src/data/cloudUploads.js'
 const positive={name:'positive-plan.md',content:readFileSync(new URL('./fixtures/corrective/positive-plan.md',import.meta.url),'utf8')}
 const python=(input,code)=>JSON.parse(execFileSync('python3',['-c',"import sys,json;sys.path.insert(0,'streamlit');x=json.load(sys.stdin);"+code],{input:JSON.stringify(input),encoding:'utf8'}))
-const envelope=JSON.stringify({version:'operational-answer-v1',references:[]})
+const envelope=JSON.stringify({version:'operational-answer-v2',records:[]})
 test('supplied commander, deployed subset, threshold and authorized radio procedure survive',()=>{
- const evidence=buildOperationalEvidence({scope,files:[positive],question:'CEDAR-731 tonight'})
+ const evidence=buildOperationalEvidence({scope,files:[positive],question:'CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight'})
  const result=renderOperationalAnswer(envelope,evidence,scope)
  assert.equal(result.disposition,'validated_envelope')
  for(const text of ['Casey Example','12 amber cones deployed','remaining 35 in storage','10 ft','MLLW','8518750','Exercise command requires use DELTA-19'])assert.ok(result.answer.includes(text),text)
@@ -38,11 +38,11 @@ test('supplied commander, deployed subset, threshold and authorized radio proced
 })
 test('expired, mismatched target, altered sentence, wrong units and conflicting triggers are not promoted',()=>{
  for(const change of [s=>s.replaceAll('2026-11-15T11:00:00Z','2026-11-15T10:00:00Z'),s=>s.replace('Facility ID: CEDAR-731','Facility ID: ANOTHER'),s=>s.replace('water_level >= 10 ft; datum MLLW; station 8518750.\n','water_level >= 11 ft; datum MLLW; station 8518750.\n'),s=>s.replace('"unit":"ft"','"unit":"mph"')]) {
-  const e=buildOperationalEvidence({scope,files:[{...positive,content:change(positive.content)}],question:'CEDAR-731 tonight'})
+  const e=buildOperationalEvidence({scope,files:[{...positive,content:change(positive.content)}],question:'CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight'})
   assert.ok(!e.facts.some(r=>r.kind==='threshold'))
  }
  const conflict={name:'conflict.md',content:positive.content.replaceAll('10 ft','11 ft').replace('"value":10','"value":11')}
- const e=buildOperationalEvidence({scope,files:[positive,conflict],question:'CEDAR-731 tonight'})
+ const e=buildOperationalEvidence({scope,files:[positive,conflict],question:'CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight'})
  assert.ok(!e.facts.some(r=>r.kind==='threshold'));assert.ok(e.gaps.some(g=>g.includes('conflicting operational')))
 })
 test('null/stale/failed/ambiguous samples and exact end boundary cannot become future evidence',()=>{
@@ -64,15 +64,15 @@ test('legacy CO-OPS summaries are stripped but complete document quotations surv
  assert.equal(clean,python({context,files:[doc]},"from evidence_summary import strip_weather_context;print(json.dumps(strip_weather_context(x['context'],x['files'])))"))
 })
 test('shared JS/Python selection, states, positive records and exact rendering agree',()=>{
- const coops=coopsSnapshots([raw]),input={scope,files:[positive],question:'CEDAR-731 tonight',coops,weather:[],context:'Fixture KB\n\nGeneral reference paragraph.'}
+ const coops=coopsSnapshots([raw]),input={scope,files:[positive],question:'CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight',coops,weather:[],context:'Fixture KB\n\nGeneral reference paragraph.'}
  assert.deepEqual(selectCoops(coops,scope),python(input,"from coops_evidence import select_coops;print(json.dumps(select_coops(x['coops'],x['scope'])))"))
  const evidence=buildOperationalEvidence(input)
  assert.deepEqual(evidence,python(input,"from operational_evidence import build_operational_evidence;print(json.dumps(build_operational_evidence(**x)))"))
  assert.deepEqual(renderOperationalAnswer(envelope,evidence,scope),python({evidence,scope,raw:envelope},"from operational_evidence import render_operational_answer;print(json.dumps(render_operational_answer(x['raw'],x['evidence'],x['scope'])))"))
 })
 test('invalid envelope, forged references, extra text and truncated responses fail closed',()=>{
- const e=buildOperationalEvidence({scope,files:[positive],question:'CEDAR-731 tonight'})
- for(const raw of ['not json','{"version":"operational-answer-v1"}',JSON.stringify({version:'operational-answer-v1',references:['FORGED']}),envelope+'\nAlert now',JSON.stringify({version:'operational-answer-v1',references:[],suggestions:['Alert now']})])assert.equal(renderOperationalAnswer(raw,e,scope).disposition,'incomplete')
+ const e=buildOperationalEvidence({scope,files:[positive],question:'CEDAR-731 cones, commander, deployment, threshold and authorized radio procedure tonight'})
+ for(const raw of ['not json','{"version":"operational-answer-v2"}',JSON.stringify({version:'operational-answer-v2',records:['FORGED']}),envelope+'\nAlert now',JSON.stringify({version:'operational-answer-v2',records:[],suggestions:['Alert now']})])assert.equal(renderOperationalAnswer(raw,e,scope).disposition,'incomplete')
  assert.equal(renderOperationalAnswer(envelope,e,scope,false).disposition,'incomplete')
 })
 test('actual Edge buffering never emits unvalidated prose; protected audit captures actual payload only in preview',async()=>{
@@ -97,12 +97,12 @@ test('supported gauge linkage is retained while unlinked and conflicting linkage
  const statement='CEDAR-731: water-level gauge linkage station 8518750; basis exercise-approved mapping.'
  const record={kind:'gauge_linkage',target:'CEDAR-731',authority:'Exercise command',source_url:'https://example.invalid/mapping',valid_start:f.interval.start_utc,valid_end:f.interval.end_utc,station_id:'8518750',basis:'exercise-approved mapping',statement}
  const linked={name:'link.md',content:'Facility ID: CEDAR-731\n'+statement+'\n```operational-evidence-v1\n'+JSON.stringify(record)+'\n```'}
- const requestScope=structuredClone(scope),evidence=buildOperationalEvidence({scope:requestScope,files:[linked],coops:coopsSnapshots([raw]),question:'CEDAR-731 tonight'})
- assert.ok(evidence.facts.some(r=>r.kind==='coops'&&r.text.includes('documents linkage to CEDAR-731')))
- assert.deepEqual(evidence,python({scope:structuredClone(scope),files:[linked],coops:coopsSnapshots([raw]),question:'CEDAR-731 tonight'},"from operational_evidence import build_operational_evidence;print(json.dumps(build_operational_evidence(**x)))"))
+ const requestScope=structuredClone(scope),evidence=buildOperationalEvidence({scope:requestScope,files:[linked],coops:coopsSnapshots([raw]),question:'CEDAR-731 water levels and flood linkage tonight'})
+ assert.ok(evidence.facts.some(r=>r.kind==='coops'&&r.text.includes('source documents a gauge/site linkage')))
+ assert.deepEqual(evidence,python({scope:structuredClone(scope),files:[linked],coops:coopsSnapshots([raw]),question:'CEDAR-731 water levels and flood linkage tonight'},"from operational_evidence import build_operational_evidence;print(json.dumps(build_operational_evidence(**x)))"))
  const conflict={name:'other-link.md',content:linked.content.replaceAll('8518750','8516945')}
  const conflictingScope=structuredClone(scope)
- buildOperationalEvidence({scope:conflictingScope,files:[linked,conflict],question:'CEDAR-731 tonight'})
+ buildOperationalEvidence({scope:conflictingScope,files:[linked,conflict],question:'CEDAR-731 water levels and flood linkage tonight'})
  assert.equal(conflictingScope.facility_linkages.length,0)
 })
 

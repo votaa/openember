@@ -2444,6 +2444,10 @@ with tab_chat:
         with st.chat_message(msg["role"]):
             if msg['role']=='assistant':
                 st.markdown(answer_markdown(msg['content']))
+                if msg.get('sourceMaterial'):
+                    with st.expander('Request sources (raw)'):
+                        st.caption('Original source material for inspection; not validated operational guidance.')
+                        st.code(msg['sourceMaterial'],language='text')
                 if msg.get('scope'):
                     with st.expander('Application request scope · source metadata'):
                         st.caption('Application metadata describes evidence selection; it does not verify the answer.')
@@ -2500,6 +2504,7 @@ with tab_chat:
                 st.session_state.phase4_results,
             )
             ctx += map_layer_context(current_map_evidence(prompt))
+            st.session_state.messages[assistant_index]["sourceMaterial"] = ctx
         except UploadError as exc:
             finish_chat_response(st.session_state.messages, assistant_index, f"⚠ {exc}")
             st.session_state.chat_response_pending = False
@@ -2512,6 +2517,9 @@ with tab_chat:
             with st.expander('Application request scope · source metadata'):
                 st.caption('Application metadata describes evidence selection; it does not verify the answer.')
                 st.json(request_scope)
+            with st.expander('Request sources (raw)'):
+                st.caption('Original source material for inspection; not validated operational guidance.')
+                st.code(ctx,language='text')
             st.caption("Preparing an evidence-backed answer; source claims are displayed after format validation.")
             placeholder = st.empty()
             full = ""

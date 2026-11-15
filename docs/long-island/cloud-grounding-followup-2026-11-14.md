@@ -52,3 +52,6 @@ The user has now explicitly expanded item 3 beyond option A to require controlle
 The subsequent [corrective implementation report](cloud-grounding-corrective-implementation-2026-11-14.md) describes the runtime changes and local verification. It retains the failed hosted disposition and documents the unrun corrective hosted gate.
 
 On November 15, the [15-run hosted gate for committed corrective code `9862a66`](cloud-grounding-9862a66-acceptance-2026-11-15.md) completed and **failed**. Exact provider requests and complete answers are now captured. Operational text in raw KB references still bypasses the typed-record checks, current-measured wording drops available observation evidence, and source copying is excessive. Positive source facts/procedures remain usable in the repeated supplied-evidence cases. All three issues remain open.
+
+
+November 15 focused correction: [local implementation and verification](cloud-focused-response-correction-2026-11-15.md) addresses reference-text bypass, current-measured selection and concise query relevance. Local checks pass; hosted acceptance remains **FAIL**, with all grounding issues open pending repeated new-preview review.

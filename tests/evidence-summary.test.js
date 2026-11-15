@@ -34,7 +34,7 @@ test('legacy live weather is removed while complete document text and unrelated 
 test('actual Edge recording receives selected values without duplicate live weather, with complete uploads',async()=>{
  const c=fixture[1],OriginalDate=globalThis.Date,original=globalThis.fetch,calls=[]
  globalThis.Date=class extends OriginalDate {constructor(...args){super(...(args.length?args:[c.requestedAt]))}static now(){return OriginalDate.parse(c.requestedAt)}}
- globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
+ globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v2",records:[]})},done:true})+"\n")}
  try {
   const context='FULL_KB\n'+uploadedDocumentContext(documents)+'\n--- NOAA DATA ---\n[NOAA: Point]\nSource: '+c.weather[0].url+'\nUNFILTERED_LATER_SENTINEL\n'
   const body={messages:[{role:'system',content:buildCopilotSystemPrompt('Long Island',context)},{role:'user',content:'tonight'}],uploads:documents,scope_input:{version:'request-scope-v1',weather:c.weather}}

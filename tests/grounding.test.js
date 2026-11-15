@@ -38,7 +38,7 @@ test('same captured mixed-source request retains full evidence, resolved night a
 
 test('actual Edge proxy delivers strengthened rules and whole uploaded plan to a recording provider',async()=>{
  const original=globalThis.fetch,calls=[]
- globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v1",references:[]})},done:true})+"\n")}
+ globalThis.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));return new Response(JSON.stringify({message:{content:JSON.stringify({version:"operational-answer-v2",records:[]})},done:true})+"\n")}
  try{
   const response=await handler(new Request('http://localhost/api/chat',{method:'POST',headers:{'content-type':'application/json','x-ollama-key':'recording-only-key'},body:JSON.stringify(captured)}))
   assert.equal(response.status,200);assert.match(await response.text(),/validated_envelope/)

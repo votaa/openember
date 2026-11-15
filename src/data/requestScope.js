@@ -1,3 +1,4 @@
+import configuration from '../../config/jurisdiction.generated.json' assert {type:'json'}
 import weatherPolicy from '../../shared/request-scope-policy.json' assert {type:'json'}
 const GRID_FIELDS=weatherPolicy.weather.grid_fields
 // Pure request-time contract. Browser snapshots are evidence, never provider settings.
@@ -94,7 +95,7 @@ function resolveScope({question,requestedAt,jurisdiction,weather=[],files=[],pol
   const rolling=/\bnext (\d+) (hours?|days?)\b/.exec(text)
   if(rolling&&Number(rolling[1])>0&&Number(rolling[1])<=366)return resolved(now,now+Number(rolling[1])*(rolling[2].startsWith('day')?86400000:3600000),'rolling')
   if(/\bnext (?:24|twenty-four) hours\b/.test(text))return resolved(now,now+86400000,'rolling')
-  if(/\b(?:current(?:ly)? (?:weather|conditions|temperature|winds?|observations?)|weather right now)\b/.test(text)&&! /\b(?:today|tomorrow|tonight)\b/.test(text)){scope.assumptions.push('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.');return resolved(now-3600000,now,'current_observation')}
+  if(/\b(?:current(?:ly)?\s+(?:(?:measured|observed|local|station)\s+)*(?:weather|conditions|temperature|winds?|observations?|readings?)|latest\s+(?:weather\s+)?(?:observations?|readings?)|weather right now)\b/.test(text)&&! /\b(?:today|tomorrow|tonight)\b/.test(text)){scope.assumptions.push('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.');return resolved(now-3600000,now,'current_observation')}
   if(/\b(?:seven|7)[ -]day forecast\b/.test(text))return resolved(now,now+7*86400000,'rolling')
   const today=day(now,zone)
   let date=today,explicitDate=false
@@ -194,6 +195,10 @@ export function scopedWeather(weather,scope) {
     const p0=source.data?.properties||{},hourly=/\/forecast\/hourly(?:[?#]|$)/i.test(source.url)||p0.periods?.every(r=>!r.name)
     const observation=typeof p0.timestamp==='string'
     if(observation) {
+      const stationId=source.url.match(/\/stations\/([^/]+)/)?.[1],station=configuration.nws.obs_stations.find(s=>s.id===stationId)
+      out.station_id=stationId||null;out.station_role=station?.role||'configured station'
+      if(!station){out.coverage='observation station is not configured';return out}
+      if(scope.observation_selection?.mode==='named_station'&&!scope.observation_selection.stations.includes(stationId)){out.state='outside_requested_geography';return out}
       const at=instant(p0.timestamp),age=now-at,coords=source.data?.geometry?.coordinates
       out.observation={timestamp:p0.timestamp,station:p0.station||source.url,coordinates:coords||null,fields:{}}
       out.coverage='observation only; no continuous historical coverage'
@@ -248,6 +253,11 @@ export function scopeSegments(scope) {
 
 export function resolveRequestScope(input) {
   const scope=resolveScope(input)
+  if(scope.method==='current_observation') {
+    const q=input.question.toLowerCase()
+    const named=configuration.nws.obs_stations.filter(s=>[s.id,s.id.slice(1),s.name].some(name=>new RegExp('\\b'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(q))).map(s=>s.id)
+    scope.observation_selection={mode:named.length?'named_station':'regional_overview',stations:named.length?named:configuration.nws.obs_stations.map(s=>s.id),facility_applicability:'not established by station readings'}
+  }
   scope.segments=scopeSegments(scope)
   if(scope.interval)scope.historical=scope.method!=='current_observation'&&instant(scope.interval.end_utc)<=instant(scope.request_utc)
   scope.coverage=scopedWeather(input.weather||[],scope).map(s=>({id:s.id,url:s.url,area:s.area,coordinates:s.coordinates,updated_at:s.updated_at,fetched_at:s.fetched_at,selected_interval:s.selected_interval||null,observed_at:s.observation?.timestamp||null,state:s.state,coverage:s.coverage,fields:Object.fromEntries(Object.entries(s.series).map(([k,v])=>[k,v.coverage]))}))

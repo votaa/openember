@@ -6,7 +6,8 @@ selected=sys.argv[2:]
 matrix=json.loads((session/'matrix.json').read_text())
 token=Path('/private/tmp/openember-corrective-audit-token').read_text().strip()
 base=Path(__file__).resolve().parents[1]
-env=dict(os.environ,PREVIEW_URL='https://openember-2dicylzwd-ember-li.vercel.app',PREVIEW_COMMIT='9862a6667b3bee0655c09b2fed317b67529b3fbf',PREVIEW_AUDIT_TOKEN=token)
+if not os.environ.get('PREVIEW_URL') or not os.environ.get('PREVIEW_COMMIT'):raise SystemExit('Set the verified immutable PREVIEW_URL and exact PREVIEW_COMMIT explicitly')
+env=dict(os.environ,PREVIEW_AUDIT_TOKEN=token)
 if not env.get('PREVIEW_VERCEL_CLI'):raise SystemExit('Set PREVIEW_VERCEL_CLI to an authenticated Vercel CLI executable')
 for row in matrix:
     if selected and row['id'] not in selected:continue

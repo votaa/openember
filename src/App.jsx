@@ -391,7 +391,7 @@ const NOAA_ENDPOINTS = [
   {id:"nws_forecast",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:`7-Day Forecast — ${CFG.shortName}`,     url: NWS_FORECAST_URL},
   {id:"nws_hourly",    cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Hourly Forecast",                       url:`${NWS_FORECAST_URL}/hourly`},
   {id:"nws_grid",      cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Wind & Precip Grid",                    url:`https://api.weather.gov/gridpoints/${_NWS.office||"OKX"}/${_NWS.grid_x||33},${_NWS.grid_y||37}`},
-  {id:"nws_obs_kjfk",  cat:"NWS",    color:"#60a5fa", icon:"🌩", name:"Observations — JFK Airport",            url:"https://api.weather.gov/stations/KJFK/observations/latest",                                              mapKey:true},
+  ...(_NWS.obs_stations || []).map(s=>({id:`nws_obs_${s.id.toLowerCase()}`,cat:"NWS",color:"#60a5fa",icon:"🌩",name:`Observations — ${s.name}`,url:`https://api.weather.gov/stations/${s.id}/observations/latest`,mapKey:true})),
   // CO-OPS
   {id:"coops_battery", cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Water Level — The Battery",             url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER", mapKey:true},
   {id:"coops_preds",   cat:"CO-OPS", color:"#34d399", icon:"🌊", name:"Tidal Predictions — Battery 48h",       url:"https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER"},
@@ -1058,7 +1058,7 @@ export default function App() {
     abortRef.current = new AbortController()
     // Refresh missing/stale weather before constructing this request, so the
     // first ordinary question gets the same forecast evidence as Streamlit.
-    let full = "", requestMetadata = null
+    let full = "", requestMetadata = null, sourceMaterial = null
     setMessages(p=>[...p,{role:"assistant",content:"Checking supplied evidence… ▋"}])
     try {
       await initialNoaaFetchRef.current
@@ -1078,18 +1078,19 @@ export default function App() {
         + mapLayerContext(loadedEvidence)
         + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
+      sourceMaterial = ctx
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT),coops:coopsSnapshots([...Object.values(noaaCacheRef.current),...apiResults])}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata}]) },
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT),coops:coopsSnapshots([...Object.values(noaaCacheRef.current),...apiResults])}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata,sourceMaterial}]) },
       )) {
         full += token
-        setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋",scope:requestMetadata}])
+        setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋",scope:requestMetadata,sourceMaterial}])
       }
     } catch(e) {
       if (e.name==="AbortError" && !full) full = "⚠ Response stopped before a validated answer was available."
       if (e.name!=="AbortError") full += `\n\n⚠ Error: ${e.message}`
     }
-    setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full,scope:requestMetadata}])
+    setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full,scope:requestMetadata,sourceMaterial}])
     setStreaming(false)
   }, [input, streaming, messages, files, apiResults, activeKB, noaaItems, esriItems, evaluatedEsriMapLayers, geographyFilterRecords, phase4Results, noaaCache, localConfig, runtimeKey, CFG_RT.name])
 
@@ -1243,6 +1244,7 @@ export default function App() {
                     <div style={{flex:1,minWidth:0,fontSize:12,lineHeight:1.65,color:m.role==="assistant"?"#d0d0dc":"#a0b0cc",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
                       {m.role==="assistant" ? <>
                         <AssistantMarkdown>{m.content}</AssistantMarkdown>
+                        {m.sourceMaterial && <details className="request-sources"><summary>Request sources (raw)</summary><div>Original source material for inspection. Its statements are not validated operational guidance.</div><pre style={{whiteSpace:"pre-wrap"}}>{m.sourceMaterial}</pre></details>}
                         {m.scope && <details className="answer-provenance"><summary>Application request scope · source metadata</summary><div>Application metadata describes evidence selection; it does not verify the answer.</div><pre style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(m.scope,null,2)}</pre></details>}
                       </> : m.content}
                     </div>
