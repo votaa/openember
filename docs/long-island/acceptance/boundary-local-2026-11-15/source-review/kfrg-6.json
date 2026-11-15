@@ -1,0 +1,207 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "uniqueIdField": {
+    "name": "OBJECTID",
+    "isSystemMaintained": true
+  },
+  "globalIdFieldName": "",
+  "geometryProperties": {
+    "shapeAreaFieldName": "Shape__Area",
+    "shapeLengthFieldName": "Shape__Length",
+    "units": "esriMeters"
+  },
+  "geometryType": "esriGeometryPolygon",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "NAME",
+      "type": "esriFieldTypeString",
+      "alias": "NAME",
+      "sqlType": "sqlTypeOther",
+      "length": 40,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "MUNI_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "MUNI_TYPE",
+      "sqlType": "sqlTypeOther",
+      "length": 4,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "MUNITYCODE",
+      "type": "esriFieldTypeSmallInteger",
+      "alias": "MUNITYCODE",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": 1
+    },
+    {
+      "name": "COUNTY",
+      "type": "esriFieldTypeString",
+      "alias": "COUNTY",
+      "sqlType": "sqlTypeOther",
+      "length": 50,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "GNIS_ID",
+      "type": "esriFieldTypeString",
+      "alias": "GNIS_ID",
+      "sqlType": "sqlTypeOther",
+      "length": 9,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "FIPS_CODE",
+      "type": "esriFieldTypeString",
+      "alias": "FIPS_CODE",
+      "sqlType": "sqlTypeOther",
+      "length": 10,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "SWIS",
+      "type": "esriFieldTypeString",
+      "alias": "SWIS",
+      "sqlType": "sqlTypeOther",
+      "length": 6,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP1990",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP1990",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2000",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2000",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2010",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2010",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2020",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2020",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DOS_LL",
+      "type": "esriFieldTypeString",
+      "alias": "DOS_LL",
+      "sqlType": "sqlTypeOther",
+      "length": 7,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DOSLL_DATE",
+      "type": "esriFieldTypeDate",
+      "alias": "DOSLL_DATE",
+      "sqlType": "sqlTypeOther",
+      "length": 8,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "MAP_SYMBOL",
+      "type": "esriFieldTypeString",
+      "alias": "MAP_SYMBOL",
+      "sqlType": "sqlTypeOther",
+      "length": 1,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "CALC_SQ_MI",
+      "type": "esriFieldTypeDouble",
+      "alias": "CALC_SQ_MI",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DATEMOD",
+      "type": "esriFieldTypeDate",
+      "alias": "DATEMOD",
+      "sqlType": "sqlTypeOther",
+      "length": 8,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Shape__Area",
+      "type": "esriFieldTypeDouble",
+      "alias": "Shape__Area",
+      "sqlType": "sqlTypeDouble",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Shape__Length",
+      "type": "esriFieldTypeDouble",
+      "alias": "Shape__Length",
+      "sqlType": "sqlTypeDouble",
+      "domain": null,
+      "defaultValue": null
+    }
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 48,
+        "NAME": "Babylon",
+        "MUNI_TYPE": "town",
+        "MUNITYCODE": 2,
+        "COUNTY": "Suffolk",
+        "GNIS_ID": "978704",
+        "FIPS_CODE": "3610304000",
+        "SWIS": "472000",
+        "POP1990": 202889,
+        "POP2000": 211792,
+        "POP2010": 213603,
+        "POP2020": 218223,
+        "DOS_LL": null,
+        "DOSLL_DATE": null,
+        "MAP_SYMBOL": "T",
+        "CALC_SQ_MI": 102.14124552137983,
+        "DATEMOD": null,
+        "Shape__Area": 460232508.31640625,
+        "Shape__Length": 99328.39625163643
+      }
+    }
+  ]
+}

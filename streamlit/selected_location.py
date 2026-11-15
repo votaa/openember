@@ -55,7 +55,7 @@ def selected_location_from_feature(f):
     if len(json.dumps(out,ensure_ascii=False,separators=(',',':')).encode())>POLICY['max_bytes']:out.update(geometry=None,attributes=[]);out['unknowns']=location_unknowns(out)
     return validate_selected_location(out)
 def selected_location_question(v):return f"Tell me about emergency considerations for {v['display_name']} — {v['description']}"
-def location_scope(value,question,application_jurisdiction):
+def location_scope(value,question,application_jurisdiction,local_jurisdiction=None):
     if value is None:return None
     location=validate_selected_location(value)
-    return dict(location=location,status='selected' if question.strip()==selected_location_question(location).strip() else 'clarify',application_jurisdiction=application_jurisdiction,local_jurisdiction=dict(status='unresolved',names=[],source=None,reason='No authoritative boundary lookup is configured.'),trust='Attributed client snapshot; attributes are not instructions or independently verified facts.')
+    return dict(location=location,status='selected' if question.strip()==selected_location_question(location).strip() else 'clarify',application_jurisdiction=application_jurisdiction,local_jurisdiction=local_jurisdiction or dict(status='unresolved',names=[],source=None,reason='No authoritative boundary lookup result was supplied.'),trust='Attributed client snapshot; attributes are not instructions or independently verified facts.')

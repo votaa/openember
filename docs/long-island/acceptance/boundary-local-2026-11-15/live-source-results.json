@@ -1,0 +1,1567 @@
+{
+  "captured_at": "2026-11-15T20:07:41.587Z",
+  "provenance": "Live public NYS boundary queries; no cloud model calls or hosted app acceptance.",
+  "records": [
+    {
+      "case": "kfrg",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "KFRG — Republic Airport",
+        "description": "",
+        "source_id": null,
+        "feature_id": "kfrg",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -73.4134,
+            40.7288
+          ]
+        },
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": "KFRG",
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "observed_at",
+          "fetched_at"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "matched",
+        "names": [
+          "County: Suffolk",
+          "Town: Babylon"
+        ],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [
+          {
+            "level": "county",
+            "layer_id": 2,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+            "fetched_at": "2026-11-15T20:07:40.524Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "52",
+                "name": "Suffolk",
+                "kind": "County",
+                "fips": "36103",
+                "county": null,
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 5,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 52,
+                    "NAME": "Suffolk",
+                    "FIPS_CODE": "36103",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "city_town",
+            "layer_id": 6,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/6/query",
+            "fetched_at": "2026-11-15T20:07:40.525Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "48",
+                "name": "Babylon",
+                "kind": "Town",
+                "fips": "3610304000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "MUNI_TYPE",
+                  "type": "esriFieldTypeString",
+                  "alias": "MUNI_TYPE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 4,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 10,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 48,
+                    "NAME": "Babylon",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610304000",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "village",
+            "layer_id": 7,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/7/query",
+            "fetched_at": "2026-11-15T20:07:40.577Z",
+            "status": "no_match",
+            "matches": [],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "features": []
+            }
+          }
+        ],
+        "reason": "Mapped administrative intersections returned.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 415
+    },
+    {
+      "case": "hospital",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "Hospital map point",
+        "description": "",
+        "source_id": null,
+        "feature_id": "hospital",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -73.6993,
+            40.7765
+          ]
+        },
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": null,
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "observed_at",
+          "fetched_at",
+          "station_id"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "matched",
+        "names": [
+          "County: Nassau",
+          "Town: North Hempstead"
+        ],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [
+          {
+            "level": "county",
+            "layer_id": 2,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+            "fetched_at": "2026-11-15T20:07:40.694Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "30",
+                "name": "Nassau",
+                "kind": "County",
+                "fips": "36059",
+                "county": null,
+                "town": null,
+                "source_modified_at": "2018-04-12T00:00:00.000Z"
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 5,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 30,
+                    "NAME": "Nassau",
+                    "FIPS_CODE": "36059",
+                    "DATEMOD": 1523491200000
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "city_town",
+            "layer_id": 6,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/6/query",
+            "fetched_at": "2026-11-15T20:07:40.906Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "630",
+                "name": "North Hempstead",
+                "kind": "Town",
+                "fips": "3605953000",
+                "county": "Nassau",
+                "town": null,
+                "source_modified_at": "2021-10-08T00:00:00.000Z"
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "MUNI_TYPE",
+                  "type": "esriFieldTypeString",
+                  "alias": "MUNI_TYPE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 4,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 10,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 630,
+                    "NAME": "North Hempstead",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Nassau",
+                    "FIPS_CODE": "3605953000",
+                    "DATEMOD": 1633651200000
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "village",
+            "layer_id": 7,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/7/query",
+            "fetched_at": "2026-11-15T20:07:40.711Z",
+            "status": "no_match",
+            "matches": [],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "features": []
+            }
+          }
+        ],
+        "reason": "Mapped administrative intersections returned.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 328
+    },
+    {
+      "case": "crossing_road",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "Synthetic crossing road",
+        "description": "",
+        "source_id": null,
+        "feature_id": "crossing_road",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.5,
+              40.75
+            ],
+            [
+              -73.3,
+              40.75
+            ]
+          ]
+        },
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": null,
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "observed_at",
+          "fetched_at",
+          "station_id"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "multiple",
+        "names": [
+          "County: Nassau",
+          "County: Suffolk",
+          "Town: Babylon",
+          "Town: Islip",
+          "Town: Oyster Bay"
+        ],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [
+          {
+            "level": "county",
+            "layer_id": 2,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+            "fetched_at": "2026-11-15T20:07:41.050Z",
+            "status": "multiple",
+            "matches": [
+              {
+                "id": "30",
+                "name": "Nassau",
+                "kind": "County",
+                "fips": "36059",
+                "county": null,
+                "town": null,
+                "source_modified_at": "2018-04-12T00:00:00.000Z"
+              },
+              {
+                "id": "52",
+                "name": "Suffolk",
+                "kind": "County",
+                "fips": "36103",
+                "county": null,
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 5,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 30,
+                    "NAME": "Nassau",
+                    "FIPS_CODE": "36059",
+                    "DATEMOD": 1523491200000
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 52,
+                    "NAME": "Suffolk",
+                    "FIPS_CODE": "36103",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "city_town",
+            "layer_id": 6,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/6/query",
+            "fetched_at": "2026-11-15T20:07:41.112Z",
+            "status": "multiple",
+            "matches": [
+              {
+                "id": "48",
+                "name": "Babylon",
+                "kind": "Town",
+                "fips": "3610304000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              },
+              {
+                "id": "438",
+                "name": "Islip",
+                "kind": "Town",
+                "fips": "3610338000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              },
+              {
+                "id": "675",
+                "name": "Oyster Bay",
+                "kind": "Town",
+                "fips": "3605956000",
+                "county": "Nassau",
+                "town": null,
+                "source_modified_at": "2021-10-08T00:00:00.000Z"
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "MUNI_TYPE",
+                  "type": "esriFieldTypeString",
+                  "alias": "MUNI_TYPE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 4,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 10,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 48,
+                    "NAME": "Babylon",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610304000",
+                    "DATEMOD": null
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 438,
+                    "NAME": "Islip",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610338000",
+                    "DATEMOD": null
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 675,
+                    "NAME": "Oyster Bay",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Nassau",
+                    "FIPS_CODE": "3605956000",
+                    "DATEMOD": 1633651200000
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "village",
+            "layer_id": 7,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/7/query",
+            "fetched_at": "2026-11-15T20:07:41.222Z",
+            "status": "no_match",
+            "matches": [],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "features": []
+            }
+          }
+        ],
+        "reason": "Mapped administrative intersections returned.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 316
+    },
+    {
+      "case": "crossing_area",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "Synthetic crossing polygon",
+        "description": "",
+        "source_id": null,
+        "feature_id": "crossing_area",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -73.5,
+                40.74
+              ],
+              [
+                -73.3,
+                40.74
+              ],
+              [
+                -73.3,
+                40.76
+              ],
+              [
+                -73.5,
+                40.76
+              ],
+              [
+                -73.5,
+                40.74
+              ]
+            ]
+          ]
+        },
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": null,
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "observed_at",
+          "fetched_at",
+          "station_id"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "multiple",
+        "names": [
+          "County: Nassau",
+          "County: Suffolk",
+          "Town: Babylon",
+          "Town: Hempstead",
+          "Town: Huntington",
+          "Town: Islip",
+          "Town: Oyster Bay",
+          "Village: Farmingdale"
+        ],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [
+          {
+            "level": "county",
+            "layer_id": 2,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+            "fetched_at": "2026-11-15T20:07:41.340Z",
+            "status": "multiple",
+            "matches": [
+              {
+                "id": "30",
+                "name": "Nassau",
+                "kind": "County",
+                "fips": "36059",
+                "county": null,
+                "town": null,
+                "source_modified_at": "2018-04-12T00:00:00.000Z"
+              },
+              {
+                "id": "52",
+                "name": "Suffolk",
+                "kind": "County",
+                "fips": "36103",
+                "county": null,
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 5,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 30,
+                    "NAME": "Nassau",
+                    "FIPS_CODE": "36059",
+                    "DATEMOD": 1523491200000
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 52,
+                    "NAME": "Suffolk",
+                    "FIPS_CODE": "36103",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "city_town",
+            "layer_id": 6,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/6/query",
+            "fetched_at": "2026-11-15T20:07:41.368Z",
+            "status": "multiple",
+            "matches": [
+              {
+                "id": "48",
+                "name": "Babylon",
+                "kind": "Town",
+                "fips": "3610304000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              },
+              {
+                "id": "402",
+                "name": "Hempstead",
+                "kind": "Town",
+                "fips": "3605934000",
+                "county": "Nassau",
+                "town": null,
+                "source_modified_at": "2021-10-08T00:00:00.000Z"
+              },
+              {
+                "id": "428",
+                "name": "Huntington",
+                "kind": "Town",
+                "fips": "3610337000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              },
+              {
+                "id": "438",
+                "name": "Islip",
+                "kind": "Town",
+                "fips": "3610338000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              },
+              {
+                "id": "675",
+                "name": "Oyster Bay",
+                "kind": "Town",
+                "fips": "3605956000",
+                "county": "Nassau",
+                "town": null,
+                "source_modified_at": "2021-10-08T00:00:00.000Z"
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "MUNI_TYPE",
+                  "type": "esriFieldTypeString",
+                  "alias": "MUNI_TYPE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 4,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 10,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 48,
+                    "NAME": "Babylon",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610304000",
+                    "DATEMOD": null
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 402,
+                    "NAME": "Hempstead",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Nassau",
+                    "FIPS_CODE": "3605934000",
+                    "DATEMOD": 1633651200000
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 428,
+                    "NAME": "Huntington",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610337000",
+                    "DATEMOD": null
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 438,
+                    "NAME": "Islip",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610338000",
+                    "DATEMOD": null
+                  }
+                },
+                {
+                  "attributes": {
+                    "OBJECTID": 675,
+                    "NAME": "Oyster Bay",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Nassau",
+                    "FIPS_CODE": "3605956000",
+                    "DATEMOD": 1633651200000
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "village",
+            "layer_id": 7,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/7/query",
+            "fetched_at": "2026-11-15T20:07:41.431Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "161",
+                "name": "Farmingdale",
+                "kind": "Village",
+                "fips": "360595600025384",
+                "county": "Nassau",
+                "town": "Oyster Bay",
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "TOWN",
+                  "type": "esriFieldTypeString",
+                  "alias": "Town",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 15,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 161,
+                    "NAME": "Farmingdale",
+                    "TOWN": "Oyster Bay",
+                    "COUNTY": "Nassau",
+                    "FIPS_CODE": "360595600025384",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "reason": "Mapped administrative intersections returned.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 209
+    },
+    {
+      "case": "water_point",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "Coastal water point",
+        "description": "",
+        "source_id": null,
+        "feature_id": "water_point",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": {
+          "type": "Point",
+          "coordinates": [
+            -73.2,
+            40.6
+          ]
+        },
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": null,
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "observed_at",
+          "fetched_at",
+          "station_id"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "matched",
+        "names": [
+          "County: Suffolk",
+          "Town: Islip"
+        ],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [
+          {
+            "level": "county",
+            "layer_id": 2,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/2/query",
+            "fetched_at": "2026-11-15T20:07:41.559Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "52",
+                "name": "Suffolk",
+                "kind": "County",
+                "fips": "36103",
+                "county": null,
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 5,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 52,
+                    "NAME": "Suffolk",
+                    "FIPS_CODE": "36103",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "city_town",
+            "layer_id": 6,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/6/query",
+            "fetched_at": "2026-11-15T20:07:41.526Z",
+            "status": "matched",
+            "matches": [
+              {
+                "id": "438",
+                "name": "Islip",
+                "kind": "Town",
+                "fips": "3610338000",
+                "county": "Suffolk",
+                "town": null,
+                "source_modified_at": null
+              }
+            ],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "geometryType": "esriGeometryPolygon",
+              "spatialReference": {
+                "wkid": 102100,
+                "latestWkid": 3857
+              },
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "NAME",
+                  "type": "esriFieldTypeString",
+                  "alias": "NAME",
+                  "sqlType": "sqlTypeOther",
+                  "length": 40,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "MUNI_TYPE",
+                  "type": "esriFieldTypeString",
+                  "alias": "MUNI_TYPE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 4,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "COUNTY",
+                  "type": "esriFieldTypeString",
+                  "alias": "COUNTY",
+                  "sqlType": "sqlTypeOther",
+                  "length": 50,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "FIPS_CODE",
+                  "type": "esriFieldTypeString",
+                  "alias": "FIPS_CODE",
+                  "sqlType": "sqlTypeOther",
+                  "length": 10,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "DATEMOD",
+                  "type": "esriFieldTypeDate",
+                  "alias": "DATEMOD",
+                  "sqlType": "sqlTypeOther",
+                  "length": 8,
+                  "domain": null,
+                  "defaultValue": null
+                }
+              ],
+              "features": [
+                {
+                  "attributes": {
+                    "OBJECTID": 438,
+                    "NAME": "Islip",
+                    "MUNI_TYPE": "town",
+                    "COUNTY": "Suffolk",
+                    "FIPS_CODE": "3610338000",
+                    "DATEMOD": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "level": "village",
+            "layer_id": 7,
+            "source_url": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer/7/query",
+            "fetched_at": "2026-11-15T20:07:41.586Z",
+            "status": "no_match",
+            "matches": [],
+            "raw_response": {
+              "objectIdFieldName": "OBJECTID",
+              "uniqueIdField": {
+                "name": "OBJECTID",
+                "isSystemMaintained": true
+              },
+              "globalIdFieldName": "",
+              "features": []
+            }
+          }
+        ],
+        "reason": "Mapped administrative intersections returned.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 155
+    },
+    {
+      "case": "sparse",
+      "location": {
+        "version": "selected-location-v1",
+        "display_name": "Ambiguous place",
+        "description": "",
+        "source_id": null,
+        "feature_id": "sparse",
+        "source_name": "Map layer",
+        "source_url": null,
+        "layer_id": null,
+        "feature_type": null,
+        "geometry": null,
+        "crs": "EPSG:4326",
+        "attributes": [],
+        "observed_at": null,
+        "fetched_at": null,
+        "station_id": null,
+        "provenance": "client_source_snapshot",
+        "unknowns": [
+          "local_jurisdiction",
+          "facility_footprint",
+          "source_id",
+          "source_url",
+          "feature_type",
+          "geometry",
+          "observed_at",
+          "fetched_at",
+          "station_id"
+        ]
+      },
+      "result": {
+        "version": "jurisdiction-lookup-v1",
+        "status": "unresolved",
+        "names": [],
+        "source": "https://gis.ny.gov/civil-boundaries",
+        "coverage": "New York State administrative boundaries; planning and general use",
+        "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+        "publication_date": "2026-03",
+        "relation": "intersects",
+        "geometry_reference": "selected_location.location.geometry",
+        "containment": "not_evaluated",
+        "levels": [],
+        "reason": "Selected geometry is unknown; names and station labels are not geocoded.",
+        "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+      },
+      "elapsed_ms": 0
+    }
+  ]
+}

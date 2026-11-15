@@ -1,0 +1,17 @@
+{
+  "version": "jurisdiction-lookup-v1",
+  "publisher": "NYS Office of Information Technology Services Geospatial Data Services",
+  "dataset_url": "https://gis.ny.gov/civil-boundaries",
+  "service_root": "https://services6.arcgis.com/EbVsqZ18sv1kVJ3k/arcgis/rest/services/NYS_Civil_Boundaries/FeatureServer",
+  "coverage": "New York State administrative boundaries; planning and general use",
+  "publication_date": "2026-03",
+  "timeout_ms": 6000,
+  "max_response_bytes": 32768,
+  "max_matches": 32,
+  "layers": [
+    {"level":"county","layer_id":2,"fields":["OBJECTID","NAME","FIPS_CODE","DATEMOD"]},
+    {"level":"city_town","layer_id":6,"fields":["OBJECTID","NAME","MUNI_TYPE","COUNTY","FIPS_CODE","DATEMOD"]},
+    {"level":"village","layer_id":7,"fields":["OBJECTID","NAME","TOWN","COUNTY","FIPS_CODE","DATEMOD"]}
+  ],
+  "limitation": "Mapped administrative intersections apply to the supplied geometry, whose position and footprint are client snapshots. Intersections do not establish full containment, facility ownership, legal boundaries or emergency authority. NYS publishes these data for planning and general use; boundary changes may postdate the source."
+}

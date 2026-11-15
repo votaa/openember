@@ -4,6 +4,8 @@ Date: 2026-11-15. Original planning baseline. Implementation has started in the 
 
 Target checkout: `/private/tmp/openember-cloud-upload`, branch `codex/cloud-upload-coverage`, inspected at `7ab50d9` (`fix(copilot): include KB context in emergency assessments`). Recheck branch, changes and deployment identity before implementation. The separate local-first checkout is not the implementation target.
 
+Boundary follow-up: the [NYS administrative lookup increment](cloud-boundary-lookup-implementation-2026-11-15.md) implements the source decision and server-owned geometry lookup locally; hosted acceptance remains open.
+
 ## Intended outcome
 
 Fold this work into the preview branch's grounding improvements. Restore the hosted product's useful location-centered emergency-considerations behavior for **all locations that can be sent to chat**, while correcting unsupported claims. This is a recovery of expected product behavior, not a new airport-only feature or a replacement with generic regional summaries.

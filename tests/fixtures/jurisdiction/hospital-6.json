@@ -1,0 +1,80 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "uniqueIdField": {
+    "name": "OBJECTID",
+    "isSystemMaintained": true
+  },
+  "globalIdFieldName": "",
+  "geometryType": "esriGeometryPolygon",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "NAME",
+      "type": "esriFieldTypeString",
+      "alias": "NAME",
+      "sqlType": "sqlTypeOther",
+      "length": 40,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "MUNI_TYPE",
+      "type": "esriFieldTypeString",
+      "alias": "MUNI_TYPE",
+      "sqlType": "sqlTypeOther",
+      "length": 4,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "COUNTY",
+      "type": "esriFieldTypeString",
+      "alias": "COUNTY",
+      "sqlType": "sqlTypeOther",
+      "length": 50,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "FIPS_CODE",
+      "type": "esriFieldTypeString",
+      "alias": "FIPS_CODE",
+      "sqlType": "sqlTypeOther",
+      "length": 10,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DATEMOD",
+      "type": "esriFieldTypeDate",
+      "alias": "DATEMOD",
+      "sqlType": "sqlTypeOther",
+      "length": 8,
+      "domain": null,
+      "defaultValue": null
+    }
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 630,
+        "NAME": "North Hempstead",
+        "MUNI_TYPE": "town",
+        "COUNTY": "Nassau",
+        "FIPS_CODE": "3605953000",
+        "DATEMOD": 1633651200000
+      }
+    }
+  ]
+}

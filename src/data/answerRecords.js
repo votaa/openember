@@ -37,7 +37,13 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
  }
  if(scope.selected_location) {
   const selected=scope.selected_location
-  if(selected.status==='selected')add('Facts',`Selected map location: ${escape(selected.location.display_name)} (source snapshot: ${escape(selected.location.source_name)}). Local jurisdiction and facility footprint are unresolved.`, 'selected_location','location')
+  if(selected.status==='selected') {
+   const local=selected.local_jurisdiction
+   add('Facts',`Selected map location: ${escape(selected.location.display_name)} (source snapshot: ${escape(selected.location.source_name)}). ${local.names.length?'Facility footprint remains unverified.':'Local jurisdiction and facility footprint are unresolved.'}`, 'selected_location','location')
+   if(local.names.length)add('Facts',`Supplied map geometry intersects these NYS administrative boundaries: ${local.names.map(escape).join('; ')}. Source: NYS Civil Boundaries (${escape(local.source)}). Full containment, facility ownership and emergency authority are not established.`, 'jurisdiction_lookup','jurisdiction')
+   const incomplete=(local.levels||[]).filter(l=>l.status==='unavailable'||l.level!=='village'&&l.status==='no_match')
+   if(incomplete.length)add('Gaps',`Administrative boundary lookup remains incomplete for: ${incomplete.map(l=>escape(l.level+' ('+(l.reason||'no intersection returned')+')')).join('; ')}. No jurisdiction is inferred for those levels.`, 'jurisdiction_lookup','gap')
+  }
   else add('Gaps','The selected location does not match this question. Confirm the intended place before using site evidence.','selected_location','gap')
  }
  for(const row of kbAnswerRecords(context,question,scope,files))add(row.section,row.text,row.source,row.kind)

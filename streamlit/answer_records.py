@@ -38,7 +38,15 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
         if not any(r['section']==section and r['text']==text for r in records):records.append(dict(id='a'+str(len(records)),section=section,text=text,source=source,kind=kind,required=required))
     if scope.get('selected_location'):
         selected=scope['selected_location']
-        if selected['status']=='selected':add('Facts',f"Selected map location: {escape(selected['location']['display_name'])} (source snapshot: {escape(selected['location']['source_name'])}). Local jurisdiction and facility footprint are unresolved.",'selected_location','location')
+        if selected['status']=='selected':
+            local=selected['local_jurisdiction']
+            limitation='Facility footprint remains unverified.' if local['names'] else 'Local jurisdiction and facility footprint are unresolved.'
+            add('Facts',f"Selected map location: {escape(selected['location']['display_name'])} (source snapshot: {escape(selected['location']['source_name'])}). {limitation}",'selected_location','location')
+            if local['names']:add('Facts',f"Supplied map geometry intersects these NYS administrative boundaries: {'; '.join(escape(name) for name in local['names'])}. Source: NYS Civil Boundaries ({escape(local['source'])}). Full containment, facility ownership and emergency authority are not established.",'jurisdiction_lookup','jurisdiction')
+            incomplete=[l for l in local.get('levels',[]) if l['status']=='unavailable' or l['level']!='village' and l['status']=='no_match']
+            if incomplete:
+                labels='; '.join(escape(l['level']+' ('+l.get('reason','no intersection returned')+')') for l in incomplete)
+                add('Gaps',f"Administrative boundary lookup remains incomplete for: {labels}. No jurisdiction is inferred for those levels.",'jurisdiction_lookup','gap')
         else:add('Gaps','The selected location does not match this question. Confirm the intended place before using site evidence.','selected_location','gap')
     def relevant(field):
         if field=='assignment_status':return bool(re.search('assignment status|vacant|unassigned|assigned',question,re.I))

@@ -1,0 +1,30 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "uniqueIdField": {
+    "name": "OBJECTID",
+    "isSystemMaintained": true
+  },
+  "globalIdFieldName": "",
+  "geometryProperties": {
+    "shapeAreaFieldName": "Shape__Area",
+    "shapeLengthFieldName": "Shape__Length",
+    "units": "esriMeters"
+  },
+  "geometryType": "esriGeometryPolygon",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 48,
+        "NAME": "Babylon",
+        "MUNI_TYPE": "town",
+        "COUNTY": "Suffolk",
+        "FIPS_CODE": "3610304000",
+        "DATEMOD": null
+      }
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import {lookupJurisdiction} from './jurisdictionLookup.js'
 import {validateSelectedLocation} from './selectedLocation.js'
 import {selectCoops} from './coopsEvidence.js'
 import {buildOperationalEvidence,operationalInstruction} from './operationalEvidence.js'
@@ -10,7 +11,7 @@ import {COPILOT_RULES} from './copilotPrompt.js'
 import {UploadError,validateCloudMessages} from './cloudUploads.js'
 
 // Runs inside the Edge proxy. No request value controls time zone, center or providers.
-export function scopedCloudMessages(body,receivedAt) {
+export function scopedCloudMessages(body,receivedAt,localJurisdiction) {
   const input=body.scope_input
   if(input!==undefined&&(!input||input.version!==SCOPE_VERSION||!Array.isArray(input.weather)||input.weather.length>32))throw new UploadError('Invalid request scope metadata. Refresh the app and retry.','scope_invalid',400)
   let selectedLocation
@@ -39,7 +40,7 @@ export function scopedCloudMessages(body,receivedAt) {
   }
   const user=body.messages.filter(m=>m.role==='user').at(-1)
   if(!user||body.messages[0].role!=='system')throw new UploadError('A system context and user question are required.','scope_invalid',400)
-  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy,selection,selectedLocation})
+  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy,selection,selectedLocation,localJurisdiction})
   // All requests use the bounded route: absence of trigger keywords is not proof of non-operational intent.
   const messages=body.messages.map(m=>({...m}))
   const cleanContext=stripWeatherContext(messages[0].content,body.uploads||[])
@@ -50,4 +51,14 @@ export function scopedCloudMessages(body,receivedAt) {
   messages[0].content=renderRequestScope(scope,weather)+'\n'+evidenceSummary(scope,weather,body.uploads||[])+'\nCO-OPS WINDOW EVIDENCE:\n'+JSON.stringify(scope.coops)+'\n'+cleanContext+'\n\nAUTHORITATIVE GROUNDING RULES: '+COPILOT_RULES+operationalInstruction(evidence)
   validateCloudMessages(messages)
   return {messages,scope,evidence}
+}
+
+// Validate the complete request before any boundary-service egress. This argument
+// is server-produced; scope_input cannot supply administrative matches.
+export async function scopedCloudMessagesWithJurisdiction(body,receivedAt,options) {
+  const initial=scopedCloudMessages(body,receivedAt)
+  const selected=initial.scope.selected_location
+  if(!selected||selected.status!=='selected')return initial
+  const local=await lookupJurisdiction(selected.location,body.messages.filter(m=>m.role==='user').at(-1).content,options)
+  return scopedCloudMessages(body,receivedAt,local)
 }

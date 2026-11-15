@@ -1,6 +1,6 @@
 import {deterministicObservationAnswer} from '../src/data/answerRecords.js'
 import {renderOperationalAnswer} from '../src/data/operationalEvidence.js'
-import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
+import {scopedCloudMessagesWithJurisdiction} from '../src/data/cloudRequestScope.js'
 import { UPLOAD_LIMITS, UploadError, validateCloudMessages, validateUploads, uploadedDocumentContext } from '../src/data/cloudUploads.js'
 
 /**
@@ -49,7 +49,7 @@ export default async function handler(req) {
       const documents = uploadedDocumentContext(body.uploads)
       if (documents && !body.messages[0].content.includes(documents)) throw new UploadError("The attached documents are not present in full in this request. Refresh the app and upload them again.", "upload_incomplete", 400)
     }
-    scoped = scopedCloudMessages(body, receivedAt)
+    scoped = await scopedCloudMessagesWithJurisdiction(body, receivedAt)
   } catch (error) {
     const known = error instanceof UploadError
     return new Response(JSON.stringify({ error: known ? error.message : "Invalid JSON", code: known ? error.code : "request_invalid" }), {

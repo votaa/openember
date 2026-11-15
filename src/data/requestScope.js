@@ -257,7 +257,7 @@ export function scopeSegments(scope) {
 
 export function resolveRequestScope(input) {
   let scope=resolveScope(input)
-  const location=locationScope(input.selectedLocation,input.question,input.jurisdiction.name)
+  const location=locationScope(input.selectedLocation,input.question,input.jurisdiction.name,input.localJurisdiction)
   const selectedStation=location?.status==='selected'?location.location.station_id:null
   const candidate=selectedStation || input.selection?.station_id
   const selectedId=configuration.nws.obs_stations.some(s=>s.id===candidate)?candidate:null

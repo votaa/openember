@@ -5,6 +5,7 @@ async page => {
  const selected=previous.map.request.scope_input.selected_location
  if(selected.station_id!=='KFRG'||selected.geometry.type!=='Point')throw Error('Station location contract missing')
  const retained=previous.metadata[1].selected_location
+ if(retained.local_jurisdiction.names.join('; ')!=='County: Suffolk; Town: Babylon')throw Error('Station jurisdiction lookup missing')
  if(JSON.stringify(retained.location)!==JSON.stringify(selected))throw Error('Retained station location differs from request')
  await page.locator('.leaflet-marker-icon').filter({hasText:'🏥'}).first().click()
  await page.getByRole('button',{name:'Send to Chat',exact:true}).click()
@@ -14,7 +15,7 @@ async page => {
  const location=hospital.scope_input.selected_location
  if(location.source_id!=='hospitals'||location.geometry.type!=='Point'||location.station_id!==null||hospital.scope_input.selection)throw Error('Hospital identity contaminated by station selection')
  const answer=await page.locator('.assistant-markdown').last().innerText()
- if(!answer.includes(location.display_name)||!answer.includes('Local jurisdiction and facility footprint are unresolved'))throw Error('Hospital identity or uncertainty missing')
+ if(!answer.includes(location.display_name)||!answer.includes('Facility footprint remains unverified')||!answer.includes('County: Nassau; Town: North Hempstead'))throw Error('Hospital identity or uncertainty missing')
  const input=page.getByRole('textbox',{name:'Incident type + location… e.g'})
  await input.fill('What are the most recent observations for KFRG?')
  await page.getByRole('button',{name:'▶ SEND',exact:true}).click()
@@ -30,7 +31,7 @@ async page => {
  if(!(await raw.locator('pre').innerText()).includes('SELECTED MAP LOCATION'))throw Error('Location source snapshot missing from history')
  await raw.locator('summary').click()
  const stats=await(await page.request.get('http://127.0.0.1:5182/_fixture/stats')).json()
- const result={station:selected,hospital:location,hospitalAnswer:answer,retainedScopes:metadata,checks:{stationMapToChat:true,hospitalMapToChat:true,noTypedCarryover:true,rawCollapsed:true,historyPreserved:true},providerCalls:stats.calls,cloudCalls:0,provenance:'Fixed-clock local recording provider; transport and rendering only. Hosted acceptance remains open.'}
+ const result={station:selected,hospital:location,hospitalAnswer:answer,retainedScopes:metadata,checks:{stationMapToChat:true,hospitalMapToChat:true,noTypedCarryover:true,rawCollapsed:true,historyPreserved:true},providerCalls:stats.calls,boundaryCalls:stats.boundaryCalls,cloudCalls:0,provenance:'Fixed-clock local recording provider; transport and rendering only. Hosted acceptance remains open.'}
  await page.evaluate(value=>window.selectedLocationResults=value,result)
  await page.screenshot({path:'output/playwright/selected-location-batch1.png',fullPage:true})
  return result

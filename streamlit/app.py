@@ -56,6 +56,7 @@ from weather_context import summarize_weather
 from answer_presentation import answer_markdown
 from coops_evidence import coops_snapshots, select_coops
 from evidence_summary import evidence_summary, strip_weather_context
+from jurisdiction_lookup import lookup_jurisdiction
 from selected_location import selected_location_from_feature
 from request_scope import resolve_request_scope, render_request_scope, weather_snapshots, needs_scope_refresh, instant as scope_instant
 from esri_presentation import (
@@ -2515,7 +2516,8 @@ with tab_chat:
                 age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
                 if not (-300000 <= age <= 3600000): source['state'] = 'stale'
             coops = coops_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results)
-            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files,selection=dict(kind='nws_observation',station_id=selected_observation['url'].split('/stations/')[1].split('/')[0]) if selected_observation else None,selected_location=selected_location)
+            local_jurisdiction=lookup_jurisdiction(selected_location,prompt) if selected_location else None
+            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files,selection=dict(kind='nws_observation',station_id=selected_observation['url'].split('/stations/')[1].split('/')[0]) if selected_observation else None,selected_location=selected_location,local_jurisdiction=local_jurisdiction)
             if selected_location:st.session_state.messages[assistant_index-1]["selected_location"]=selected_location
             st.session_state.messages[assistant_index]["scope"] = request_scope
             ctx  = build_context(

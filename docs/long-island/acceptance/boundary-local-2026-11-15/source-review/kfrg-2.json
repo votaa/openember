@@ -1,0 +1,198 @@
+{
+  "objectIdFieldName": "OBJECTID",
+  "uniqueIdField": {
+    "name": "OBJECTID",
+    "isSystemMaintained": true
+  },
+  "globalIdFieldName": "",
+  "geometryProperties": {
+    "shapeAreaFieldName": "Shape__Area",
+    "shapeLengthFieldName": "Shape__Length",
+    "units": "esriMeters"
+  },
+  "geometryType": "esriGeometryPolygon",
+  "spatialReference": {
+    "wkid": 102100,
+    "latestWkid": 3857
+  },
+  "fields": [
+    {
+      "name": "OBJECTID",
+      "type": "esriFieldTypeOID",
+      "alias": "OBJECTID",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "NAME",
+      "type": "esriFieldTypeString",
+      "alias": "NAME",
+      "sqlType": "sqlTypeOther",
+      "length": 40,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "ABBREV",
+      "type": "esriFieldTypeString",
+      "alias": "ABBREV",
+      "sqlType": "sqlTypeOther",
+      "length": 4,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "GNIS_ID",
+      "type": "esriFieldTypeString",
+      "alias": "GNIS_ID",
+      "sqlType": "sqlTypeOther",
+      "length": 9,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "FIPS_CODE",
+      "type": "esriFieldTypeString",
+      "alias": "FIPS_CODE",
+      "sqlType": "sqlTypeOther",
+      "length": 5,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "SWIS",
+      "type": "esriFieldTypeString",
+      "alias": "SWIS",
+      "sqlType": "sqlTypeOther",
+      "length": 6,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "NYSP_ZONE",
+      "type": "esriFieldTypeString",
+      "alias": "NYSP_ZONE",
+      "sqlType": "sqlTypeOther",
+      "length": 11,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP1990",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP1990",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2000",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2000",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2010",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2010",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "POP2020",
+      "type": "esriFieldTypeInteger",
+      "alias": "POP2020",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DOS_LL",
+      "type": "esriFieldTypeString",
+      "alias": "DOS_LL",
+      "sqlType": "sqlTypeOther",
+      "length": 7,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DOSLL_DATE",
+      "type": "esriFieldTypeDate",
+      "alias": "DOSLL_DATE",
+      "sqlType": "sqlTypeOther",
+      "length": 8,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "NYC",
+      "type": "esriFieldTypeString",
+      "alias": "NYC",
+      "sqlType": "sqlTypeOther",
+      "length": 1,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "CALC_SQ_MI",
+      "type": "esriFieldTypeDouble",
+      "alias": "CALC_SQ_MI",
+      "sqlType": "sqlTypeOther",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "DATEMOD",
+      "type": "esriFieldTypeDate",
+      "alias": "DATEMOD",
+      "sqlType": "sqlTypeOther",
+      "length": 8,
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Shape__Area",
+      "type": "esriFieldTypeDouble",
+      "alias": "Shape__Area",
+      "sqlType": "sqlTypeDouble",
+      "domain": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Shape__Length",
+      "type": "esriFieldTypeDouble",
+      "alias": "Shape__Length",
+      "sqlType": "sqlTypeDouble",
+      "domain": null,
+      "defaultValue": null
+    }
+  ],
+  "features": [
+    {
+      "attributes": {
+        "OBJECTID": 52,
+        "NAME": "Suffolk",
+        "ABBREV": "SUFF",
+        "GNIS_ID": "974149",
+        "FIPS_CODE": "36103",
+        "SWIS": "470000",
+        "NYSP_ZONE": "Long Island",
+        "POP1990": 1321864,
+        "POP2000": 1419369,
+        "POP2010": 1493350,
+        "POP2020": 1525920,
+        "DOS_LL": null,
+        "DOSLL_DATE": null,
+        "NYC": "N",
+        "CALC_SQ_MI": 2372.1815047623877,
+        "DATEMOD": null,
+        "Shape__Area": 10777192140.308594,
+        "Shape__Length": 509529.54692991823
+      }
+    }
+  ]
+}

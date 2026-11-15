@@ -287,9 +287,9 @@ def scope_segments(scope):
     return [dict(evidence=evidence,**interval(a,b,scope['timezone'])) for evidence,a,b in [('observations',start,min(end,now)),('hourly_and_grid',max(start,now),min(end,cutoff)),('point_periods_and_grid',max(start,cutoff),end)] if a<b]
 
 
-def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise,selection=None,selected_location=None):
+def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise,selection=None,selected_location=None,local_jurisdiction=None):
     scope=_resolve_scope(question,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
-    location=location_scope(selected_location,question,jurisdiction['name'])
+    location=location_scope(selected_location,question,jurisdiction['name'],local_jurisdiction)
     if location and location['status']=='selected' and location['location']['station_id']:selection=dict(kind='nws_observation',station_id=location['location']['station_id'])
     selected=selection.get('station_id') if selection and selection.get('kind')=='nws_observation' and any(s['id']==selection.get('station_id') for s in CONFIG['nws']['obs_stations']) else None
     if selected and scope['status']=='unspecified':
