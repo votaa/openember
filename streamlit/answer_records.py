@@ -12,10 +12,10 @@ def number(n):
     value=math.floor(n*100+0.5)/100
     return str(int(value)) if value.is_integer() else str(value)
 UNITS={'wmoUnit:degC':'°C','wmoUnit:degF':'°F','wmoUnit:km_h-1':'km/h','wmoUnit:m_s-1':'m/s','wmoUnit:percent':'%','wmoUnit:Pa':'Pa','wmoUnit:m':'m','wmoUnit:mm':'mm','wmoUnit:degree_(angle)':'degrees'}
-LABELS=dict(temperature='temperature',windSpeed='wind',windGust='gusts',relativeHumidity='humidity',barometricPressure='pressure',visibility='visibility',precipitationLastHour='last-hour precipitation',probabilityOfPrecipitation='precipitation probability',quantitativePrecipitation='precipitation interval amounts',snowfallAmount='snowfall interval amounts',iceAccumulation='ice interval amounts')
+LABELS=dict(temperature='temperature',windSpeed='wind',windGust='gusts',windDirection='wind direction',relativeHumidity='humidity',barometricPressure='pressure',visibility='visibility',precipitationLastHour='last-hour precipitation',probabilityOfPrecipitation='precipitation probability',quantitativePrecipitation='precipitation interval amounts',snowfallAmount='snowfall interval amounts',iceAccumulation='ice interval amounts')
 def query_topics(question=''):
     q=question.lower()
-    patterns=dict(weather=r'weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility',water=r'tide|water|flood|surge|coastal|gauge',assets=r'cones?|inventory|deploy|equipment',command=r'commander|command|assignment',radio=r'radio|channel|communications',procedures=r'procedure|\bsop\b|protocol|mandatory|authorized|evacuat',thresholds=r'threshold|trigger|action limit',impacts=r'impacts?|assess|risks?|threat|effects?|likelihood',facility=r'facility|site',documents=r'\bplan\b|document|upload',contacts=r'contacts?|phone|telephone',evacuation=r'evacuat',heat=r'heat|hot|cooling',humidity=r'humidity',visibility=r'visibility')
+    patterns=dict(weather=r'weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility',water=r'tide|water|flood|surge|coastal|gauge',assets=r'cones?|inventory|deploy|equipment',command=r'commander|command|assignment',radio=r'radio|channel|communications',procedures=r'procedure|\bsop\b|protocol|mandatory|authorized|evacuat',thresholds=r'threshold|trigger|action limit',impacts=r'impacts?|assess|risks?|threat|effects?|likelihood|considerations?',facility=r'facility|site',documents=r'\bplan\b|document|upload',contacts=r'contacts?|phone|telephone',evacuation=r'evacuat',heat=r'heat|hot|cooling',humidity=r'humidity',visibility=r'visibility')
     return {k:bool(re.search(v,q)) for k,v in patterns.items()}
 FIELD_TOPIC=dict(commander='command',assignment_status='command',inventory='assets',deployment='assets',cone_specifications='assets',cone_ballast='assets',cone_placement='assets',radio_channel='radio',facility_id='facility',facility_coordinates='facility',radio_authority='radio',command_succession='command')
 def document_value(row):
@@ -85,8 +85,8 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
                 note='Interval amounts are not an accumulated window total.' if field in ('quantitativePrecipitation','snowfallAmount') else ''
                 add('Facts',f"{LABELS.get(field,field)} in supplied grid intervals: {value}; coverage {data['coverage']}. {note} Source: {escape(s['url'])}.",s['id'],'forecast')
             obs=s.get('observation')
-            if obs and obs['fields']:
-                wanted=['relativeHumidity'] if t['humidity'] and not re.search('weather|conditions',question,re.I) else ['visibility'] if t['visibility'] and not re.search('weather|conditions',question,re.I) else ['temperature','windSpeed','windGust']
+            if obs and any(type(d.get('value')) in (int,float) and math.isfinite(d['value']) for d in obs['fields'].values()):
+                wanted=['relativeHumidity'] if t['humidity'] and not re.search('weather|conditions',question,re.I) else ['visibility'] if t['visibility'] and not re.search('weather|conditions',question,re.I) else ['temperature','windSpeed','windGust','windDirection']
                 values=[]
                 for k in wanted:
                     if k not in obs['fields']:continue
@@ -95,7 +95,14 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
                 m=re.search(r'/stations/([^/]+)',s['url']);station=m[1] if m else obs['station']
                 add('Facts',f"{escape(station)} ({escape(s.get('station_role') or 'station reference')}) at {escape(obs['timestamp'])}: {'; '.join(values)}. Source: {escape(s['url'])}.",s['id'],'observation')
     if t['weather'] and scope.get('method')=='current_observation':add('Gaps','Readings are measured at the named station, not automatically at a facility.' if scope.get('observation_selection',{}).get('mode')=='named_station' else f"Regional overview: {len({s.get('station_id') for s in scoped_weather(weather or [],scope) if s.get('observation') and s['observation']['fields']})} of {len(scope.get('observation_selection',{}).get('stations',[]))} configured station records selected. Readings do not establish conditions at an unspecified facility.",'application','gap')
-    if t['weather'] and not any(r['kind'] in ('forecast','observation') for r in records):add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.','application','gap')
+    if t['weather'] and not any(r['kind'] in ('forecast','observation') for r in records):
+        if scope.get('method')=='current_observation':
+            for station in scope['observation_selection']['stations']:
+                selected=next((s for s in scoped_weather(weather or [],scope) if s['url']==f'https://api.weather.gov/stations/{station}/observations/latest'),None)
+                reason='no observation payload was supplied' if not selected else 'the observation or source snapshot is stale' if selected['state']=='stale' else ('station retrieval failed' if selected.get('failure_type')=='retrieval_failed' else 'the observation payload is missing a valid timestamp or fields') if selected['state']=='unavailable' else 'observation coordinates are missing or invalid' if selected['coverage']=='observation location unknown' else 'observation station identity does not match the requested station' if selected['coverage']=='observation station identity mismatch' else 'no usable measured values were supplied'
+                add('Gaps',f'{station}: {reason}. No other station was substituted.')
+        else:add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.')
+    if t['weather'] and t['impacts'] and scope.get('method')=='current_observation' and re.search(r'airport|\bKFRG\b',question,re.I):add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
     if t['water']:
         for s in select_coops(coops or [],scope,question):
             if s['state']=='outside_requested_geography':continue
@@ -142,3 +149,12 @@ def render_answer_records(raw,evidence,scope,complete=True):
         rows=[r for r in chosen if r['section']==section]
         if rows:lines+=['## '+section,'']+['- '+r['text'] for r in rows]+['']
     return dict(answer='\n'.join(lines).strip(),disposition=disposition)
+
+
+def deterministic_observation_answer(evidence,scope):
+    topics=evidence['topics']
+    if scope.get('method')!='current_observation' or not topics['weather'] or any(v and k not in ('weather','impacts','humidity','visibility') for k,v in topics.items()):return None
+    if not any(r['kind']=='observation' for r in evidence['records']):return None
+    result=render_answer_records(json.dumps(dict(version=ANSWER_VERSION,records=[])),evidence,scope)
+    result['disposition']='deterministic_observation'
+    return result

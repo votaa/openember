@@ -3,6 +3,15 @@
 
 def summarize_weather(data):
     p = data.get("properties", {}) if isinstance(data, dict) else {}
+    if isinstance(p.get('timestamp'),str):
+        fields=('temperature','windSpeed','windGust','windDirection','relativeHumidity','visibility')
+        lines=[f"Observed: {p['timestamp']}",f"Station: {p.get('station') or 'unknown'}",f"Conditions: {p.get('textDescription') or 'unknown'}"]
+        for key in fields:
+            row=p.get(key)
+            if row:
+                value=row.get('value')
+                lines.append(f"{key}: {value if value is not None else 'unavailable'} ({row.get('unitCode') or 'unknown units'}; quality {row.get('qualityControl') or 'unknown'})")
+        return '\n'.join(lines)
     if "periods" in p:
         periods = p["periods"]
         limit = 14 if any(row.get("name") for row in periods) else 48
@@ -17,7 +26,7 @@ def summarize_weather(data):
                 f"precipitation probability {probability if probability is not None else 'unknown'}%"
             )
         return "\n".join(lines)
-    if "quantitativePrecipitation" in p or "windSpeed" in p:
+    if any(isinstance((p.get(k) or {}).get('values'),list) for k in ('quantitativePrecipitation','windSpeed')):
         lines = [f"Updated: {p.get('updateTime') or 'unknown'}"]
         for key in ("quantitativePrecipitation", "probabilityOfPrecipitation", "windSpeed", "windGust"):
             if key not in p:

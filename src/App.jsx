@@ -654,6 +654,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
           if (!d) return null
           const p = d.properties
           return {...s,
+            observation:{id:`nws_obs_${s.id.toLowerCase()}`,url:`https://api.weather.gov/stations/${s.id}/observations/latest`,geography:CFG.name,area:s.name,fetched_at:new Date().toISOString(),state:'available',data:d},
             speedMph: p.windSpeed?.value!=null ? Math.round(p.windSpeed.value*0.621371) : null,
             gustMph:  p.windGust?.value!=null  ? Math.round(p.windGust.value*0.621371)  : null,
             dirDeg:   p.windDirection?.value   ?? null,
@@ -678,6 +679,7 @@ function MapPanel({ activeLayers, showRadar, showWind, liveReadings={}, onFeatur
             title:`${o.id} — ${o.name}`,
             description:`Wind: ${o.speedMph}mph from ${o.dirDeg}°${o.gustMph?` (gusts ${o.gustMph}mph)`:""}${o.desc ? ` · ${o.desc}` : ""}`,
             sourceName:"NWS wind observation",
+            observation:o.observation, observedAt:o.observation.data.properties.timestamp, fetchedAt:o.observation.fetched_at, attribution:o.observation.url,
             layerLabel:"Wind Observations",
             geometryType:"Point",
             color,
@@ -1046,7 +1048,7 @@ export default function App() {
     setFetching(false)
   }
 
-  const sendQuery = useCallback(async (override) => {
+  const sendQuery = useCallback(async (override, selectedObservation = null) => {
     const q = (override||input).trim()
     if (!q||streaming||uploadBusyRef.current) return
     setInput("") ; setShowQuick(false) ; setRightTab("chat")
@@ -1078,10 +1080,10 @@ export default function App() {
         + mapLayerContext(loadedEvidence)
         + (currentNoaa.length ? "--- NOAA DATA ---\n"+currentNoaa.map(i=>i.content).join("\n\n")+"\n\n" : "")
         + (esriItems.length ? "--- ESRI CATALOG METADATA ONLY (not feature records) ---\n"+esriItems.map(i=>i.content).join("\n\n")+"\n" : "")
-      sourceMaterial = ctx
+      sourceMaterial = ctx + (selectedObservation?'\nSELECTED MAP OBSERVATION (client snapshot):\n'+JSON.stringify(selectedObservation):'')
       const msgs = [...messages, userMsg].map(m=>({role:m.role,content:m.content}))
       for await (const token of streamOllama(
-        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT),coops:coopsSnapshots([...Object.values(noaaCacheRef.current),...apiResults])}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata,sourceMaterial}]) },
+        msgs, ctx, abortRef.current.signal, runtimeKey, CFG_RT.name, files, {version:SCOPE_VERSION,browser_requested_at:requestedAt,weather:[...weatherSnapshots([...Object.values(noaaCacheRef.current),...apiResults],CFG_RT).filter(s=>s.id!==selectedObservation?.id),...(selectedObservation?[selectedObservation]:[])],...(selectedObservation?{selection:{kind:'nws_observation',station_id:selectedObservation.url.match(/\/stations\/([^/]+)/)?.[1]}}:{}),coops:coopsSnapshots([...Object.values(noaaCacheRef.current),...apiResults])}, metadata => { requestMetadata = metadata; setMessages(p=>[...p.slice(0,-1),{...p.at(-1),scope:metadata,sourceMaterial}]) },
       )) {
         full += token
         setMessages(p=>[...p.slice(0,-1),{role:"assistant",content:full+"▋",scope:requestMetadata,sourceMaterial}])
@@ -1191,7 +1193,7 @@ export default function App() {
 
         {/* Map panel */}
         <div style={{width:`${mapWidth}%`,flexShrink:0,borderRight:"1px solid #111820",position:"relative"}}>
-          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature))}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
+          <MapPanel key={mapLayersVersion} activeLayers={activeMapLayers} showRadar={showRadar} showWind={showWind} liveReadings={liveReadings} onSendFeatureToChat={feature=>{setRightTab("chat");sendQuery(mapFeatureChatPrompt(feature),feature.observation)}} mapLayers={ML_RT} mapWidth={mapWidth} regionalRecords={regionalMapRecords} activeRegionalLayers={activeRegionalMapLayers} regionalLayerMetadata={esriMapMetadata} />
           {/* Resize handle */}
           <div onPointerDown={e=>{
             e.preventDefault()

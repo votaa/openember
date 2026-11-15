@@ -527,10 +527,12 @@ def fetch_wind_obs():
             r = requests.get(f"https://api.weather.gov/stations/{s['id']}/observations/latest",
                              timeout=6, headers={"User-Agent": "EMBER/1.0"})
             if not r.ok: continue
-            p = r.json()["properties"]
+            d = r.json()
+            p = d["properties"]
             def _mph(kmh): return round(kmh * 0.621371, 0) if kmh is not None else None
             def _in(mm):  return round(mm * 0.0393701, 2) if mm is not None else None
             results.append({**s,
+                "observation": dict(id="nws_obs_"+s["id"].lower(),url=f"https://api.weather.gov/stations/{s['id']}/observations/latest",geography=CFG.name,area=s["name"],fetched_at=_dt.datetime.now(_dt.timezone.utc).isoformat(),state="available",data=d),
                 "speed_mph": _mph(p.get("windSpeed",           {}).get("value")),
                 "gust_mph":  _mph(p.get("windGust",            {}).get("value")),
                 "dir_deg":   p.get("windDirection", {}).get("value"),
@@ -936,6 +938,12 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
         request_scope=resolve_request_scope(messages[-1]['content'],clock,jurisdiction,weather or [],files or [])
     context = strip_weather_context(context, files)
     evidence=build_operational_evidence(request_scope,files,weather,coops,context,messages[-1]['content'])
+    from answer_records import deterministic_observation_answer
+    direct=deterministic_observation_answer(evidence,request_scope)
+    if direct:
+        request_scope['enforcement']=dict(version=evidence['version'],route='observation_summary',status=direct['disposition'],provider_called=False)
+        yield direct['answer']
+        return
     request_scope['enforcement']=dict(version=evidence['version'],route=evidence['route'],status='awaiting_provider_envelope')
     request_scope['coops']=select_coops(coops or [],request_scope,messages[-1]['content'])
     scope_context = render_request_scope(request_scope, weather or []) + evidence_summary(request_scope, weather or [], files)
@@ -1858,6 +1866,8 @@ if selected_map_feature:
             # feature again. Remounting st_folium here can emit a late component
             # event and interrupt the chat stream that starts on the next run.
             st.session_state.selected_map_feature = None
+            station=next((o for o in st.session_state.get('wind_obs',[]) if selected_map_feature.get('source_name')=='Wind Observations' and selected_title.startswith(o['id']+' — ')),None)
+            st.session_state.pending_observation=station.get('observation') if station else None
             st.session_state.pending_query = prompt
             st.rerun()
     with close_col:
@@ -2475,6 +2485,7 @@ with tab_chat:
                 st.session_state.pending_query = q
 
     def run_query(prompt):
+        selected_observation=st.session_state.pop('pending_observation',None)
         requested_at = _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
         assistant_index = begin_chat_response(st.session_state.messages, prompt)
         with st.chat_message("user"):
@@ -2490,11 +2501,13 @@ with tab_chat:
                     st.session_state.noaa_results[ep['id']] = result
                     if result['success']: upsert_noaa_kb(ep, result)
             weather = weather_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results, jurisdiction)
+            if selected_observation:
+                weather=[s for s in weather if s['id']!=selected_observation['id']]+[selected_observation]
             for source in weather:
                 age = scope_instant(requested_at) - scope_instant(source['fetched_at'])
                 if not (-300000 <= age <= 3600000): source['state'] = 'stale'
             coops = coops_snapshots(list(st.session_state.noaa_results.values()) + st.session_state.api_results)
-            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files)
+            request_scope = resolve_request_scope(prompt, requested_at, jurisdiction, weather, st.session_state.files,selection=dict(kind='nws_observation',station_id=selected_observation['url'].split('/stations/')[1].split('/')[0]) if selected_observation else None)
             st.session_state.messages[assistant_index]["scope"] = request_scope
             ctx  = build_context(
                 st.session_state.files, st.session_state.api_results,
@@ -2504,6 +2517,7 @@ with tab_chat:
                 st.session_state.phase4_results,
             )
             ctx += map_layer_context(current_map_evidence(prompt))
+            if selected_observation:ctx+='\nSELECTED MAP OBSERVATION (client snapshot):\n'+json.dumps(selected_observation)
             st.session_state.messages[assistant_index]["sourceMaterial"] = ctx
         except UploadError as exc:
             finish_chat_response(st.session_state.messages, assistant_index, f"⚠ {exc}")

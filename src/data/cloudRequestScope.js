@@ -2,6 +2,7 @@ import {selectCoops} from './coopsEvidence.js'
 import {buildOperationalEvidence,operationalInstruction} from './operationalEvidence.js'
 import {evidenceSummary,stripWeatherContext} from './evidenceSummary.js'
 import policy from '../../shared/request-scope-policy.json' assert {type:'json'}
+import configuration from '../../config/jurisdiction.generated.json' assert {type:'json'}
 import {JURISDICTION} from '../config/jurisdiction.js'
 import {resolveRequestScope,renderRequestScope,SCOPE_VERSION,instant} from './requestScope.js'
 import {COPILOT_RULES} from './copilotPrompt.js'
@@ -11,6 +12,11 @@ import {UploadError,validateCloudMessages} from './cloudUploads.js'
 export function scopedCloudMessages(body,receivedAt) {
   const input=body.scope_input
   if(input!==undefined&&(!input||input.version!==SCOPE_VERSION||!Array.isArray(input.weather)||input.weather.length>32))throw new UploadError('Invalid request scope metadata. Refresh the app and retry.','scope_invalid',400)
+  const selection=input?.selection
+  if(selection!==undefined) {
+    // Validate against the server-owned station catalog below, never an arbitrary client place.
+    if(!selection||selection.kind!=='nws_observation'||!configuration.nws.obs_stations.some(s=>s.id===selection.station_id)||Object.keys(selection).some(k=>!['kind','station_id'].includes(k)))throw new UploadError('Invalid selected observation station. Refresh the map.','selection_invalid',400)
+  }
   const coops=structuredClone(input?.coops||[])
   if(!Array.isArray(coops)||coops.length>32||coops.some(s=>!s||typeof s.id!=='string'||typeof s.url!=='string'||!s.data||typeof s.data!=='object'))throw new UploadError('Invalid CO-OPS snapshots. Refresh the evidence.','scope_invalid',400)
   const weather=structuredClone(input?.weather||[])
@@ -19,12 +25,13 @@ export function scopedCloudMessages(body,receivedAt) {
     // Data URLs are never fetched here; retain client-snapshot provenance.
     source.state=source.state==='unavailable'?'unavailable':!Number.isFinite(instant(source.fetched_at))||Date.parse(receivedAt)-instant(source.fetched_at)>3600000||instant(source.fetched_at)>Date.parse(receivedAt)+300000?'stale':'available'
     const props=source.data.properties
+    if(/\/stations\/[^/]+\/observations\/latest$/.test(source.url)&&typeof props.timestamp!=='string'){source.state='unavailable';source.failure_type=source.failure_type==='retrieval_failed'?'retrieval_failed':'invalid_payload';continue}
     if(props.periods!==undefined&&(!Array.isArray(props.periods)||props.periods.some(p=>!p||typeof p!=='object')))throw new UploadError('Invalid forecast periods.','scope_invalid',400)
     for(const k of policy.weather.grid_fields)if(typeof props.timestamp!=='string'&&props[k]!==undefined&&(!props[k]||!Array.isArray(props[k].values)||props[k].values.some(v=>!v||typeof v!=='object')))throw new UploadError('Invalid grid intervals.','scope_invalid',400)
   }
   const user=body.messages.filter(m=>m.role==='user').at(-1)
   if(!user||body.messages[0].role!=='system')throw new UploadError('A system context and user question are required.','scope_invalid',400)
-  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy})
+  const scope=resolveRequestScope({question:user.content,requestedAt:receivedAt,jurisdiction:JURISDICTION,weather,files:body.uploads||[],policy,selection})
   // All requests use the bounded route: absence of trigger keywords is not proof of non-operational intent.
   const messages=body.messages.map(m=>({...m}))
   const cleanContext=stripWeatherContext(messages[0].content,body.uploads||[])

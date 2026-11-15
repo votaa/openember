@@ -200,3 +200,6 @@ Verified READY preview for exact commit `c68d4c67be9c0ed86985d495b7b1bc4250bdf64
 
 
 November 15 focused correction: [local implementation and verification](cloud-focused-response-correction-2026-11-15.md) addresses reference-text bypass, current-measured selection and concise query relevance. Local checks pass; hosted acceptance remains **FAIL**, with all grounding issues open pending repeated new-preview review.
+
+
+KFRG smoke-test disposition: both the typed “most recent” question and the app-generated map-to-chat question failed in the user’s hosted review. A [local corrective candidate](cloud-kfrg-correction-2026-11-15.md) now passes the local gate and actual marker-to-chat browser regression. This does not close hosted acceptance or GROUND-001/002/003.

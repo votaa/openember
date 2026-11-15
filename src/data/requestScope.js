@@ -95,7 +95,7 @@ function resolveScope({question,requestedAt,jurisdiction,weather=[],files=[],pol
   const rolling=/\bnext (\d+) (hours?|days?)\b/.exec(text)
   if(rolling&&Number(rolling[1])>0&&Number(rolling[1])<=366)return resolved(now,now+Number(rolling[1])*(rolling[2].startsWith('day')?86400000:3600000),'rolling')
   if(/\bnext (?:24|twenty-four) hours\b/.test(text))return resolved(now,now+86400000,'rolling')
-  if(/\b(?:current(?:ly)?\s+(?:(?:measured|observed|local|station)\s+)*(?:weather|conditions|temperature|winds?|observations?|readings?)|latest\s+(?:weather\s+)?(?:observations?|readings?)|weather right now)\b/.test(text)&&! /\b(?:today|tomorrow|tonight)\b/.test(text)){scope.assumptions.push('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.');return resolved(now-3600000,now,'current_observation')}
+  if(/\b(?:current(?:ly)?\s+(?:(?:measured|observed|local|station)\s+)*(?:weather|conditions|temperature|winds?|observations?|readings?)|(?:latest|most\s+recent)\s+(?:weather\s+)?(?:observations?|readings?)|weather right now)\b/.test(text)&&! /\b(?:today|tomorrow|tonight)\b/.test(text)){scope.assumptions.push('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.');return resolved(now-3600000,now,'current_observation')}
   if(/\b(?:seven|7)[ -]day forecast\b/.test(text))return resolved(now,now+7*86400000,'rolling')
   const today=day(now,zone)
   let date=today,explicitDate=false
@@ -189,7 +189,7 @@ function durationEnd(value) {
 }
 export function scopedWeather(weather,scope) {
   return weather.map(source=>{
-    const out={id:source.id,url:source.url,geography:source.geography,area:source.area||null,coordinates:source.data?.geometry?.coordinates||null,updated_at:source.data?.properties?.updated||source.data?.properties?.generatedAt||source.data?.properties?.updateTime||null,fetched_at:source.fetched_at||null,state:source.state||'available',coverage:'unknown',periods:[],series:{}}
+    const out={id:source.id,url:source.url,geography:source.geography,area:source.area||null,coordinates:source.data?.geometry?.coordinates||null,updated_at:source.data?.properties?.updated||source.data?.properties?.generatedAt||source.data?.properties?.updateTime||null,fetched_at:source.fetched_at||null,state:source.state||'available',...(source.failure_type?{failure_type:source.failure_type}:{}),coverage:'unknown',periods:[],series:{}}
     if(scope.status!=='resolved'||source.geography!==scope.jurisdiction||['stale','unavailable'].includes(out.state))return out
     const requestedStart=instant(scope.interval.start_utc),requestedEnd=instant(scope.interval.end_utc),now=instant(scope.request_utc),cutoff=now+weatherPolicy.weather.near_term_seconds*1000
     const p0=source.data?.properties||{},hourly=/\/forecast\/hourly(?:[?#]|$)/i.test(source.url)||p0.periods?.every(r=>!r.name)
@@ -197,13 +197,14 @@ export function scopedWeather(weather,scope) {
     if(observation) {
       const stationId=source.url.match(/\/stations\/([^/]+)/)?.[1],station=configuration.nws.obs_stations.find(s=>s.id===stationId)
       out.station_id=stationId||null;out.station_role=station?.role||'configured station'
-      if(!station){out.coverage='observation station is not configured';return out}
+      if(!station||source.url!==`https://api.weather.gov/stations/${stationId}/observations/latest`){out.coverage='observation station is not configured';return out}
       if(scope.observation_selection?.mode==='named_station'&&!scope.observation_selection.stations.includes(stationId)){out.state='outside_requested_geography';return out}
       const at=instant(p0.timestamp),age=now-at,coords=source.data?.geometry?.coordinates
       out.observation={timestamp:p0.timestamp,station:p0.station||source.url,coordinates:coords||null,fields:{}}
       out.coverage='observation only; no continuous historical coverage'
       if(!Number.isFinite(age)||age<0||age>weatherPolicy.weather.observation_max_age_seconds*1000){out.state='stale';return out}
       if(!Array.isArray(coords)||coords.length!==2||coords.some(v=>typeof v!=='number'||!Number.isFinite(v))||Math.abs(coords[0])>180||Math.abs(coords[1])>90){out.coverage='observation location unknown';return out}
+      if(p0.station&&p0.station!==stationId&&p0.station!==`https://api.weather.gov/stations/${stationId}`){out.coverage='observation station identity mismatch';return out}
       if(requestedStart>=now||!(scope.method==='current_observation'||at>=requestedStart&&at<requestedEnd))return out
       for(const key of weatherPolicy.weather.observation_fields)if(p0[key])out.observation.fields[key]=p0[key]
       return out
@@ -237,10 +238,12 @@ export function renderRequestScope(scope,weather=[]) {
 export function weatherSnapshots(results,jurisdiction) {
   const keys=['periods',...GRID_FIELDS]
   results=results.map(r=>r?.ep?r:{...r,ep:r?.url?{id:r.id||r.url,url:r.url,name:r.name||r.url}:null})
-  return results.filter(r=>r?.ep&&r.data?.properties&&(typeof r.data.properties.timestamp==='string'||keys.some(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values)))).map(r=>({
-    id:r.ep.id,url:r.ep.url,geography:jurisdiction.name,area:r.ep.name,fetched_at:r.fetchedAt||r.fetched_at||null,state:(r.ok??r.success)?'available':'unavailable',
-    data:typeof r.data.properties.timestamp==='string'?structuredClone(r.data):{...(r.data.geometry?{geometry:structuredClone(r.data.geometry)}:{}),properties:Object.fromEntries(['updated','generatedAt','updateTime',...keys.filter(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values))].filter(k=>r.data.properties[k]!==undefined).map(k=>[k,r.data.properties[k]]))},
-  }))
+  return results.filter(r=>r?.ep&&(/\/stations\/[^/]+\/observations\/latest$/.test(r.ep.url)||r.data?.properties&&(typeof r.data.properties.timestamp==='string'||keys.some(k=>Array.isArray(k==='periods'?r.data.properties[k]:r.data.properties[k]?.values))))).map(r=>{
+    const observation=/\/stations\/[^/]+\/observations\/latest$/.test(r.ep.url),p=r.data?.properties||{},ok=r.ok??r.success
+    return {id:r.ep.id,url:r.ep.url,geography:jurisdiction.name,area:r.ep.name,fetched_at:r.fetchedAt||r.fetched_at||null,state:ok&&(!observation||typeof p.timestamp==='string')?'available':'unavailable',
+      ...(observation&&(!ok||typeof p.timestamp!=='string')?{failure_type:!ok?'retrieval_failed':'invalid_payload'}:{}),
+      data:observation?structuredClone(r.data?.properties?r.data:{properties:{}}):{...(r.data.geometry?{geometry:structuredClone(r.data.geometry)}:{}),properties:Object.fromEntries(['updated','generatedAt','updateTime',...keys.filter(k=>Array.isArray(k==='periods'?p[k]:p[k]?.values))].filter(k=>p[k]!==undefined).map(k=>[k,p[k]]))}}
+  })
 }
 
 // Segment metadata describes eligibility; source intervals remain unchanged.
@@ -252,10 +255,15 @@ export function scopeSegments(scope) {
 }
 
 export function resolveRequestScope(input) {
-  const scope=resolveScope(input)
+  let scope=resolveScope(input)
+  const selected=input.selection?.kind==='nws_observation'&&configuration.nws.obs_stations.some(s=>s.id===input.selection.station_id)?input.selection.station_id:null
+  if(selected&&scope.status==='unspecified') {
+    scope=resolveScope({...input,question:'Current observations at '+selected})
+    scope.assumptions.push('Current observation scope comes from the selected map station.')
+  }
   if(scope.method==='current_observation') {
     const q=input.question.toLowerCase()
-    const named=configuration.nws.obs_stations.filter(s=>[s.id,s.id.slice(1),s.name].some(name=>new RegExp('\\b'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(q))).map(s=>s.id)
+    const named=selected?[selected]:configuration.nws.obs_stations.filter(s=>[s.id,s.id.slice(1),s.name].some(name=>new RegExp('\\b'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(q))).map(s=>s.id)
     scope.observation_selection={mode:named.length?'named_station':'regional_overview',stations:named.length?named:configuration.nws.obs_stations.map(s=>s.id),facility_applicability:'not established by station readings'}
   }
   scope.segments=scopeSegments(scope)

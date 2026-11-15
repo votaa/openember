@@ -1,3 +1,4 @@
+import {deterministicObservationAnswer} from '../src/data/answerRecords.js'
 import {renderOperationalAnswer} from '../src/data/operationalEvidence.js'
 import {scopedCloudMessages} from '../src/data/cloudRequestScope.js'
 import { UPLOAD_LIMITS, UploadError, validateCloudMessages, validateUploads, uploadedDocumentContext } from '../src/data/cloudUploads.js'
@@ -55,6 +56,13 @@ export default async function handler(req) {
       status: known ? error.status : 400,
       headers: { ...corsHeaders(), "Content-Type": "application/json" },
     })
+  }
+
+  const direct=deterministicObservationAnswer(scoped.evidence,scoped.scope)
+  if(direct) {
+    scoped.scope.enforcement={...scoped.scope.enforcement,route:'observation_summary',status:direct.disposition,provider_called:false}
+    const frames=[{ember_scope:scoped.scope},{message:{role:'assistant',content:direct.answer},ember_enforcement:{status:direct.disposition,provider_called:false},done:true}]
+    return new Response(frames.map(f=>JSON.stringify(f)+'\n').join(''),{headers:{...corsHeaders(),'Content-Type':'text/event-stream','Cache-Control':'no-cache'}})
   }
 
   const ollamaHost  = process.env.OLLAMA_HOST  || "https://ollama.com"
@@ -115,8 +123,8 @@ export default async function handler(req) {
           }
           if(!terminal&&buffer.trim()) {const frame=JSON.parse(buffer);content+=frame.message?.content||'';if(frame.done)terminal=frame}
           const rendered=renderOperationalAnswer(content,scoped.evidence,scoped.scope,!!terminal&&(!terminal.done_reason||terminal.done_reason==='stop'))
-          scoped.scope.enforcement.status=rendered.disposition
-          emit(controller,{ember_scope:scoped.scope,ember_enforcement:{status:rendered.disposition,buffered:true,buffer_ms:Date.now()-started},message:{role:'assistant',content:rendered.answer}})
+          scoped.scope.enforcement={...scoped.scope.enforcement,status:rendered.disposition,completion_reason:terminal?.done_reason||(!terminal?'missing_terminal':'stop'),output_characters:content.length,provider_called:true}
+          emit(controller,{ember_scope:scoped.scope,ember_enforcement:{status:rendered.disposition,buffered:true,buffer_ms:Date.now()-started,completion_reason:terminal?.done_reason||(!terminal?'missing_terminal':'stop'),output_characters:content.length,provider_called:true},message:{role:'assistant',content:rendered.answer}})
           if(auditing)emit(controller,{ember_audit_response:{model:terminal?.model||ollamaModel,content,done_reason:terminal?.done_reason||'interrupted'}})
           const metrics=Object.fromEntries(['model','total_duration','load_duration','prompt_eval_count','prompt_eval_duration','eval_count','eval_duration','done_reason'].filter(k=>terminal?.[k]!==undefined).map(k=>[k,terminal[k]]))
           emit(controller,{...metrics,done:true});finished=true;controller.close()

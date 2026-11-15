@@ -52,7 +52,8 @@
       "relativeHumidity",
       "barometricPressure",
       "visibility",
-      "precipitationLastHour"
+      "precipitationLastHour",
+      "windDirection"
     ]
   }
 }

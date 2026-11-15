@@ -7,10 +7,10 @@ export const OUTPUT_SCHEMA={type:'object',additionalProperties:false,required:['
 export const escape=text=>String(text??'unknown').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/([\\`*_[\]#!|])/g,'\\$1').replace(/[\r\n]/g,' ')
 const number=n=>String(Math.round(n*100)/100)
 const units={'wmoUnit:degC':'°C','wmoUnit:degF':'°F','wmoUnit:km_h-1':'km/h','wmoUnit:m_s-1':'m/s','wmoUnit:percent':'%','wmoUnit:Pa':'Pa','wmoUnit:m':'m','wmoUnit:mm':'mm','wmoUnit:degree_(angle)':'degrees'}
-const labels={temperature:'temperature',windSpeed:'wind',windGust:'gusts',relativeHumidity:'humidity',barometricPressure:'pressure',visibility:'visibility',precipitationLastHour:'last-hour precipitation',probabilityOfPrecipitation:'precipitation probability',quantitativePrecipitation:'precipitation interval amounts',snowfallAmount:'snowfall interval amounts',iceAccumulation:'ice interval amounts'}
+const labels={temperature:'temperature',windSpeed:'wind',windGust:'gusts',windDirection:'wind direction',relativeHumidity:'humidity',barometricPressure:'pressure',visibility:'visibility',precipitationLastHour:'last-hour precipitation',probabilityOfPrecipitation:'precipitation probability',quantitativePrecipitation:'precipitation interval amounts',snowfallAmount:'snowfall interval amounts',iceAccumulation:'ice interval amounts'}
 export function queryTopics(question='') {
  const q=question.toLowerCase(),has=re=>re.test(q)
- return {weather:has(/weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility/),water:has(/tide|water|flood|surge|coastal|gauge/),assets:has(/cones?|inventory|deploy|equipment/),command:has(/commander|command|assignment/),radio:has(/radio|channel|communications/),procedures:has(/procedure|\bsop\b|protocol|mandatory|authorized|evacuat/),thresholds:has(/threshold|trigger|action limit/),impacts:has(/impacts?|assess|risks?|threat|effects?|likelihood/),facility:has(/facility|site/),documents:has(/\bplan\b|document|upload/),contacts:has(/contacts?|phone|telephone/),evacuation:has(/evacuat/),heat:has(/heat|hot|cooling/),humidity:has(/humidity/),visibility:has(/visibility/)}
+ return {weather:has(/weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility/),water:has(/tide|water|flood|surge|coastal|gauge/),assets:has(/cones?|inventory|deploy|equipment/),command:has(/commander|command|assignment/),radio:has(/radio|channel|communications/),procedures:has(/procedure|\bsop\b|protocol|mandatory|authorized|evacuat/),thresholds:has(/threshold|trigger|action limit/),impacts:has(/impacts?|assess|risks?|threat|effects?|likelihood|considerations?/),facility:has(/facility|site/),documents:has(/\bplan\b|document|upload/),contacts:has(/contacts?|phone|telephone/),evacuation:has(/evacuat/),heat:has(/heat|hot|cooling/),humidity:has(/humidity/),visibility:has(/visibility/)}
 }
 const fieldTopic={commander:'command',assignment_status:'command',inventory:'assets',deployment:'assets',cone_specifications:'assets',cone_ballast:'assets',cone_placement:'assets',radio_channel:'radio',facility_id:'facility',facility_coordinates:'facility',radio_authority:'radio',command_succession:'command'}
 // Supported scalar/document grammars, not a classifier or verifier of arbitrary prose.
@@ -71,15 +71,23 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
    const data=s.series[field],ns=data.values.map(v=>v.value).filter(v=>typeof v==='number'&&Number.isFinite(v))
    add('Facts',`${labels[field]||field} in supplied grid intervals: ${ns.length?number(Math.min(...ns))+'–'+number(Math.max(...ns))+' '+escape(units[data.uom]||'unknown units'):'unknown'}; coverage ${data.coverage}. ${field==='quantitativePrecipitation'||field==='snowfallAmount'?'Interval amounts are not an accumulated window total.':''} Source: ${escape(s.url)}.`,s.id,'forecast')
   }
-  if(s.observation&&Object.keys(s.observation.fields).length) {
-   const obs=s.observation,wanted=t.humidity&&!/weather|conditions/i.test(question)?['relativeHumidity']:t.visibility&&!/weather|conditions/i.test(question)?['visibility']:['temperature','windSpeed','windGust']
+  if(s.observation&&Object.values(s.observation.fields).some(d=>typeof d?.value==='number'&&Number.isFinite(d.value))) {
+   const obs=s.observation,wanted=t.humidity&&!/weather|conditions/i.test(question)?['relativeHumidity']:t.visibility&&!/weather|conditions/i.test(question)?['visibility']:['temperature','windSpeed','windGust','windDirection']
    const values=wanted.filter(k=>obs.fields[k]).map(k=>{const d=obs.fields[k];return `${labels[k]} ${typeof d.value==='number'&&Number.isFinite(d.value)?number(d.value):'unknown'} ${escape(units[d.unitCode]||'unknown units')}${d.qualityControl&&d.qualityControl!=='V'?' (quality '+escape(d.qualityControl)+')':''}`})
    const station=s.url.match(/\/stations\/([^/]+)/)?.[1]||obs.station
    add('Facts',`${escape(station)} (${escape(s.station_role||'station reference')}) at ${escape(obs.timestamp)}: ${values.join('; ')}. Source: ${escape(s.url)}.`,s.id,'observation')
   }
  }
  if(t.weather&&scope.method==='current_observation')add('Gaps',scope.observation_selection?.mode==='named_station'?'Readings are measured at the named station, not automatically at a facility.':`Regional overview: ${new Set(scopedWeather(weather,scope).filter(s=>s.observation&&Object.keys(s.observation.fields).length).map(s=>s.station_id)).size} of ${scope.observation_selection?.stations.length||0} configured station records selected. Readings do not establish conditions at an unspecified facility.`,'application','gap')
- if(t.weather&&!records.some(r=>['forecast','observation'].includes(r.kind)))add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.','application','gap')
+ if(t.weather&&!records.some(r=>['forecast','observation'].includes(r.kind))) {
+  if(scope.method==='current_observation')for(const station of scope.observation_selection.stations) {
+   const selected=scopedWeather(weather,scope).find(s=>s.url===`https://api.weather.gov/stations/${station}/observations/latest`)
+   const reason=!selected?'no observation payload was supplied':selected.state==='stale'?'the observation or source snapshot is stale':selected.state==='unavailable'?(selected.failure_type==='retrieval_failed'?'station retrieval failed':'the observation payload is missing a valid timestamp or fields'):selected.coverage==='observation location unknown'?'observation coordinates are missing or invalid':selected.coverage==='observation station identity mismatch'?'observation station identity does not match the requested station':'no usable measured values were supplied'
+   add('Gaps',`${station}: ${reason}. No other station was substituted.`)
+  }
+  else add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.')
+ }
+ if(t.weather&&t.impacts&&scope.method==='current_observation'&&/airport|\bKFRG\b/i.test(question))add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
  if(t.water)for(const s of selectCoops(coops,scope,question)) {
   if(s.state==='outside_requested_geography')continue
   const events=s.product==='predictions'?s.events:s.events.slice(-1),background=events.length?[]:s.background
@@ -128,4 +136,13 @@ export function renderAnswerRecords(raw,evidence,scope,complete=true) {
   if(rows.length)lines.push('## '+section,'',...rows.map(r=>'- '+r.text),'')
  }
  return {answer:lines.join('\n').trim(),disposition}
+}
+
+// A narrow readout of already validated records needs no generative selection.
+export function deterministicObservationAnswer(evidence,scope) {
+ const t=evidence.topics
+ if(scope.method!=='current_observation'||!t.weather||Object.entries(t).some(([k,v])=>v&&!['weather','impacts','humidity','visibility'].includes(k)))return null
+ if(!evidence.records.some(r=>r.kind==='observation'))return null
+ const result=renderAnswerRecords(JSON.stringify({version:ANSWER_VERSION,records:[]}),evidence,scope)
+ return {...result,disposition:'deterministic_observation'}
 }

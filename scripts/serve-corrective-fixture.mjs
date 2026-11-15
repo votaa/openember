@@ -17,8 +17,12 @@ globalThis.fetch=async(url,options)=>{
 }
 createServer(async(req,res)=>{
  if(req.url?.startsWith('/_fixture/sources/')) {
-  const key=req.url.split('/').at(-1),allowed=['nws_forecast','nws_hourly','nws_grid','nws_obs_kjfk','nws_obs_kisp']
+  const key=req.url.split('/').at(-1),allowed=['nws_forecast','nws_hourly','nws_grid','nws_obs_kjfk','nws_obs_kisp','nws_obs_kfrg']
   if(!allowed.includes(key)){res.writeHead(404);res.end();return}
+  if(key==='nws_obs_kfrg') {
+   const source=JSON.parse(readFileSync(new URL('../tests/fixtures/observations/kfrg-2026-11-15.json',import.meta.url)));source.properties.timestamp='2026-11-15T14:30:00Z';source.properties.windSpeed.value=20.92;source.properties.windGust.value=28.96;source.properties.windDirection.value=300;
+   res.writeHead(200,{'access-control-allow-origin':'*','content-type':'application/json'});res.end(JSON.stringify(source));return
+  }
   const file=key==='nws_obs_kisp'?'nws_obs_kjfk':key
   const source=JSON.parse(readFileSync(new URL('../docs/long-island/acceptance/corrective-9862a66-2026-11-15-normalized/sources/'+file+'.raw.json',import.meta.url)))
   if(key==='nws_obs_kisp'){source.geometry.coordinates=[-73.1,40.8];source.properties.station='https://api.weather.gov/stations/KISP';source.properties.temperature.value=10}

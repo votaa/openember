@@ -114,7 +114,7 @@ def _resolve_scope(question,requested_at,jurisdiction,weather=None,files=None,po
     rolling=re.search(r'\bnext (\d+) (hours?|days?)\b',text)
     if rolling and 0<int(rolling[1])<=366:return resolved(now,now+int(rolling[1])*(86400000 if rolling[2].startswith('day') else 3600000),'rolling')
     if re.search(r'\bnext (?:24|twenty-four) hours\b',text):return resolved(now,now+86400000,'rolling')
-    if re.search(r'\b(?:current(?:ly)?\s+(?:(?:measured|observed|local|station)\s+)*(?:weather|conditions|temperature|winds?|observations?|readings?)|latest\s+(?:weather\s+)?(?:observations?|readings?)|weather right now)\b',text) and not re.search(r'\b(?:today|tomorrow|tonight)\b',text):
+    if re.search(r'\b(?:current(?:ly)?\s+(?:(?:measured|observed|local|station)\s+)*(?:weather|conditions|temperature|winds?|observations?|readings?)|(?:latest|most\s+recent)\s+(?:weather\s+)?(?:observations?|readings?)|weather right now)\b',text) and not re.search(r'\b(?:today|tomorrow|tonight)\b',text):
         scope['assumptions'].append('Current means the latest observation no older than one elapsed hour, not continuous historical coverage.')
         return resolved(now-3600000,now,'current_observation')
     if re.search(r'\b(?:seven|7)[ -]day forecast\b',text):return resolved(now,now+7*86400000,'rolling')
@@ -218,6 +218,7 @@ def scoped_weather(weather,scope):
     result=[]
     for source in weather:
         out=dict(id=source['id'],url=source['url'],geography=source['geography'],area=source.get('area'),coordinates=(source.get('data',{}).get('geometry') or {}).get('coordinates'),updated_at=source.get('data',{}).get('properties',{}).get('updated') or source.get('data',{}).get('properties',{}).get('generatedAt') or source.get('data',{}).get('properties',{}).get('updateTime'),fetched_at=source.get('fetched_at'),state=source.get('state') or 'available',coverage='unknown',periods=[],series={});result.append(out)
+        if source.get('failure_type'):out['failure_type']=source['failure_type']
         if scope['status']!='resolved' or source['geography']!=scope['jurisdiction'] or out['state'] in ('stale','unavailable'):continue
         requested_start,requested_end=instant(scope['interval']['start_utc']),instant(scope['interval']['end_utc']);now=instant(scope['request_utc']);cutoff=now+POLICY['weather']['near_term_seconds']*1000
         p0=source.get('data',{}).get('properties',{});hourly=bool(re.search(r'/forecast/hourly(?:[?#]|$)',source['url'],re.I)) or isinstance(p0.get('periods'),list) and all(not r.get('name') for r in p0['periods'])
@@ -225,13 +226,14 @@ def scoped_weather(weather,scope):
             match=re.search(r'/stations/([^/]+)',source['url']);station_id=match[1] if match else None
             station=next((s for s in CONFIG['nws']['obs_stations'] if s['id']==station_id),None)
             out['station_id']=station_id;out['station_role']=station.get('role','configured station') if station else 'configured station'
-            if not station:out['coverage']='observation station is not configured';continue
+            if not station or source['url']!=f'https://api.weather.gov/stations/{station_id}/observations/latest':out['coverage']='observation station is not configured';continue
             if scope.get('observation_selection',{}).get('mode')=='named_station' and station_id not in scope['observation_selection']['stations']:out['state']='outside_requested_geography';continue
             at=instant(p0['timestamp']);age=now-at;coords=(source.get('data',{}).get('geometry') or {}).get('coordinates')
             out['observation']=dict(timestamp=p0['timestamp'],station=p0.get('station') or source['url'],coordinates=coords,fields={})
             out['coverage']='observation only; no continuous historical coverage'
             if not math.isfinite(age) or age<0 or age>POLICY['weather']['observation_max_age_seconds']*1000:out['state']='stale';continue
             if not isinstance(coords,list) or len(coords)!=2 or any(type(v) not in (int,float) or not math.isfinite(v) for v in coords) or abs(coords[0])>180 or abs(coords[1])>90:out['coverage']='observation location unknown';continue
+            if p0.get('station') and p0['station'] not in (station_id,f'https://api.weather.gov/stations/{station_id}'):out['coverage']='observation station identity mismatch';continue
             if requested_start>=now or not (scope['method']=='current_observation' or requested_start<=at<requested_end):continue
             out['observation']['fields']={k:p0[k] for k in POLICY['weather']['observation_fields'] if p0.get(k)}
             continue
@@ -262,14 +264,18 @@ def weather_snapshots(results,jurisdiction):
     keys=('periods',*POLICY['weather']['grid_fields']);out=[]
     for r in results:
         if not r.get('ep') and r.get('url'):r=dict(r,ep=dict(id=r.get('id') or r['url'],url=r['url'],name=r.get('name') or r['url']))
-        if not r.get('ep') or not isinstance(r.get('data'),dict):continue
-        p=r['data'].get('properties',{})
-        if not isinstance(p,dict):continue
-        observation=isinstance(p.get('timestamp'),str)
+        if not r.get('ep'):continue
+        data=r.get('data') if isinstance(r.get('data'),dict) else {}
+        p=data.get('properties') or {}
+        if not isinstance(p,dict):p={}
+        observation=bool(re.search(r'/stations/[^/]+/observations/latest$',r['ep']['url']))
         fields={k:p[k] for k in keys if isinstance(p.get(k) if k=='periods' else (p.get(k) or {}).get('values'),list)}
-        if not observation and not fields:continue
+        if not observation and not isinstance(p.get('timestamp'),str) and not fields:continue
         fields.update({k:p[k] for k in ('updated','generatedAt','updateTime') if k in p})
-        out.append(dict(id=r['ep']['id'],url=r['ep']['url'],geography=jurisdiction['name'],area=r['ep']['name'],fetched_at=r.get('fetchedAt') or r.get('fetched_at'),state='available' if r.get('ok',r.get('success')) else 'unavailable',data=r['data'] if observation else dict(properties=fields,**({'geometry':r['data']['geometry']} if r['data'].get('geometry') else {}))))
+        ok=r.get('ok',r.get('success'))
+        row=dict(id=r['ep']['id'],url=r['ep']['url'],geography=jurisdiction['name'],area=r['ep']['name'],fetched_at=r.get('fetchedAt') or r.get('fetched_at'),state='available' if ok and (not observation or isinstance(p.get('timestamp'),str)) else 'unavailable',data=(data if isinstance(data.get('properties'),dict) else dict(properties={})) if observation else dict(properties=fields,**({'geometry':data['geometry']} if data.get('geometry') else {})))
+        if observation and (not ok or not isinstance(p.get('timestamp'),str)):row['failure_type']='retrieval_failed' if not ok else 'invalid_payload'
+        out.append(row)
     return out
 
 
@@ -280,10 +286,14 @@ def scope_segments(scope):
     return [dict(evidence=evidence,**interval(a,b,scope['timezone'])) for evidence,a,b in [('observations',start,min(end,now)),('hourly_and_grid',max(start,now),min(end,cutoff)),('point_periods_and_grid',max(start,cutoff),end)] if a<b]
 
 
-def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise):
+def resolve_request_scope(question,requested_at,jurisdiction,weather=None,files=None,policy=None,sunrise_fn=sunrise,selection=None):
     scope=_resolve_scope(question,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
+    selected=selection.get('station_id') if selection and selection.get('kind')=='nws_observation' and any(s['id']==selection.get('station_id') for s in CONFIG['nws']['obs_stations']) else None
+    if selected and scope['status']=='unspecified':
+        scope=_resolve_scope('Current observations at '+selected,requested_at,jurisdiction,weather,files,policy,sunrise_fn)
+        scope['assumptions'].append('Current observation scope comes from the selected map station.')
     if scope.get('method')=='current_observation':
-        named=[s['id'] for s in CONFIG['nws']['obs_stations'] if any(re.search(r'\b'+re.escape(name)+r'\b',question,re.I) for name in (s['id'],s['id'][1:],s['name']))]
+        named=[selected] if selected else [s['id'] for s in CONFIG['nws']['obs_stations'] if any(re.search(r'\b'+re.escape(name)+r'\b',question,re.I) for name in (s['id'],s['id'][1:],s['name']))]
         scope['observation_selection']=dict(mode='named_station' if named else 'regional_overview',stations=named or [s['id'] for s in CONFIG['nws']['obs_stations']],facility_applicability='not established by station readings')
     scope['segments']=scope_segments(scope)
     if scope['interval']:scope['historical']=scope['method']!='current_observation' and instant(scope['interval']['end_utc'])<=instant(scope['request_utc'])

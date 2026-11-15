@@ -11,6 +11,7 @@ export function normalizeMapFeature(feature = {}) {
     fetchedAt: feature.fetchedAt || feature.fetched_at || null,
     attribution: feature.attribution || null,
     color: feature.color || "#60a5fa",
+    ...(feature.observation ? {observation:structuredClone(feature.observation)} : {}),
   }
 }
 
