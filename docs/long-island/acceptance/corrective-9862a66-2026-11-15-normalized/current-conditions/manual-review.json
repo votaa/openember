@@ -1,0 +1,58 @@
+{
+  "reviewed_at": "2026-11-15T14:54:55+00:00",
+  "reviewer": "Codex whole-answer review against retained snapshots and actual provider payload",
+  "case": "current-conditions",
+  "overall": "FAIL",
+  "scope_and_values_failure": true,
+  "operational_reference_bypass": false,
+  "positive_evidence_preserved": false,
+  "integrity_is_not_grounding_certification": true,
+  "sections": [
+    {
+      "section": "Lead/scope",
+      "bytes": 185,
+      "sha256": "1b900edfb7458e791249348f06ef9b998df27bc18ff0532369306f17b20afd83",
+      "status": "FAIL",
+      "review": "FAIL: the ordinary phrase current measured conditions leaves status unspecified and both endpoints unresolved; no focused clarification is emitted."
+    },
+    {
+      "section": "Facts",
+      "bytes": 838,
+      "sha256": "a41fd8f6521642310f32222c8a5d2a63ec9354a9cc048335b779933ceed5c457",
+      "status": "FAIL",
+      "review": "FAIL: fresh JFK observations are present in the exact client and provider request evidence but are omitted from the answer because the request scope is unspecified. The retained 14:00Z JFK observation includes 8\u00b0C and 25.92 km/h wind; its age is below the one-hour policy. CO-OPS current background is shown, so withholding JFK is not an across-the-board data outage."
+    },
+    {
+      "section": "Possible impacts",
+      "bytes": 238,
+      "sha256": "990ea9132d0ed5a2bf7bb675ac7cb1701a6081024df15ffbb8e3711ea2d0d42d",
+      "status": "FAIL RELEVANCE",
+      "review": "FAIL relevance: a generic cone-impact paragraph is inserted into a current-measurement or named-station question. It remains conditional and avoids invented triggers, but does not answer the requested station/current evidence task."
+    },
+    {
+      "section": "Source references",
+      "bytes": 6004,
+      "sha256": "368ed0bdeb3e2c16465a8da27d8ce0ddcccbcc94fc0d595be862443338741357",
+      "status": "FAIL",
+      "review": "FAIL relevance/conciseness: selected complete source paragraphs and/or the empty KB title are emitted as answer text, repeating already supplied facts. Model selection varies across repeated runs; the underlying complete sources were preserved and every selected quote is an exact escaped source excerpt, which establishes provenance only. The entire roughly 5.5 KiB synthetic filler paragraph is copied into the answer, so preservation of full input has become an unbounded output dump."
+    },
+    {
+      "section": "Gaps",
+      "bytes": 1802,
+      "sha256": "79f4ca4522c0e16daccb7860ae2cb2605b8ac5bc5d9acea622601445ad18f741",
+      "status": "FAIL",
+      "review": "FAIL completeness: gaps do not identify that the question's current phrase failed resolution despite available JFK observations. The answer silently omits a supported part of the request."
+    },
+    {
+      "section": "Suggestions",
+      "bytes": 182,
+      "sha256": "e390e107bfca38ae7f09c9379a9eb8c6f0d4716cd371a7fdd32e022c081ac465",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Verification suggestions stay nonmandatory; no alert threshold, appointment, succession or universal radio-use command is invented here. They are generic rather than tailored to the supplied positive facts. Later qualifiers do not repair the raw-reference boundary failure."
+    }
+  ],
+  "closing_statement": "No blanket all-facts-verified closing statement; opening provenance disclaimer does not certify answer correctness.",
+  "tables": "No model-authored tables in this answer.",
+  "repeated_run_policy": "All predetermined attempts retained. No favorable-only retry or case replacement.",
+  "remaining_limits": "No live Streamlit generation or hosted browser-rendering/timing test; transport is the production React parser from Node against the hosted Edge proxy."
+}

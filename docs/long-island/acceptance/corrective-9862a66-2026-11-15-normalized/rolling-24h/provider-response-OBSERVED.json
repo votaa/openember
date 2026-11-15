@@ -1,0 +1,5 @@
+{
+  "model": "gpt-oss:120b-cloud",
+  "content": "{\n  \"version\": \"operational-answer-v1\",\n  \"references\": [\"r6\", \"r4\"]\n}",
+  "done_reason": "stop"
+}

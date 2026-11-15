@@ -1,0 +1,14 @@
+{
+  "status": "INVALID FRESH-WEATHER ACCEPTANCE INPUT",
+  "reason": "Capture harness used six-digit fetch timestamp fractions, outside the production request contract. Server marked sources stale. All attempts retained; no model-quality pass claimed.",
+  "completed": [
+    "missing-03",
+    "missing-02",
+    "supplied-01",
+    "supplied-03",
+    "supplied-02",
+    "missing-01"
+  ],
+  "interrupted_case": "conflicting-01",
+  "corrected_session": "docs/long-island/acceptance/corrective-9862a66-2026-11-15-normalized"
+}

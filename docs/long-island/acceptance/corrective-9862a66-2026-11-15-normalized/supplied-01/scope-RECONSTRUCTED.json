@@ -1,0 +1,352 @@
+{
+  "version": "request-scope-v1",
+  "request_utc": "2026-11-15T14:44:04Z",
+  "request_local": "2026-11-15T09:44:04-05:00",
+  "timezone": "America/New_York",
+  "jurisdiction": "Long Island",
+  "status": "resolved",
+  "method": "source_period",
+  "interval": {
+    "start_utc": "2026-11-15T23:00:00Z",
+    "end_utc": "2026-11-16T11:00:00Z",
+    "start_local": "2026-11-15T18:00:00-05:00",
+    "end_local": "2026-11-16T06:00:00-05:00"
+  },
+  "source_refs": [
+    {
+      "source": "nws_forecast",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+      "start": "2026-11-15T18:00:00-05:00",
+      "end": "2026-11-16T06:00:00-05:00",
+      "geography": "Long Island"
+    }
+  ],
+  "assumptions": [],
+  "clarification": null,
+  "coverage": [
+    {
+      "id": "nws_forecast",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+      "area": "7-Day Forecast — LI",
+      "coordinates": [
+        [
+          [
+            -73.1351,
+            40.7752
+          ],
+          [
+            -73.1305,
+            40.7968
+          ],
+          [
+            -73.1591,
+            40.8003
+          ],
+          [
+            -73.1637,
+            40.7787
+          ],
+          [
+            -73.1351,
+            40.7752
+          ]
+        ]
+      ],
+      "updated_at": "2026-11-15T14:39:49+00:00",
+      "fetched_at": "2026-11-15T14:39:49.661+00:00",
+      "selected_interval": null,
+      "observed_at": null,
+      "state": "available",
+      "coverage": "not eligible for this segment",
+      "fields": {}
+    },
+    {
+      "id": "nws_hourly",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+      "area": "Hourly Forecast",
+      "coordinates": [
+        [
+          [
+            -73.1351,
+            40.7752
+          ],
+          [
+            -73.1305,
+            40.7968
+          ],
+          [
+            -73.1591,
+            40.8003
+          ],
+          [
+            -73.1637,
+            40.7787
+          ],
+          [
+            -73.1351,
+            40.7752
+          ]
+        ]
+      ],
+      "updated_at": "2026-11-15T14:39:49+00:00",
+      "fetched_at": "2026-11-15T14:39:49.858+00:00",
+      "selected_interval": {
+        "start_utc": "2026-11-15T23:00:00Z",
+        "end_utc": "2026-11-16T11:00:00Z"
+      },
+      "observed_at": null,
+      "state": "available",
+      "coverage": "complete",
+      "fields": {}
+    },
+    {
+      "id": "nws_grid",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+      "area": "Wind & Precip Grid",
+      "coordinates": [
+        [
+          [
+            -73.1351,
+            40.7752
+          ],
+          [
+            -73.1305,
+            40.7968
+          ],
+          [
+            -73.1591,
+            40.8003
+          ],
+          [
+            -73.1637,
+            40.7787
+          ],
+          [
+            -73.1351,
+            40.7752
+          ]
+        ]
+      ],
+      "updated_at": "2026-11-15T06:55:12+00:00",
+      "fetched_at": "2026-11-15T14:39:49.848+00:00",
+      "selected_interval": {
+        "start_utc": "2026-11-15T23:00:00Z",
+        "end_utc": "2026-11-16T11:00:00Z"
+      },
+      "observed_at": null,
+      "state": "available",
+      "coverage": "field-specific; no full-window aggregate calculated",
+      "fields": {
+        "windSpeed": "complete",
+        "windGust": "complete",
+        "quantitativePrecipitation": "complete",
+        "probabilityOfPrecipitation": "complete",
+        "temperature": "complete",
+        "minTemperature": "partial",
+        "maxTemperature": "partial",
+        "relativeHumidity": "complete",
+        "skyCover": "complete",
+        "weather": "complete",
+        "snowfallAmount": "complete",
+        "iceAccumulation": "complete",
+        "windDirection": "complete"
+      }
+    },
+    {
+      "id": "nws_obs_kjfk",
+      "url": "https://api.weather.gov/stations/KJFK/observations/latest",
+      "area": "Observations — JFK Airport",
+      "coordinates": [
+        -73.78,
+        40.65
+      ],
+      "updated_at": null,
+      "fetched_at": "2026-11-15T14:39:49.543+00:00",
+      "selected_interval": null,
+      "observed_at": "2026-11-15T14:00:00+00:00",
+      "state": "available",
+      "coverage": "observation only; no continuous historical coverage",
+      "fields": {}
+    }
+  ],
+  "segments": [
+    {
+      "evidence": "hourly_and_grid",
+      "start_utc": "2026-11-15T23:00:00Z",
+      "end_utc": "2026-11-16T11:00:00Z",
+      "start_local": "2026-11-15T18:00:00-05:00",
+      "end_local": "2026-11-16T06:00:00-05:00"
+    }
+  ],
+  "historical": false,
+  "facility_linkages": [],
+  "enforcement": {
+    "version": "operational-answer-v1",
+    "route": "bounded_evidence_default",
+    "status": "awaiting_provider_envelope"
+  },
+  "coops": [
+    {
+      "id": "coops_battery",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+      "station_id": "8518750",
+      "station_name": "Battery Park (NYC surge ref)",
+      "coordinates": [
+        -74.0141,
+        40.7003
+      ],
+      "role": "reference",
+      "timezone": "America/New_York",
+      "product": "water_level",
+      "units": "english",
+      "datum": "MLLW",
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.593+00:00",
+      "state": "available",
+      "events": [],
+      "background": [],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    },
+    {
+      "id": "coops_kings",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+      "station_id": "8516945",
+      "station_name": "Kings Point (LI Sound)",
+      "coordinates": [
+        -73.7659,
+        40.8105
+      ],
+      "role": "primary",
+      "timezone": "America/New_York",
+      "product": "water_level",
+      "units": "english",
+      "datum": "MLLW",
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.720+00:00",
+      "state": "available",
+      "events": [],
+      "background": [
+        {
+          "time_utc": "2026-11-15T14:30:00Z",
+          "time_local": "2026-11-15T09:30:00-05:00",
+          "values": {
+            "height": 1.998
+          },
+          "quality": "p",
+          "type": null
+        }
+      ],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    },
+    {
+      "id": "coops_montauk",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+      "station_id": "8510560",
+      "station_name": "Montauk",
+      "coordinates": [
+        -71.9594,
+        41.0483
+      ],
+      "role": "primary",
+      "timezone": "America/New_York",
+      "product": "water_level",
+      "units": "english",
+      "datum": "MLLW",
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.896+00:00",
+      "state": "available",
+      "events": [],
+      "background": [],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    },
+    {
+      "id": "coops_sandy",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+      "station_id": "8531680",
+      "station_name": "Sandy Hook (outer-harbor ref)",
+      "coordinates": [
+        -74.0094,
+        40.4669
+      ],
+      "role": "reference",
+      "timezone": "America/New_York",
+      "product": "water_level",
+      "units": "english",
+      "datum": "MLLW",
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.896+00:00",
+      "state": "available",
+      "events": [],
+      "background": [
+        {
+          "time_utc": "2026-11-15T14:30:00Z",
+          "time_local": "2026-11-15T09:30:00-05:00",
+          "values": {
+            "height": 4.376
+          },
+          "quality": "p",
+          "type": null
+        }
+      ],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    },
+    {
+      "id": "coops_preds",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER",
+      "station_id": "8518750",
+      "station_name": "Battery Park (NYC surge ref)",
+      "coordinates": [
+        -74.0141,
+        40.7003
+      ],
+      "role": "reference",
+      "timezone": "America/New_York",
+      "product": "predictions",
+      "units": "english",
+      "datum": "MLLW",
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.913+00:00",
+      "state": "available",
+      "events": [
+        {
+          "time_utc": "2026-11-15T23:31:00Z",
+          "time_local": "2026-11-15T18:31:00-05:00",
+          "values": {
+            "height": 0.952
+          },
+          "quality": null,
+          "type": "L"
+        }
+      ],
+      "background": [],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    },
+    {
+      "id": "coops_wind",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER",
+      "station_id": "8518750",
+      "station_name": "Battery Park (NYC surge ref)",
+      "coordinates": [
+        -74.0141,
+        40.7003
+      ],
+      "role": "reference",
+      "timezone": "America/New_York",
+      "product": "wind",
+      "units": "english",
+      "datum": null,
+      "source_timezone": "gmt",
+      "fetched_at": "2026-11-15T14:39:49.940+00:00",
+      "state": "unavailable",
+      "events": [],
+      "background": [],
+      "facility_applicability": "unknown",
+      "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+    }
+  ]
+}

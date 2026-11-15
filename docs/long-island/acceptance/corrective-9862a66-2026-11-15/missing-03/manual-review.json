@@ -1,0 +1,14 @@
+{
+  "overall": "NOT SCORED AS FRESH-SOURCE ACCEPTANCE",
+  "reason": "Harness timestamp serialization made every snapshot stale under the application contract; answer sections correctly received no eligible fresh weather. This attempt is retained, not replaced or counted as a fresh-source pass.",
+  "observed_egress": true,
+  "reviewed_sections": [
+    "Lead/scope",
+    "Facts",
+    "Possible impacts",
+    "Source references",
+    "Gaps",
+    "Suggestions"
+  ],
+  "limitations": "Source extraction/reference output remains subject to the failures recorded in the corrected session; this input error is not attributed to model inference."
+}

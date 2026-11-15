@@ -1,0 +1,61 @@
+{
+  "reason": "Project exact retained fetch instants to production browser millisecond serialization; raw source bytes unchanged. This is not a refresh.",
+  "original_session": "docs/long-island/acceptance/corrective-9862a66-2026-11-15",
+  "changes": [
+    {
+      "id": "nws_forecast",
+      "original": "2026-11-15T14:39:49.661568+00:00",
+      "request_projection": "2026-11-15T14:39:49.661+00:00"
+    },
+    {
+      "id": "nws_hourly",
+      "original": "2026-11-15T14:39:49.858704+00:00",
+      "request_projection": "2026-11-15T14:39:49.858+00:00"
+    },
+    {
+      "id": "nws_grid",
+      "original": "2026-11-15T14:39:49.848652+00:00",
+      "request_projection": "2026-11-15T14:39:49.848+00:00"
+    },
+    {
+      "id": "nws_alerts",
+      "original": "2026-11-15T14:39:49.601065+00:00",
+      "request_projection": "2026-11-15T14:39:49.601+00:00"
+    },
+    {
+      "id": "nws_obs_kjfk",
+      "original": "2026-11-15T14:39:49.543125+00:00",
+      "request_projection": "2026-11-15T14:39:49.543+00:00"
+    },
+    {
+      "id": "coops_battery",
+      "original": "2026-11-15T14:39:49.593113+00:00",
+      "request_projection": "2026-11-15T14:39:49.593+00:00"
+    },
+    {
+      "id": "coops_kings",
+      "original": "2026-11-15T14:39:49.720335+00:00",
+      "request_projection": "2026-11-15T14:39:49.720+00:00"
+    },
+    {
+      "id": "coops_montauk",
+      "original": "2026-11-15T14:39:49.896404+00:00",
+      "request_projection": "2026-11-15T14:39:49.896+00:00"
+    },
+    {
+      "id": "coops_sandy",
+      "original": "2026-11-15T14:39:49.896277+00:00",
+      "request_projection": "2026-11-15T14:39:49.896+00:00"
+    },
+    {
+      "id": "coops_preds",
+      "original": "2026-11-15T14:39:49.913844+00:00",
+      "request_projection": "2026-11-15T14:39:49.913+00:00"
+    },
+    {
+      "id": "coops_wind",
+      "original": "2026-11-15T14:39:49.940193+00:00",
+      "request_projection": "2026-11-15T14:39:49.940+00:00"
+    }
+  ]
+}

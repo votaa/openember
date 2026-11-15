@@ -1,0 +1,183 @@
+[
+  {
+    "id": "nws_forecast",
+    "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+    "started_at": "2026-11-15T14:39:49.368193+00:00",
+    "fetched_at": "2026-11-15T14:39:49.661568+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Content-Type": "application/geo+json",
+      "Last-Modified": "Sun, 15 Nov 2026 11:00:00 GMT",
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT"
+    },
+    "file": "nws_forecast.raw.json",
+    "sha256": "d47cc1cf4da7adc75d2acddf495ff609f379eb84f64c90101d208619cda83e09",
+    "bytes": 12762
+  },
+  {
+    "id": "nws_hourly",
+    "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+    "started_at": "2026-11-15T14:39:49.368774+00:00",
+    "fetched_at": "2026-11-15T14:39:49.858704+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Content-Type": "application/geo+json",
+      "Last-Modified": "Sun, 15 Nov 2026 14:00:00 GMT",
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT"
+    },
+    "file": "nws_hourly.raw.json",
+    "sha256": "2791be13c6fb73560308d2f0805b7c50aef54e2d0c66c1f2a73d7b25c5693ae8",
+    "bytes": 161857
+  },
+  {
+    "id": "nws_grid",
+    "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+    "started_at": "2026-11-15T14:39:49.369031+00:00",
+    "fetched_at": "2026-11-15T14:39:49.848652+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Content-Type": "application/geo+json",
+      "Last-Modified": "Sun, 15 Nov 2026 06:55:12 GMT",
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT"
+    },
+    "file": "nws_grid.raw.json",
+    "sha256": "44b08e975b07ce2ed57f115cf5428056e3e533cdaee62562749ad44f187bc53b",
+    "bytes": 192899
+  },
+  {
+    "id": "nws_alerts",
+    "url": "https://api.weather.gov/alerts/active?area=NY",
+    "started_at": "2026-11-15T14:39:49.369194+00:00",
+    "fetched_at": "2026-11-15T14:39:49.601065+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Content-Type": "application/geo+json",
+      "ETag": "W/\"7b9b84f0d0ba76818282b28efd13720b\"",
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT"
+    },
+    "file": "nws_alerts.raw.json",
+    "sha256": "f3d6926fe0d7b82a7e5d183567dccd53638bfeb8265fd02d34e9f9b90f962ce9",
+    "bytes": 221
+  },
+  {
+    "id": "nws_obs_kjfk",
+    "url": "https://api.weather.gov/stations/KJFK/observations/latest",
+    "started_at": "2026-11-15T14:39:49.369367+00:00",
+    "fetched_at": "2026-11-15T14:39:49.543125+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Content-Type": "application/geo+json",
+      "Last-Modified": "Sun, 15 Nov 2026 14:00:00 GMT",
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT"
+    },
+    "file": "nws_obs_kjfk.raw.json",
+    "sha256": "4618773c75e044d169e2517fd1a81002c0e29d52440b2d9a4ada07df0daaf6a5",
+    "bytes": 4330
+  },
+  {
+    "id": "coops_battery",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.369526+00:00",
+    "fetched_at": "2026-11-15T14:39:49.593113+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_battery.raw.json",
+    "sha256": "8fd35a8fce797c7df5c18f7bbd40465ba4943abde33ae8710fb4613b48982361",
+    "bytes": 53902
+  },
+  {
+    "id": "coops_kings",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.543184+00:00",
+    "fetched_at": "2026-11-15T14:39:49.720335+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_kings.raw.json",
+    "sha256": "04863920411eb5a5841b26b6b76bc9ed7a01ae3b6ef986ea7a52a0caf6fca826",
+    "bytes": 169
+  },
+  {
+    "id": "coops_montauk",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.593185+00:00",
+    "fetched_at": "2026-11-15T14:39:49.896404+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_montauk.raw.json",
+    "sha256": "cfad74189ab31a28ae8077e43884dd22f19e03a12d4e297d69b569dcacb8c67a",
+    "bytes": 165
+  },
+  {
+    "id": "coops_sandy",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.601092+00:00",
+    "fetched_at": "2026-11-15T14:39:49.896277+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_sandy.raw.json",
+    "sha256": "f2557d5cf67cb932868bf78f16d3b3e0dcd56d773eeeb1330a44e79c498944ee",
+    "bytes": 168
+  },
+  {
+    "id": "coops_preds",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.661640+00:00",
+    "fetched_at": "2026-11-15T14:39:49.913844+00:00",
+    "status": 200,
+    "ok": true,
+    "error": null,
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_preds.raw.json",
+    "sha256": "a1e5a588b31d7fd7e002b93a761b188f6c73f7a8ebd479125835742bd116da14",
+    "bytes": 223
+  },
+  {
+    "id": "coops_wind",
+    "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER",
+    "started_at": "2026-11-15T14:39:49.720400+00:00",
+    "fetched_at": "2026-11-15T14:39:49.940193+00:00",
+    "status": 200,
+    "ok": false,
+    "error": "{'message': 'No data was found. This product may not be offered at this station at the requested time.'}",
+    "headers": {
+      "Date": "Sun, 15 Nov 2026 14:39:49 GMT",
+      "Content-Type": "application/json;charset=UTF-8"
+    },
+    "file": "coops_wind.raw.json",
+    "sha256": "34cef0453fa36926502f3b7582a3d21f19511049994492b17047b3cacc56ee22",
+    "bytes": 116
+  }
+]

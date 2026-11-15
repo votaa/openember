@@ -64,3 +64,7 @@ The hosted runner now includes normalized CO-OPS snapshots, requires `PREVIEW_AU
 After user review/commit/push and a verified preview of that exact commit, configure the preview-scoped audit token and capture a complete fresh source session, including CO-OPS. Run the documented missing, supplied and conflicting scenarios at least three times each, plus the time/geography/staleness cases. Retain every attempt, raw source snapshot, actual request, complete answer, model, application metadata and timing. Review every section; rejected output is containment evidence, not a passing complete answer. Broad-answer utility, concise presentation, plain-prose source extraction limits and cloud envelope compliance remain material acceptance risks.
 
 Recommended commit: `fix(copilot): constrain operational claims and scope coastal evidence`.
+
+## Subsequent hosted result — November 15
+
+The user committed/pushed this implementation as `9862a66`. The [repeated hosted acceptance report](cloud-grounding-9862a66-acceptance-2026-11-15.md) records **FAIL** across the complete release criteria. All fifteen corrected attempts returned valid envelopes and retained actual provider egress, but source-reference copying bypassed the operational gate, current-measured phrasing lost fresh JFK evidence, and output relevance/length regressed. The earlier local results above remain historical local verification; they do not establish a hosted pass. GROUND-001/002/003 remain open.

@@ -1,0 +1,123 @@
+[
+  {
+    "ep": {
+      "id": "nws_forecast",
+      "name": "7-Day Forecast — LI",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.661+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "nws_hourly",
+      "name": "Hourly Forecast",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.858+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "nws_grid",
+      "name": "Wind & Precip Grid",
+      "url": "https://api.weather.gov/gridpoints/OKX/62,50"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.848+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "nws_alerts",
+      "name": "Active Alerts — NY",
+      "url": "https://api.weather.gov/alerts/active?area=NY"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.601+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "nws_obs_kjfk",
+      "name": "Observations — JFK Airport",
+      "url": "https://api.weather.gov/stations/KJFK/observations/latest"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.543+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_battery",
+      "name": "Water Level — The Battery",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.593+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_kings",
+      "name": "Water Level — Kings Point",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.720+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_montauk",
+      "name": "Water Level — Montauk",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.896+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_sandy",
+      "name": "Water Level — Sandy Hook",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.896+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_preds",
+      "name": "Tidal Predictions — Battery 48h",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.913+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  },
+  {
+    "ep": {
+      "id": "coops_wind",
+      "name": "Wind — The Battery",
+      "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER"
+    },
+    "ok": false,
+    "data": {},
+    "fetchedAt": "2026-11-15T14:39:49.940+00:00",
+    "error": "Acceptance variant: original retained snapshot intentionally unavailable"
+  }
+]

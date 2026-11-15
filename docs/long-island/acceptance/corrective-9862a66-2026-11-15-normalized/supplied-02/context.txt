@@ -1,0 +1,343 @@
+=== LONG ISLAND EMERGENCY MANAGEMENT KNOWLEDGE BASE ===
+
+--- Flood Zones [FEMA / Local] ---
+Zone AE (Special Flood Hazard): Long Beach (entire city), Atlantic Beach, Lido Beach, Island Park, Oceanside, Freeport waterfront, Merrick, Massapequa bay-front (Nassau); Lindenhurst, Copiague, Amityville Harbor, Bay Shore waterfront, Mastic Beach, Shirley, Patchogue, Westhampton Beach, Hampton Bays, Shinnecock Bay (Suffolk).
+Zone VE (Coastal High-Hazard / wave action): Fire Island (entire barrier island), Jones Beach Island, Long Beach ocean side, Montauk Point, Breezy Point (Queens/NYC).
+Zone X (moderate risk): Inland Nassau and Suffolk north of Southern State Pkwy.
+Storm Surge Zones A-D: ~220,000 LI residents (15%) in Zone A/B.
+Post-Sandy (2012): ~$5.5B LI damage; Nassau ~$3B, Suffolk ~$2.5B. FEMA maps substantially revised.
+
+
+--- Evacuation Zones [Local OEM] ---
+Zone A (highest): Barrier islands — mandatory evacuation ANY hurricane or tropical storm. Long Beach, Atlantic Beach, Lido Beach, Point Lookout, Island Park (Nassau); Fire Island, Mastic Beach, Shirley, Westhampton Beach oceanside, Hampton Bays oceanside, Montauk tip (Suffolk); Rockaways (NYC Zone 1).
+Zone B: Low-lying bay-adjacent areas — evacuate Cat 1+.
+Zone C: Moderate risk inland — evacuate Cat 2+.
+Zone D: Lower risk — evacuate Cat 3+.
+Nassau shelters: Nassau Community College (Garden City), Kellenberg Memorial HS (Uniondale), Carey HS (Franklin Square). Alert: text OneNassau to 888777.
+Suffolk: Fire Island — FERRY ONLY evacuation via Bay Shore, Sayville, Patchogue terminals. South shore mainland: Southern State Pkwy / Sunrise Hwy. Alert: text SuffolkAlerts to 67283.
+Rockaway (NYC Zone 1): Cross Bay Veterans Memorial Bridge + Marine Pkwy Bridge egress. Nassau shelters available to NYC Zone 1 evacuees by agreement.
+
+
+--- Critical Infrastructure [Local OEM] ---
+Hospitals — Nassau Level 1 Trauma (3): North Shore University Hospital (Manhasset, ACS + NYS DOH Regional L1); Nassau University Medical Center (East Meadow, NYS DOH L1); NYU Langone LI (Mineola, ACS L1).
+Nassau Level 2: Mount Sinai South Nassau (Oceanside, formerly South Nassau Communities).
+Suffolk Level 1 Trauma (3): Stony Brook University Hospital (ACS + NYS DOH Regional L1, adult + peds); South Shore University Hospital (Bay Shore, ACS L1 Aug 2024, NYS DOH state designation pending); Good Samaritan University Hospital (West Islip, ACS L1 adult / L2 peds).
+Suffolk Level 2: NYU Langone Suffolk (East Patchogue, ACS-verified Jul 2025); Northwell Huntington Hospital.
+Suffolk Level 3 / East End: Southampton Hospital; Peconic Bay Medical Center (Riverhead).
+NOTE: No trauma center on Fire Island, Long Beach barrier island, or Rockaway Peninsula itself. South Shore University Hospital NYS state L1 designation still pending as of 2025.
+Helipads: North Shore UH (FAA 7NY3/6NK3), NUMC (FAA 0NK4), Stony Brook (FAA 6NY6), South Shore UH — critical for medevac routing decisions.
+
+
+--- Hazard Profiles [Local HMP] ---
+HURRICANES: Sandy 2012 (Cat 1) — $5.5B LI damage, 13 LI deaths, ~1.1M without power. Primary risk: storm surge (6-10+ ft south shore), not wind. Barrier island overwash possible Cat 2+. 15 tropical systems impacted NYS since 2012; frequency doubled in 6 years (NYS DHSES 2024).
+COASTAL FLOODING: Great South Bay avg 4ft depth — surge rises rapidly. Combined ocean surge + bay flooding traps south shore mainland. Active live gauges: Kings Point (8516945) and Montauk (8510560). Battery Park (8518750) and Sandy Hook (8531680) are regional references. Fire Island (8515186) and Bay Shore (8515102) are retired as live-water-level stations.
+EXTREME HEAT: Fewer cooling centers per capita than NYC. Nassau protocol at Heat Index >= 95F. Hempstead, Brentwood, Central Islip — reduced cooling access in affordable/senior housing.
+WINTER STORMS / NOREASTERS: Jonas 2016 — 25+ inches Suffolk. LIRR third-rail vulnerable. Route 27 and Route 25 single-road dependency for East End communities.
+HAZMAT: Brookhaven National Laboratory (DOE, Upton) — radiological. Bethpage Grumman groundwater plume (Nassau) — active CERCLA remediation 2025.
+
+
+--- Contacts & Resources [Local OEM] ---
+Nassau OEM: 516-573-9600 | 510 Grumman Rd W, Bethpage | nassaucountyny.gov/oem
+Suffolk OEM: 631-852-4900 | 30 Yaphank Ave, Yaphank | scoem.suffolkcountyny.gov
+NYC OEM (Rockaway coordination): 718-422-8700 | nyc.gov/oem
+NYS DHSES Region 1 (LI): 631-952-6599 | 30 Yaphank Ave, Yaphank
+FEMA Region 2: 212-680-3600 | 26 Federal Plaza, Manhattan
+Nassau County PD: 516-573-8800 | Suffolk County PD: 631-852-6000
+NYU Langone LI (Level 1 Trauma): 516-663-0333
+Stony Brook SUMC (Level 1 Trauma): 631-444-4000
+Good Samaritan (Level 1 Trauma): 631-376-3000
+PSEG Long Island (outages): 1-800-490-0075 | National Grid (gas): 1-800-930-5003
+NWS OKX (Upton): 631-924-0517 | USCG Emergency: VHF Ch 16
+Nassau Nixle: text OneNassau to 888777
+SuffolkAlert: text SuffolkAlerts to 67283
+LIRR: 511 | mta.info/lirr
+
+
+--- UPLOADED DOCUMENTS · COMPLETE TEXT ---
+[File: positive-plan.md; coverage: complete; UTF-8 bytes: 1727]
+Synthetic exercise evidence only. These values are fixtures, not operational guidance.
+
+Facility ID: CEDAR-731
+Incident commander: Casey Example
+Command succession SOP: If Casey Example is unavailable, Exercise deputy Jordan Example assumes exercise command under this plan; verify that condition first
+Inventory: 47 amber cones
+Deployment: 12 amber cones deployed at Gate A for this exercise; remaining 35 in storage
+Cone specifications: Exercise model X
+Cone ballast: 10 lb on each deployed cone
+Cone placement: Gate A
+Radio channel: DELTA-19
+Authorized radio use: Exercise command authorizes DELTA-19 for Gate A check-ins during this period
+
+CEDAR-731: water_level >= 10 ft; datum MLLW; station 8518750.
+```operational-evidence-v1
+{"kind":"threshold","target":"CEDAR-731","authority":"Exercise command","source_url":"https://example.invalid/exercise-plan","valid_start":"2026-11-15T23:00:00Z","valid_end":"2026-11-16T11:00:00Z","quantity":"water_level","operator":">=","value":10,"unit":"ft","datum":"MLLW","station_id":"8518750","statement":"CEDAR-731: water_level >= 10 ft; datum MLLW; station 8518750."}
+```
+
+CEDAR-731: when conducting Gate A check-ins in this exercise period, Exercise command requires use DELTA-19 for those check-ins.
+```operational-evidence-v1
+{"kind":"procedure","target":"CEDAR-731","authority":"Exercise command","source_url":"https://example.invalid/exercise-plan","valid_start":"2026-11-15T23:00:00Z","valid_end":"2026-11-16T11:00:00Z","conditions":"conducting Gate A check-ins in this exercise period","action":"use DELTA-19 for those check-ins","statement":"CEDAR-731: when conducting Gate A check-ins in this exercise period, Exercise command requires use DELTA-19 for those check-ins."}
+```
+
+
+--- NOAA DATA ---
+[NOAA: 7-Day Forecast — LI]
+Fetched: 2026-11-15T14:39:49.661+00:00
+Source: https://api.weather.gov/gridpoints/OKX/62,50/forecast
+
+Updated: 2026-11-15T14:39:49+00:00
+Today [2026-11-15T09:00:00-05:00 — 2026-11-15T18:00:00-05:00]: Sunny. High near 51, with temperatures falling to around 47 in the afternoon. Northwest wind 8 to 12 mph.; 51°F; wind 8 to 12 mph NW; precipitation probability 1%
+Tonight [2026-11-15T18:00:00-05:00 — 2026-11-16T06:00:00-05:00]: Mostly clear. Low around 33, with temperatures rising to around 35 overnight. Northwest wind around 7 mph.; 33°F; wind 7 mph NW; precipitation probability 1%
+Monday [2026-11-16T06:00:00-05:00 — 2026-11-16T18:00:00-05:00]: Mostly sunny. High near 52, with temperatures falling to around 48 in the afternoon. Northwest wind 5 to 9 mph.; 52°F; wind 5 to 9 mph NW; precipitation probability 1%
+Monday Night [2026-11-16T18:00:00-05:00 — 2026-11-17T06:00:00-05:00]: Mostly clear, with a low around 33. Northwest wind around 5 mph.; 33°F; wind 5 mph NW; precipitation probability 0%
+Tuesday [2026-11-17T06:00:00-05:00 — 2026-11-17T18:00:00-05:00]: Sunny. High near 55, with temperatures falling to around 50 in the afternoon. Northwest wind around 6 mph.; 55°F; wind 6 mph NW; precipitation probability 0%
+Tuesday Night [2026-11-17T18:00:00-05:00 — 2026-11-18T06:00:00-05:00]: Mostly clear, with a low around 35.; 35°F; wind 3 mph W; precipitation probability 0%
+Wednesday [2026-11-18T06:00:00-05:00 — 2026-11-18T18:00:00-05:00]: Sunny, with a high near 60.; 60°F; wind 5 mph W; precipitation probability 0%
+Wednesday Night [2026-11-18T18:00:00-05:00 — 2026-11-19T06:00:00-05:00]: Mostly clear, with a low around 40.; 40°F; wind 3 mph W; precipitation probability 0%
+Thursday [2026-11-19T06:00:00-05:00 — 2026-11-19T18:00:00-05:00]: Sunny, with a high near 61.; 61°F; wind 3 to 7 mph W; precipitation probability 0%
+Thursday Night [2026-11-19T18:00:00-05:00 — 2026-11-20T06:00:00-05:00]: Mostly clear, with a low around 42.; 42°F; wind 6 mph W; precipitation probability 0%
+Friday [2026-11-20T06:00:00-05:00 — 2026-11-20T18:00:00-05:00]: Sunny, with a high near 62.; 62°F; wind 7 mph W; precipitation probability 0%
+Friday Night [2026-11-20T18:00:00-05:00 — 2026-11-21T06:00:00-05:00]: Mostly clear, with a low around 42.; 42°F; wind 3 mph NW; precipitation probability 0%
+Saturday [2026-11-21T06:00:00-05:00 — 2026-11-21T18:00:00-05:00]: Sunny, with a high near 60.; 60°F; wind 6 mph NE; precipitation probability 0%
+Saturday Night [2026-11-21T18:00:00-05:00 — 2026-11-22T06:00:00-05:00]: Partly cloudy, with a low around 45.; 45°F; wind 5 mph S; precipitation probability 2%
+
+[NOAA: Hourly Forecast]
+Fetched: 2026-11-15T14:39:49.858+00:00
+Source: https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly
+
+Updated: 2026-11-15T14:39:49+00:00
+Hourly [2026-11-15T09:00:00-05:00 — 2026-11-15T10:00:00-05:00]: Sunny; 45°F; wind 10 mph NW; precipitation probability 0%
+Hourly [2026-11-15T10:00:00-05:00 — 2026-11-15T11:00:00-05:00]: Sunny; 48°F; wind 12 mph NW; precipitation probability 1%
+Hourly [2026-11-15T11:00:00-05:00 — 2026-11-15T12:00:00-05:00]: Sunny; 49°F; wind 12 mph NW; precipitation probability 1%
+Hourly [2026-11-15T12:00:00-05:00 — 2026-11-15T13:00:00-05:00]: Sunny; 50°F; wind 12 mph NW; precipitation probability 1%
+Hourly [2026-11-15T13:00:00-05:00 — 2026-11-15T14:00:00-05:00]: Sunny; 51°F; wind 12 mph NW; precipitation probability 1%
+Hourly [2026-11-15T14:00:00-05:00 — 2026-11-15T15:00:00-05:00]: Mostly Sunny; 51°F; wind 12 mph NW; precipitation probability 1%
+Hourly [2026-11-15T15:00:00-05:00 — 2026-11-15T16:00:00-05:00]: Mostly Sunny; 50°F; wind 10 mph NW; precipitation probability 1%
+Hourly [2026-11-15T16:00:00-05:00 — 2026-11-15T17:00:00-05:00]: Mostly Sunny; 49°F; wind 9 mph NW; precipitation probability 1%
+Hourly [2026-11-15T17:00:00-05:00 — 2026-11-15T18:00:00-05:00]: Mostly Sunny; 47°F; wind 8 mph NW; precipitation probability 1%
+Hourly [2026-11-15T18:00:00-05:00 — 2026-11-15T19:00:00-05:00]: Partly Cloudy; 43°F; wind 7 mph NW; precipitation probability 1%
+Hourly [2026-11-15T19:00:00-05:00 — 2026-11-15T20:00:00-05:00]: Partly Cloudy; 41°F; wind 7 mph NW; precipitation probability 1%
+Hourly [2026-11-15T20:00:00-05:00 — 2026-11-15T21:00:00-05:00]: Partly Cloudy; 40°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-15T21:00:00-05:00 — 2026-11-15T22:00:00-05:00]: Mostly Clear; 39°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-15T22:00:00-05:00 — 2026-11-15T23:00:00-05:00]: Mostly Clear; 38°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-15T23:00:00-05:00 — 2026-11-16T00:00:00-05:00]: Mostly Clear; 38°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-16T00:00:00-05:00 — 2026-11-16T01:00:00-05:00]: Mostly Clear; 37°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-16T01:00:00-05:00 — 2026-11-16T02:00:00-05:00]: Mostly Clear; 37°F; wind 5 mph N; precipitation probability 1%
+Hourly [2026-11-16T02:00:00-05:00 — 2026-11-16T03:00:00-05:00]: Mostly Clear; 36°F; wind 5 mph N; precipitation probability 1%
+Hourly [2026-11-16T03:00:00-05:00 — 2026-11-16T04:00:00-05:00]: Mostly Clear; 36°F; wind 5 mph N; precipitation probability 1%
+Hourly [2026-11-16T04:00:00-05:00 — 2026-11-16T05:00:00-05:00]: Mostly Clear; 35°F; wind 5 mph N; precipitation probability 1%
+Hourly [2026-11-16T05:00:00-05:00 — 2026-11-16T06:00:00-05:00]: Mostly Clear; 35°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-16T06:00:00-05:00 — 2026-11-16T07:00:00-05:00]: Sunny; 35°F; wind 6 mph NW; precipitation probability 1%
+Hourly [2026-11-16T07:00:00-05:00 — 2026-11-16T08:00:00-05:00]: Sunny; 34°F; wind 6 mph NW; precipitation probability 0%
+Hourly [2026-11-16T08:00:00-05:00 — 2026-11-16T09:00:00-05:00]: Sunny; 39°F; wind 7 mph N; precipitation probability 0%
+Hourly [2026-11-16T09:00:00-05:00 — 2026-11-16T10:00:00-05:00]: Sunny; 45°F; wind 8 mph N; precipitation probability 0%
+Hourly [2026-11-16T10:00:00-05:00 — 2026-11-16T11:00:00-05:00]: Sunny; 47°F; wind 8 mph N; precipitation probability 0%
+Hourly [2026-11-16T11:00:00-05:00 — 2026-11-16T12:00:00-05:00]: Sunny; 49°F; wind 9 mph NW; precipitation probability 0%
+Hourly [2026-11-16T12:00:00-05:00 — 2026-11-16T13:00:00-05:00]: Mostly Sunny; 51°F; wind 9 mph NW; precipitation probability 0%
+Hourly [2026-11-16T13:00:00-05:00 — 2026-11-16T14:00:00-05:00]: Partly Sunny; 52°F; wind 9 mph NW; precipitation probability 0%
+Hourly [2026-11-16T14:00:00-05:00 — 2026-11-16T15:00:00-05:00]: Partly Sunny; 52°F; wind 9 mph NW; precipitation probability 0%
+Hourly [2026-11-16T15:00:00-05:00 — 2026-11-16T16:00:00-05:00]: Partly Sunny; 52°F; wind 8 mph NW; precipitation probability 0%
+Hourly [2026-11-16T16:00:00-05:00 — 2026-11-16T17:00:00-05:00]: Mostly Cloudy; 50°F; wind 7 mph NW; precipitation probability 0%
+Hourly [2026-11-16T17:00:00-05:00 — 2026-11-16T18:00:00-05:00]: Partly Sunny; 48°F; wind 5 mph NW; precipitation probability 0%
+Hourly [2026-11-16T18:00:00-05:00 — 2026-11-16T19:00:00-05:00]: Partly Cloudy; 46°F; wind 5 mph NW; precipitation probability 0%
+Hourly [2026-11-16T19:00:00-05:00 — 2026-11-16T20:00:00-05:00]: Partly Cloudy; 41°F; wind 5 mph NW; precipitation probability 0%
+Hourly [2026-11-16T20:00:00-05:00 — 2026-11-16T21:00:00-05:00]: Partly Cloudy; 40°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-16T21:00:00-05:00 — 2026-11-16T22:00:00-05:00]: Partly Cloudy; 39°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-16T22:00:00-05:00 — 2026-11-16T23:00:00-05:00]: Mostly Clear; 39°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-16T23:00:00-05:00 — 2026-11-17T00:00:00-05:00]: Mostly Clear; 38°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T00:00:00-05:00 — 2026-11-17T01:00:00-05:00]: Mostly Clear; 38°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T01:00:00-05:00 — 2026-11-17T02:00:00-05:00]: Mostly Clear; 37°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T02:00:00-05:00 — 2026-11-17T03:00:00-05:00]: Mostly Clear; 36°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T03:00:00-05:00 — 2026-11-17T04:00:00-05:00]: Mostly Clear; 36°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T04:00:00-05:00 — 2026-11-17T05:00:00-05:00]: Mostly Clear; 35°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T05:00:00-05:00 — 2026-11-17T06:00:00-05:00]: Mostly Clear; 34°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T06:00:00-05:00 — 2026-11-17T07:00:00-05:00]: Sunny; 34°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T07:00:00-05:00 — 2026-11-17T08:00:00-05:00]: Sunny; 35°F; wind 3 mph NW; precipitation probability 0%
+Hourly [2026-11-17T08:00:00-05:00 — 2026-11-17T09:00:00-05:00]: Sunny; 39°F; wind 5 mph NW; precipitation probability 0%
+
+[NOAA: Wind & Precip Grid]
+Fetched: 2026-11-15T14:39:49.848+00:00
+Source: https://api.weather.gov/gridpoints/OKX/62,50
+
+Updated: 2026-11-15T06:55:12+00:00
+quantitativePrecipitation (wmoUnit:mm):
+  2026-11-15T00:00:00+00:00/PT6H: 0
+  2026-11-15T06:00:00+00:00/PT6H: 0
+  2026-11-15T12:00:00+00:00/PT6H: 0
+  2026-11-15T18:00:00+00:00/PT6H: 0
+  2026-11-16T00:00:00+00:00/PT6H: 0
+  2026-11-16T06:00:00+00:00/PT6H: 0
+  2026-11-16T12:00:00+00:00/PT6H: 0
+  2026-11-16T18:00:00+00:00/PT6H: 0
+  2026-11-17T00:00:00+00:00/PT6H: 0
+  2026-11-17T06:00:00+00:00/PT6H: 0
+  2026-11-17T12:00:00+00:00/PT6H: 0
+  2026-11-17T18:00:00+00:00/PT6H: 0
+  2026-11-18T00:00:00+00:00/PT6H: 0
+  2026-11-18T06:00:00+00:00/PT6H: 0
+probabilityOfPrecipitation (wmoUnit:percent):
+  2026-11-15T00:00:00+00:00/PT3H: 5
+  2026-11-15T03:00:00+00:00/PT3H: 3
+  2026-11-15T06:00:00+00:00/PT3H: 4
+  2026-11-15T09:00:00+00:00/PT3H: 2
+  2026-11-15T12:00:00+00:00/PT3H: 0
+  2026-11-15T15:00:00+00:00/PT21H: 1
+  2026-11-16T12:00:00+00:00/P5DT12H: 0
+  2026-11-22T00:00:00+00:00/PT6H: 1
+  2026-11-22T06:00:00+00:00/PT6H: 2
+  2026-11-22T12:00:00+00:00/PT12H: 4
+  2026-11-23T00:00:00+00:00/PT6H: 10
+windSpeed (wmoUnit:km_h-1):
+  2026-11-15T00:00:00+00:00/PT1H: 12.964
+  2026-11-15T01:00:00+00:00/PT2H: 14.816
+  2026-11-15T03:00:00+00:00/PT2H: 12.964
+  2026-11-15T05:00:00+00:00/PT4H: 11.112
+  2026-11-15T09:00:00+00:00/PT4H: 12.964
+  2026-11-15T13:00:00+00:00/PT1H: 14.816
+  2026-11-15T14:00:00+00:00/PT1H: 16.668
+  2026-11-15T15:00:00+00:00/PT5H: 18.52
+  2026-11-15T20:00:00+00:00/PT1H: 16.668
+  2026-11-15T21:00:00+00:00/PT1H: 14.816
+  2026-11-15T22:00:00+00:00/PT1H: 12.964
+  2026-11-15T23:00:00+00:00/PT2H: 11.112
+  2026-11-16T01:00:00+00:00/PT5H: 9.26
+  2026-11-16T06:00:00+00:00/PT4H: 7.408
+  2026-11-16T10:00:00+00:00/PT3H: 9.26
+  2026-11-16T13:00:00+00:00/PT1H: 11.112
+  2026-11-16T14:00:00+00:00/PT2H: 12.964
+  2026-11-16T16:00:00+00:00/PT4H: 14.816
+  2026-11-16T20:00:00+00:00/PT1H: 12.964
+  2026-11-16T21:00:00+00:00/PT1H: 11.112
+  2026-11-16T22:00:00+00:00/PT3H: 7.408
+  2026-11-17T01:00:00+00:00/PT12H: 5.556
+  2026-11-17T13:00:00+00:00/PT2H: 7.408
+  2026-11-17T15:00:00+00:00/PT5H: 9.26
+  2026-11-17T20:00:00+00:00/PT3H: 7.408
+  2026-11-17T23:00:00+00:00/PT15H: 5.556
+  2026-11-18T14:00:00+00:00/PT9H: 7.408
+  2026-11-18T23:00:00+00:00/PT6H: 5.556
+  2026-11-19T05:00:00+00:00/PT3H: 3.704
+  2026-11-19T08:00:00+00:00/PT6H: 5.556
+  2026-11-19T14:00:00+00:00/PT3H: 7.408
+  2026-11-19T17:00:00+00:00/PT3H: 9.26
+  2026-11-19T20:00:00+00:00/PT2H: 11.112
+  2026-11-19T22:00:00+00:00/PT2H: 9.26
+  2026-11-20T00:00:00+00:00/PT2H: 7.408
+  2026-11-20T02:00:00+00:00/PT12H: 9.26
+  2026-11-20T14:00:00+00:00/PT7H: 11.112
+  2026-11-20T21:00:00+00:00/PT1H: 9.26
+  2026-11-20T22:00:00+00:00/PT1H: 7.408
+  2026-11-20T23:00:00+00:00/PT1H: 5.556
+  2026-11-21T00:00:00+00:00/PT11H: 3.704
+  2026-11-21T11:00:00+00:00/PT3H: 5.556
+  2026-11-21T14:00:00+00:00/PT3H: 7.408
+  2026-11-21T17:00:00+00:00/PT5H: 9.26
+  2026-11-21T22:00:00+00:00/PT2H: 7.408
+  2026-11-22T00:00:00+00:00/PT8H: 5.556
+  2026-11-22T08:00:00+00:00/PT3H: 7.408
+  2026-11-22T11:00:00+00:00/PT2H: 9.26
+windGust (wmoUnit:km_h-1):
+  2026-11-15T00:00:00+00:00/PT1H: 16.668
+  2026-11-15T01:00:00+00:00/PT2H: 20.372
+  2026-11-15T03:00:00+00:00/PT1H: 16.668
+  2026-11-15T04:00:00+00:00/PT5H: 24.076
+  2026-11-15T09:00:00+00:00/PT4H: 25.928
+  2026-11-15T13:00:00+00:00/PT1H: 27.78
+  2026-11-15T14:00:00+00:00/PT1H: 29.632
+  2026-11-15T15:00:00+00:00/PT4H: 31.484
+  2026-11-15T19:00:00+00:00/PT1H: 29.632
+  2026-11-15T20:00:00+00:00/PT1H: 27.78
+  2026-11-15T21:00:00+00:00/PT1H: 25.928
+  2026-11-15T22:00:00+00:00/PT1H: 24.076
+  2026-11-15T23:00:00+00:00/PT1H: 22.224
+  2026-11-16T00:00:00+00:00/PT8H: 20.372
+  2026-11-16T08:00:00+00:00/PT2H: 18.52
+  2026-11-16T10:00:00+00:00/PT2H: 20.372
+  2026-11-16T12:00:00+00:00/PT1H: 18.52
+  2026-11-16T13:00:00+00:00/PT1H: 20.372
+  2026-11-16T14:00:00+00:00/PT5H: 24.076
+  2026-11-16T19:00:00+00:00/PT2H: 22.224
+  2026-11-16T21:00:00+00:00/PT1H: 18.52
+  2026-11-16T22:00:00+00:00/PT5H: 14.816
+  2026-11-17T03:00:00+00:00/PT5H: 12.964
+  2026-11-17T08:00:00+00:00/PT6H: 14.816
+  2026-11-17T14:00:00+00:00/PT5H: 16.668
+  2026-11-17T19:00:00+00:00/PT2H: 14.816
+  2026-11-17T21:00:00+00:00/PT5H: 12.964
+  2026-11-18T02:00:00+00:00/PT3H: 14.816
+  2026-11-18T05:00:00+00:00/P1D: 12.964
+  2026-11-19T05:00:00+00:00/PT12H: 11.112
+  2026-11-19T17:00:00+00:00/PT3H: 12.964
+  2026-11-19T20:00:00+00:00/PT3H: 14.816
+  2026-11-19T23:00:00+00:00/PT3H: 16.668
+  2026-11-20T02:00:00+00:00/PT12H: 18.52
+  2026-11-20T14:00:00+00:00/PT3H: 16.668
+  2026-11-20T17:00:00+00:00/PT3H: 14.816
+  2026-11-20T20:00:00+00:00/PT2H: 12.964
+  2026-11-20T22:00:00+00:00/PT2H: 11.112
+  2026-11-21T00:00:00+00:00/PT8H: 9.26
+  2026-11-21T08:00:00+00:00/PT6H: 11.112
+  2026-11-21T14:00:00+00:00/PT9H: 12.964
+  2026-11-21T23:00:00+00:00/PT3H: 11.112
+  2026-11-22T02:00:00+00:00/PT6H: 12.964
+  2026-11-22T08:00:00+00:00/PT5H: 14.816
+  2026-11-22T13:00:00+00:00/PT1H: 16.668
+  2026-11-22T14:00:00+00:00/PT1H: 18.52
+  2026-11-22T15:00:00+00:00/PT1H: 20.372
+  2026-11-22T16:00:00+00:00/PT1H: 22.224
+
+[NOAA: Active Alerts — NY]
+Fetched: 2026-11-15T14:39:49.601+00:00
+Source: https://api.weather.gov/alerts/active?area=NY
+
+0 active alert(s):
+
+
+[NOAA: Observations — JFK Airport]
+Fetched: 2026-11-15T14:39:49.543+00:00
+Source: https://api.weather.gov/stations/KJFK/observations/latest
+
+Updated: unknown
+windSpeed (unknown units):
+
+windGust (unknown units):
+
+
+[NOAA: Water Level — The Battery]
+Fetched: 2026-11-15T14:39:49.593+00:00
+Source: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER
+
+The Battery
+Latest: 3.878 ft MLLW @ 2026-11-15 14:30
+
+[NOAA: Water Level — Kings Point]
+Fetched: 2026-11-15T14:39:49.720+00:00
+Source: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER
+
+Kings Point
+Latest: 1.998 ft MLLW @ 2026-11-15 14:30
+
+[NOAA: Water Level — Montauk]
+Fetched: 2026-11-15T14:39:49.896+00:00
+Source: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER
+
+Montauk
+Latest: 1.808 ft MLLW @ 2026-11-15 14:30
+
+[NOAA: Water Level — Sandy Hook]
+Fetched: 2026-11-15T14:39:49.896+00:00
+Source: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER
+
+Sandy Hook
+Latest: 4.376 ft MLLW @ 2026-11-15 14:30
+
+[NOAA: Tidal Predictions — Battery 48h]
+Fetched: 2026-11-15T14:39:49.913+00:00
+Source: https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER
+
+HIGH 3.701ft @ 2026-11-15 05:02
+low  1.332ft @ 2026-11-15 10:19
+HIGH 4.382ft @ 2026-11-15 16:59
+low  0.952ft @ 2026-11-15 23:31
+
+[NOAA: Wind — The Battery] unavailable at 2026-11-15T14:39:49.940+00:00: {'message': 'No data was found. This product may not be offered at this station at the requested time.'}
+

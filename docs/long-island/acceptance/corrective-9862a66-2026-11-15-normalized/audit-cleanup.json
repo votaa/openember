@@ -1,0 +1,10 @@
+{
+  "recorded_at": "2026-11-15T14:51:07+00:00",
+  "branch": "codex/cloud-upload-coverage",
+  "project": "openember",
+  "project_variable_removed": true,
+  "local_token_removed": true,
+  "temporary_transport_files_removed": true,
+  "scope": "Preview branch only; production variables and deployment protection unchanged",
+  "note": "Immutable audited deployment retains its build-time environment; a new same-commit default preview is created without the project variable. Token is not retained in capture artifacts."
+}

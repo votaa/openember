@@ -1,0 +1,1 @@
+At Kings Point, distinguish current observed water levels from tonight’s tide predictions. State timestamps, units, datum, coverage and whether this establishes CEDAR-731 flood likelihood.

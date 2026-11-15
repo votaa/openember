@@ -1,0 +1,158 @@
+{
+  "provenance": "Application-owned metadata emitted by the hosted Edge proxy; not observed provider egress or answer verification.",
+  "scope": {
+    "version": "request-scope-v1",
+    "request_utc": "2026-11-15T14:44:46Z",
+    "request_local": "2026-11-15T09:44:46-05:00",
+    "timezone": "America/New_York",
+    "jurisdiction": "Long Island",
+    "status": "clarify",
+    "method": null,
+    "interval": null,
+    "source_refs": [],
+    "assumptions": [],
+    "clarification": "The requested night is not uniquely covered by a supplied local point-forecast night period. Supply explicit start/end times or refresh the forecast.",
+    "coverage": [],
+    "segments": [],
+    "facility_linkages": [],
+    "enforcement": {
+      "version": "operational-answer-v1",
+      "route": "bounded_evidence_default",
+      "status": "validated_envelope"
+    },
+    "coops": [
+      {
+        "id": "coops_battery",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.593+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_kings",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8516945",
+        "station_name": "Kings Point (LI Sound)",
+        "coordinates": [
+          -73.7659,
+          40.8105
+        ],
+        "role": "primary",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.720+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_montauk",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8510560",
+        "station_name": "Montauk",
+        "coordinates": [
+          -71.9594,
+          41.0483
+        ],
+        "role": "primary",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.896+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_sandy",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8531680",
+        "station_name": "Sandy Hook (outer-harbor ref)",
+        "coordinates": [
+          -74.0094,
+          40.4669
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.896+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_preds",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "predictions",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.913+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_wind",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "wind",
+        "units": "english",
+        "datum": null,
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T14:39:49.940+00:00",
+        "state": "unavailable",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      }
+    ]
+  }
+}

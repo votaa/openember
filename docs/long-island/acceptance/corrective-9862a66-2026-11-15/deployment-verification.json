@@ -1,0 +1,10 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\n  \"result\": {\n    \"deployment\": {\n      \"id\": \"dpl_3e3gsFLNVypsSzkaijuedMMxmK7H\",\n      \"name\": \"openember\",\n      \"url\": \"openember-2dicylzwd-ember-li.vercel.app\",\n      \"type\": \"LAMBDAS\",\n      \"state\": \"READY\",\n      \"createdAt\": 1794753490646,\n      \"creator\": {\n        \"uid\": \"iETIlUeukZsyP8XfAsH8K9O4\",\n        \"username\": \"votaa\"\n      },\n      \"project\": {\n        \"id\": \"prj_eCcSWFbgZAhhv3LEZJRY7L5sNAZw\",\n        \"name\": \"openember\",\n        \"framework\": \"vite\"\n      },\n      \"meta\": {\n        \"githubCommitRef\": \"codex/cloud-upload-coverage\",\n        \"githubCommitSha\": \"9862a6667b3bee0655c09b2fed317b67529b3fbf\",\n        \"githubCommitMessage\": \"fix(copilot): constrain operational claims and scope coastal evidence\",\n        \"githubRepo\": \"openember\",\n        \"githubOrg\": \"votaa\"\n      },\n      \"alias\": [\n        \"openember-git-codex-cloud-upload-coverage-ember-li.vercel.app\"\n      ],\n      \"target\": null,\n      \"regions\": [\n        \"iad1\"\n      ],\n      \"buildingAt\": 1794753492078,\n      \"ready\": 1794753511083,\n      \"readyState\": \"READY\",\n      \"source\": \"redeploy\",\n      \"aliasError\": null\n    }\n  }\n}"
+    }
+  ],
+  "structuredContent": null,
+  "isError": false
+}

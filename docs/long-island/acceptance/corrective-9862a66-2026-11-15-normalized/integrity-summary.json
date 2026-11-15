@@ -1,0 +1,428 @@
+[
+  {
+    "case": "missing-01",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 13720,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "missing-02",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 13720,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "missing-03",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 14698,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r5",
+        "source": "Enabled KB/context",
+        "bytes": 975,
+        "sha256": "2e2cf94029ab0c9618e1677f78a75ea6a7c8a6c91681b9725f3894301e77513a"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "supplied-01",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 9708,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "positive-plan.md",
+        "bytes": 210,
+        "sha256": "cd8806800ffbdb0643773ea985494802b02ee62e7046538d21e28dbcc52b801b"
+      },
+      {
+        "id": "r7",
+        "source": "positive-plan.md",
+        "bytes": 679,
+        "sha256": "0368c8703782f5a5872561916bb27675fa4ada049d50e99a0c6e1dc86802bd9d"
+      }
+    ]
+  },
+  {
+    "case": "supplied-02",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 9708,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "positive-plan.md",
+        "bytes": 210,
+        "sha256": "cd8806800ffbdb0643773ea985494802b02ee62e7046538d21e28dbcc52b801b"
+      },
+      {
+        "id": "r7",
+        "source": "positive-plan.md",
+        "bytes": 679,
+        "sha256": "0368c8703782f5a5872561916bb27675fa4ada049d50e99a0c6e1dc86802bd9d"
+      }
+    ]
+  },
+  {
+    "case": "supplied-03",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 15274,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r1",
+        "source": "Enabled KB/context",
+        "bytes": 900,
+        "sha256": "0af4e156335d1d4094ddf22527007ac487689e8621d73b2e0711c025843c957d"
+      },
+      {
+        "id": "r2",
+        "source": "Enabled KB/context",
+        "bytes": 1107,
+        "sha256": "a17788cfb43cd2fe9d68c7ad894dc4f097d453a84574426578de1ceae74dd14b"
+      },
+      {
+        "id": "r3",
+        "source": "Enabled KB/context",
+        "bytes": 1260,
+        "sha256": "a1fb735fb0a78636246fbc94f5dc679660d26e21911f1c28a91e9cf9e409c574"
+      },
+      {
+        "id": "r4",
+        "source": "Enabled KB/context",
+        "bytes": 1309,
+        "sha256": "b9016ed1913fc375822187949a7d1707f5c065ed62f222919b270ac334cac929"
+      },
+      {
+        "id": "r5",
+        "source": "Enabled KB/context",
+        "bytes": 975,
+        "sha256": "2e2cf94029ab0c9618e1677f78a75ea6a7c8a6c91681b9725f3894301e77513a"
+      },
+      {
+        "id": "r6",
+        "source": "positive-plan.md",
+        "bytes": 210,
+        "sha256": "cd8806800ffbdb0643773ea985494802b02ee62e7046538d21e28dbcc52b801b"
+      },
+      {
+        "id": "r7",
+        "source": "positive-plan.md",
+        "bytes": 679,
+        "sha256": "0368c8703782f5a5872561916bb27675fa4ada049d50e99a0c6e1dc86802bd9d"
+      }
+    ]
+  },
+  {
+    "case": "conflicting-01",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 10800,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "conflicting-plan.md",
+        "bytes": 213,
+        "sha256": "f546d1a81033d7e14a3b5d521d5968a77d994bf1743fd249efb8bfe5d72662c7"
+      },
+      {
+        "id": "r7",
+        "source": "conflicting-plan.md",
+        "bytes": 682,
+        "sha256": "18c57c375bc7cb5b84454ec01610436e20f984283ba293a38cf7d722369776c3"
+      },
+      {
+        "id": "r9",
+        "source": "conflicting-plan.md",
+        "bytes": 684,
+        "sha256": "6a1ef050ad1dd6f5e2bd618e09bd1d6ada421ac683c9b2e3c8e6c54825560b17"
+      }
+    ]
+  },
+  {
+    "case": "conflicting-02",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 10800,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "conflicting-plan.md",
+        "bytes": 213,
+        "sha256": "f546d1a81033d7e14a3b5d521d5968a77d994bf1743fd249efb8bfe5d72662c7"
+      },
+      {
+        "id": "r7",
+        "source": "conflicting-plan.md",
+        "bytes": 682,
+        "sha256": "18c57c375bc7cb5b84454ec01610436e20f984283ba293a38cf7d722369776c3"
+      },
+      {
+        "id": "r9",
+        "source": "conflicting-plan.md",
+        "bytes": 684,
+        "sha256": "6a1ef050ad1dd6f5e2bd618e09bd1d6ada421ac683c9b2e3c8e6c54825560b17"
+      }
+    ]
+  },
+  {
+    "case": "conflicting-03",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 10800,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "conflicting-plan.md",
+        "bytes": 213,
+        "sha256": "f546d1a81033d7e14a3b5d521d5968a77d994bf1743fd249efb8bfe5d72662c7"
+      },
+      {
+        "id": "r7",
+        "source": "conflicting-plan.md",
+        "bytes": 682,
+        "sha256": "18c57c375bc7cb5b84454ec01610436e20f984283ba293a38cf7d722369776c3"
+      },
+      {
+        "id": "r9",
+        "source": "conflicting-plan.md",
+        "bytes": 684,
+        "sha256": "6a1ef050ad1dd6f5e2bd618e09bd1d6ada421ac683c9b2e3c8e6c54825560b17"
+      }
+    ]
+  },
+  {
+    "case": "rolling-24h",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "rolling",
+    "answer_bytes": 15365,
+    "references": [
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      },
+      {
+        "id": "r4",
+        "source": "Enabled KB/context",
+        "bytes": 1309,
+        "sha256": "b9016ed1913fc375822187949a7d1707f5c065ed62f222919b270ac334cac929"
+      }
+    ]
+  },
+  {
+    "case": "later-date",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "explicit",
+    "answer_bytes": 13356,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "named-station",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "resolved",
+    "method": "source_period",
+    "answer_bytes": 13110,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "current-conditions",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "unspecified",
+    "method": null,
+    "answer_bytes": 9269,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  },
+  {
+    "case": "missing-sources",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "clarify",
+    "method": null,
+    "answer_bytes": 10063,
+    "references": [
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      },
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r4",
+        "source": "Enabled KB/context",
+        "bytes": 1309,
+        "sha256": "b9016ed1913fc375822187949a7d1707f5c065ed62f222919b270ac334cac929"
+      }
+    ]
+  },
+  {
+    "case": "stale-sources",
+    "request_match": true,
+    "answer_match": true,
+    "scope": "clarify",
+    "method": null,
+    "answer_bytes": 8715,
+    "references": [
+      {
+        "id": "r0",
+        "source": "Enabled KB/context",
+        "bytes": 181,
+        "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+      },
+      {
+        "id": "r6",
+        "source": "synthetic-plan.txt",
+        "bytes": 5798,
+        "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+      }
+    ]
+  }
+]

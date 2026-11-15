@@ -1,0 +1,58 @@
+{
+  "reviewed_at": "2026-11-15T14:54:55+00:00",
+  "reviewer": "Codex whole-answer review against retained snapshots and actual provider payload",
+  "case": "rolling-24h",
+  "overall": "FAIL",
+  "scope_and_values_failure": false,
+  "operational_reference_bypass": true,
+  "positive_evidence_preserved": false,
+  "integrity_is_not_grounding_certification": true,
+  "sections": [
+    {
+      "section": "Lead/scope",
+      "bytes": 211,
+      "sha256": "a5da570fc36dca82bd923bbfee6a8bf04178f968d9e616683f90d67e8b8c6379",
+      "status": "PASS",
+      "review": "Server receipt plus exactly 24 elapsed hours; hourly/grid segment selected. Endpoint metadata retains offsets."
+    },
+    {
+      "section": "Facts",
+      "bytes": 5886,
+      "sha256": "5b5e2af3c8bb81d8bfa644eeb0403ad7022c53ea24cd4b29594e43ec586410aa",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Only eligible hourly/grid evidence contributes future weather facts. Coverage/ranges are labelled; no point-period nighttime low is substituted and no full-window precipitation total is manufactured. Forecast and current background remain separate."
+    },
+    {
+      "section": "Possible impacts",
+      "bytes": 238,
+      "sha256": "990ea9132d0ed5a2bf7bb675ac7cb1701a6081024df15ffbb8e3711ea2d0d42d",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Conditional cone displacement remains contingent on actual deployment, specifications, ballast and placement. It gives no quantitative or qualitative stability threshold and no unsupported flood/utility likelihood."
+    },
+    {
+      "section": "Source references",
+      "bytes": 7132,
+      "sha256": "8da740395d4f294759410e2ff94bfe5eed0d73d85c5dcbb856acc80d3e752b1e",
+      "status": "FAIL",
+      "review": "FAIL relevance/conciseness: selected complete source paragraphs and/or the empty KB title are emitted as answer text, repeating already supplied facts. Model selection varies across repeated runs; the underlying complete sources were preserved and every selected quote is an exact escaped source excerpt, which establishes provenance only. The entire roughly 5.5 KiB synthetic filler paragraph is copied into the answer, so preservation of full input has become an unbounded output dump. FAIL operational boundary: the hazard module carries a numeric heat-index protocol; these references lack validated applicable operational records. An after-the-quote reference-only disclaimer does not provide missing applicability or authority. The typed operational-record gate can therefore be bypassed by selected raw KB text. No determination of those external policies' current correctness is claimed."
+    },
+    {
+      "section": "Gaps",
+      "bytes": 1696,
+      "sha256": "f4ec6b7cdee01619aff92e5bede171837970448da7d98cad325429098d8e8816",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Omission/extraction uncertainty stays source-specific and is not commander absence. Inventory is not automatically deployed. No validated trigger/mandate is invented, and flood/utility likelihood remains unestablished. Available current background and unavailable future measurements remain distinct."
+    },
+    {
+      "section": "Suggestions",
+      "bytes": 182,
+      "sha256": "e390e107bfca38ae7f09c9379a9eb8c6f0d4716cd371a7fdd32e022c081ac465",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Verification suggestions stay nonmandatory; no alert threshold, appointment, succession or universal radio-use command is invented here. They are generic rather than tailored to the supplied positive facts. Later qualifiers do not repair the raw-reference boundary failure."
+    }
+  ],
+  "closing_statement": "No blanket all-facts-verified closing statement; opening provenance disclaimer does not certify answer correctness.",
+  "tables": "No model-authored tables in this answer.",
+  "repeated_run_policy": "All predetermined attempts retained. No favorable-only retry or case replacement.",
+  "remaining_limits": "No live Streamlit generation or hosted browser-rendering/timing test; transport is the production React parser from Node against the hosted Edge proxy."
+}

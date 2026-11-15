@@ -1,0 +1,227 @@
+[
+  {
+    "case": "missing-01",
+    "received": "2026-11-15T14:43:14Z",
+    "http": 200,
+    "provider_seconds": 3.43859194,
+    "total_seconds": 5.168,
+    "headers_seconds": 1.09075,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1577,
+    "bytes": 13721
+  },
+  {
+    "case": "missing-02",
+    "received": "2026-11-15T14:43:57Z",
+    "http": 200,
+    "provider_seconds": 2.724362391,
+    "total_seconds": 4.396,
+    "headers_seconds": 1.102904,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1577,
+    "bytes": 13721
+  },
+  {
+    "case": "missing-03",
+    "received": "2026-11-15T14:44:01Z",
+    "http": 200,
+    "provider_seconds": 1.989632147,
+    "total_seconds": 3.403,
+    "headers_seconds": 1.081603,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1712,
+    "bytes": 14699
+  },
+  {
+    "case": "supplied-01",
+    "received": "2026-11-15T14:44:05Z",
+    "http": 200,
+    "provider_seconds": 3.074522481,
+    "total_seconds": 4.291,
+    "headers_seconds": 1.095681,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1095,
+    "bytes": 9709
+  },
+  {
+    "case": "supplied-02",
+    "received": "2026-11-15T14:44:09Z",
+    "http": 200,
+    "provider_seconds": 1.85089752,
+    "total_seconds": 3.273,
+    "headers_seconds": 0.99458,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1095,
+    "bytes": 9709
+  },
+  {
+    "case": "supplied-03",
+    "received": "2026-11-15T14:44:12Z",
+    "http": 200,
+    "provider_seconds": 0.970710824,
+    "total_seconds": 2.231,
+    "headers_seconds": 0.911673,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1894,
+    "bytes": 15275
+  },
+  {
+    "case": "conflicting-01",
+    "received": "2026-11-15T14:44:15Z",
+    "http": 200,
+    "provider_seconds": 3.839157248,
+    "total_seconds": 5.139,
+    "headers_seconds": 1.08594,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1244,
+    "bytes": 10801
+  },
+  {
+    "case": "conflicting-02",
+    "received": "2026-11-15T14:44:20Z",
+    "http": 200,
+    "provider_seconds": 3.523054263,
+    "total_seconds": 4.968,
+    "headers_seconds": 0.985326,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1244,
+    "bytes": 10801
+  },
+  {
+    "case": "conflicting-03",
+    "received": "2026-11-15T14:44:25Z",
+    "http": 200,
+    "provider_seconds": 3.483982454,
+    "total_seconds": 4.766,
+    "headers_seconds": 0.954073,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1244,
+    "bytes": 10801
+  },
+  {
+    "case": "rolling-24h",
+    "received": "2026-11-15T14:44:30Z",
+    "http": 200,
+    "provider_seconds": 3.456702558,
+    "total_seconds": 4.716,
+    "headers_seconds": 1.020356,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1787,
+    "bytes": 15366
+  },
+  {
+    "case": "later-date",
+    "received": "2026-11-15T14:44:35Z",
+    "http": 200,
+    "provider_seconds": 2.017981123,
+    "total_seconds": 3.556,
+    "headers_seconds": 0.916512,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1569,
+    "bytes": 13357
+  },
+  {
+    "case": "named-station",
+    "received": "2026-11-15T14:44:39Z",
+    "http": 200,
+    "provider_seconds": 2.202250484,
+    "total_seconds": 3.488,
+    "headers_seconds": 1.061572,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "resolved",
+    "envelope": "validated_envelope",
+    "words": 1548,
+    "bytes": 13111
+  },
+  {
+    "case": "current-conditions",
+    "received": "2026-11-15T14:44:42Z",
+    "http": 200,
+    "provider_seconds": 1.96453961,
+    "total_seconds": 3.277,
+    "headers_seconds": 0.842939,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "unspecified",
+    "envelope": "validated_envelope",
+    "words": 1108,
+    "bytes": 9270
+  },
+  {
+    "case": "missing-sources",
+    "received": "2026-11-15T14:44:46Z",
+    "http": 200,
+    "provider_seconds": 1.776127574,
+    "total_seconds": 2.813,
+    "headers_seconds": 0.631795,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "clarify",
+    "envelope": "validated_envelope",
+    "words": 1282,
+    "bytes": 10064
+  },
+  {
+    "case": "stale-sources",
+    "received": "2026-11-15T14:44:49Z",
+    "http": 200,
+    "provider_seconds": 3.473536758,
+    "total_seconds": 4.716,
+    "headers_seconds": 0.880442,
+    "model": [
+      "gpt-oss:120b-cloud"
+    ],
+    "scope": "clarify",
+    "envelope": "validated_envelope",
+    "words": 1092,
+    "bytes": 8716
+  }
+]

@@ -1,0 +1,58 @@
+{
+  "reviewed_at": "2026-11-15T14:54:55+00:00",
+  "reviewer": "Codex whole-answer review against retained snapshots and actual provider payload",
+  "case": "supplied-02",
+  "overall": "FAIL",
+  "scope_and_values_failure": false,
+  "operational_reference_bypass": false,
+  "positive_evidence_preserved": true,
+  "integrity_is_not_grounding_certification": true,
+  "sections": [
+    {
+      "section": "Lead/scope",
+      "bytes": 218,
+      "sha256": "ad071c4d87a5699dba639d9e8ef65c5bd2031f31531fe31946fbf1f8af7d15c5",
+      "status": "PASS",
+      "review": "Correct source-defined November 15\u201316 local night and offsets; no old assistant dates used."
+    },
+    {
+      "section": "Facts",
+      "bytes": 6903,
+      "sha256": "761b159e2b5648eab56626b615aba5a5aa4078316773ca4de2e911ecc14ef057",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Incident/count/channel remain exact source statements. Hourly minimum 35\u00b0F, distinct winds NW 7/NW 6/N 5 mph and 1% precipitation probabilities match 12 retained night hours. Grid ranges retain field units and coverage, with partial min/max-temperature coverage disclosed. They do not assert accumulated totals or measured dry conditions. Current CO-OPS background is explicitly separated; only the in-window Battery prediction at 23:31Z, 0.952 ft MLLW is used as a future event. No invented 1-foot trigger, cone wind limit or flood likelihood is presented in Facts. Casey Example, 12 deployed/35 stored cones, ballast/placement, authorized Gate A radio use, conditional succession, the supplied synthetic 10 ft MLLW comparator and exact procedure are retained with source attribution and whole-window validity. They are exercise evidence, not real operational guidance."
+    },
+    {
+      "section": "Possible impacts",
+      "bytes": 238,
+      "sha256": "990ea9132d0ed5a2bf7bb675ac7cb1701a6081024df15ffbb8e3711ea2d0d42d",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Conditional cone displacement remains contingent on actual deployment, specifications, ballast and placement. It gives no quantitative or qualitative stability threshold and no unsupported flood/utility likelihood. Qualification is generic even though specifications, ballast and placement are supplied; distinguish the actually missing rated stability evidence from supplied details in the next correction."
+    },
+    {
+      "section": "Source references",
+      "bytes": 1098,
+      "sha256": "2451ef2b1d1783ed1046721c691205c0ddfb21a66eaadd3448a120e5d654ef92",
+      "status": "FAIL",
+      "review": "FAIL relevance/conciseness: selected complete source paragraphs and/or the empty KB title are emitted as answer text, repeating already supplied facts. Model selection varies across repeated runs; the underlying complete sources were preserved and every selected quote is an exact escaped source excerpt, which establishes provenance only."
+    },
+    {
+      "section": "Gaps",
+      "bytes": 1049,
+      "sha256": "eb0ef25ce3e05fd3b375439509e672cb9db47c48a4055929e6984ffab4513365",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "The named commander, documented deployment and authorized procedures are not erased from Facts. Missing coordinates/explicit assignment-status label remain source-scoped extraction gaps. Generic verify-everything wording is unnecessarily repetitive and should acknowledge the supported details."
+    },
+    {
+      "section": "Suggestions",
+      "bytes": 182,
+      "sha256": "e390e107bfca38ae7f09c9379a9eb8c6f0d4716cd371a7fdd32e022c081ac465",
+      "status": "PASS WITH LIMITATIONS",
+      "review": "Verification suggestions stay nonmandatory; no alert threshold, appointment, succession or universal radio-use command is invented here. They are generic rather than tailored to the supplied positive facts. Later qualifiers do not repair the raw-reference boundary failure."
+    }
+  ],
+  "closing_statement": "No blanket all-facts-verified closing statement; opening provenance disclaimer does not certify answer correctness.",
+  "tables": "No model-authored tables in this answer.",
+  "repeated_run_policy": "All predetermined attempts retained. No favorable-only retry or case replacement.",
+  "remaining_limits": "No live Streamlit generation or hosted browser-rendering/timing test; transport is the production React parser from Node against the hosted Edge proxy."
+}

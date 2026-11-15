@@ -1,0 +1,122 @@
+[
+  {
+    "id": "missing-01",
+    "scenario": "missing",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/missing-01"
+  },
+  {
+    "id": "missing-02",
+    "scenario": "missing",
+    "repeat": 2,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/missing-02"
+  },
+  {
+    "id": "missing-03",
+    "scenario": "missing",
+    "repeat": 3,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/missing-03"
+  },
+  {
+    "id": "supplied-01",
+    "scenario": "supplied",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/positive-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/supplied-01"
+  },
+  {
+    "id": "supplied-02",
+    "scenario": "supplied",
+    "repeat": 2,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/positive-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/supplied-02"
+  },
+  {
+    "id": "supplied-03",
+    "scenario": "supplied",
+    "repeat": 3,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/positive-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/supplied-03"
+  },
+  {
+    "id": "conflicting-01",
+    "scenario": "conflicting",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-01"
+  },
+  {
+    "id": "conflicting-02",
+    "scenario": "conflicting",
+    "repeat": 2,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-02"
+  },
+  {
+    "id": "conflicting-03",
+    "scenario": "conflicting",
+    "repeat": 3,
+    "upload": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-plan.md",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/conflicting-03"
+  },
+  {
+    "id": "rolling-24h",
+    "scenario": "rolling-24h",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, assess the next 24 hours for CEDAR-731. State the exact window, supplied wind and temperature evidence, commander, deployed equipment and authorized procedures.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/rolling-24h"
+  },
+  {
+    "id": "later-date",
+    "scenario": "later-date",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, assess November 18, 2026 for CEDAR-731. State the exact window, source coverage, wind and temperature evidence and known gaps.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/later-date"
+  },
+  {
+    "id": "named-station",
+    "scenario": "named-station",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "At Kings Point, distinguish current observed water levels from tonight’s tide predictions. State timestamps, units, datum, coverage and whether this establishes CEDAR-731 flood likelihood.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/named-station"
+  },
+  {
+    "id": "current-conditions",
+    "scenario": "current-conditions",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the plan and enabled sources, describe current measured conditions at the supplied stations, with timestamps, units, location and missing evidence. Do not substitute forecasts for observations.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/current-conditions"
+  },
+  {
+    "id": "missing-sources",
+    "scenario": "missing-sources",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/missing-sources"
+  },
+  {
+    "id": "stale-sources",
+    "scenario": "stale-sources",
+    "repeat": 1,
+    "upload": "/private/tmp/openember-cloud-upload/tests/fixtures/uploads/synthetic-plan.txt",
+    "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+    "directory": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15/stale-sources"
+  }
+]

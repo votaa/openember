@@ -1,0 +1,27 @@
+{
+  "live": true,
+  "http": 200,
+  "transport": "Vercel CLI authenticated HTTP (buffered delivery to React stream parser)",
+  "enabled": [
+    "floodZones",
+    "evacZones",
+    "criticalInfrastructure",
+    "hazardProfiles",
+    "resources"
+  ],
+  "client_message_bytes": 33413,
+  "response_models": [
+    "gpt-oss:120b-cloud"
+  ],
+  "frame_count": 5,
+  "timing_ms": {
+    "buffered_parser_first_content": 4716,
+    "total": 4716
+  },
+  "error": null,
+  "output": "/private/tmp/openember-cloud-upload/docs/long-island/acceptance/corrective-9862a66-2026-11-15-normalized/stale-sources"
+}
+
+(node:80427) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:80427) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time

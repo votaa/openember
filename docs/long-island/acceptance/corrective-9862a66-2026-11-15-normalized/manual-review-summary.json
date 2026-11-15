@@ -1,0 +1,246 @@
+{
+  "disposition": "FAIL",
+  "grounds": "Operational reference-text bypass, current-conditions omission and concise-answer/relevance regression.",
+  "cases": [
+    {
+      "case": "missing-01",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1577,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "missing-02",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1577,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "missing-03",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1712,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "supplied-01",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1095,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "supplied-02",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1095,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "supplied-03",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": true,
+      "current_evidence_failure": false,
+      "answer_words": 1894,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "conflicting-01",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1244,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "conflicting-02",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1244,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "conflicting-03",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1244,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "rolling-24h",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": true,
+      "current_evidence_failure": false,
+      "answer_words": 1787,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "later-date",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1569,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "named-station",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1548,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "FAIL RELEVANCE",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "current-conditions",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": true,
+      "answer_words": 1108,
+      "sections": {
+        "Lead/scope": "FAIL",
+        "Facts": "FAIL",
+        "Possible impacts": "FAIL RELEVANCE",
+        "Source references": "FAIL",
+        "Gaps": "FAIL",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "missing-sources",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": true,
+      "current_evidence_failure": false,
+      "answer_words": 1282,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    },
+    {
+      "case": "stale-sources",
+      "overall": "FAIL",
+      "envelope": "PASS",
+      "operational_reference_bypass": false,
+      "current_evidence_failure": false,
+      "answer_words": 1092,
+      "sections": {
+        "Lead/scope": "PASS",
+        "Facts": "PASS WITH LIMITATIONS",
+        "Possible impacts": "PASS WITH LIMITATIONS",
+        "Source references": "FAIL",
+        "Gaps": "PASS WITH LIMITATIONS",
+        "Suggestions": "PASS WITH LIMITATIONS"
+      }
+    }
+  ]
+}

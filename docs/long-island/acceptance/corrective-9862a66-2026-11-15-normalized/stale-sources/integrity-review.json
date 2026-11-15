@@ -1,0 +1,334 @@
+{
+  "case": "stale-sources",
+  "observed_egress": true,
+  "request_matches_deployed_code": true,
+  "answer_matches_controlled_renderer": true,
+  "envelope_disposition": "validated_envelope",
+  "actual_scope": {
+    "version": "request-scope-v1",
+    "request_utc": "2026-11-15T14:44:49Z",
+    "request_local": "2026-11-15T09:44:49-05:00",
+    "timezone": "America/New_York",
+    "jurisdiction": "Long Island",
+    "status": "clarify",
+    "method": null,
+    "interval": null,
+    "source_refs": [],
+    "assumptions": [],
+    "clarification": "The requested night is not uniquely covered by a supplied local point-forecast night period. Supply explicit start/end times or refresh the forecast.",
+    "coverage": [
+      {
+        "id": "nws_forecast",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast",
+        "area": "7-Day Forecast — LI",
+        "coordinates": [
+          [
+            [
+              -73.1351,
+              40.7752
+            ],
+            [
+              -73.1305,
+              40.7968
+            ],
+            [
+              -73.1591,
+              40.8003
+            ],
+            [
+              -73.1637,
+              40.7787
+            ],
+            [
+              -73.1351,
+              40.7752
+            ]
+          ]
+        ],
+        "updated_at": "2026-11-15T14:39:49+00:00",
+        "fetched_at": "2026-11-15T12:39:49.661Z",
+        "selected_interval": null,
+        "observed_at": null,
+        "state": "stale",
+        "coverage": "unknown",
+        "fields": {}
+      },
+      {
+        "id": "nws_hourly",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly",
+        "area": "Hourly Forecast",
+        "coordinates": [
+          [
+            [
+              -73.1351,
+              40.7752
+            ],
+            [
+              -73.1305,
+              40.7968
+            ],
+            [
+              -73.1591,
+              40.8003
+            ],
+            [
+              -73.1637,
+              40.7787
+            ],
+            [
+              -73.1351,
+              40.7752
+            ]
+          ]
+        ],
+        "updated_at": "2026-11-15T14:39:49+00:00",
+        "fetched_at": "2026-11-15T12:39:49.858Z",
+        "selected_interval": null,
+        "observed_at": null,
+        "state": "stale",
+        "coverage": "unknown",
+        "fields": {}
+      },
+      {
+        "id": "nws_grid",
+        "url": "https://api.weather.gov/gridpoints/OKX/62,50",
+        "area": "Wind & Precip Grid",
+        "coordinates": [
+          [
+            [
+              -73.1351,
+              40.7752
+            ],
+            [
+              -73.1305,
+              40.7968
+            ],
+            [
+              -73.1591,
+              40.8003
+            ],
+            [
+              -73.1637,
+              40.7787
+            ],
+            [
+              -73.1351,
+              40.7752
+            ]
+          ]
+        ],
+        "updated_at": "2026-11-15T06:55:12+00:00",
+        "fetched_at": "2026-11-15T12:39:49.848Z",
+        "selected_interval": null,
+        "observed_at": null,
+        "state": "stale",
+        "coverage": "unknown",
+        "fields": {}
+      },
+      {
+        "id": "nws_obs_kjfk",
+        "url": "https://api.weather.gov/stations/KJFK/observations/latest",
+        "area": "Observations — JFK Airport",
+        "coordinates": [
+          -73.78,
+          40.65
+        ],
+        "updated_at": null,
+        "fetched_at": "2026-11-15T12:39:49.543Z",
+        "selected_interval": null,
+        "observed_at": null,
+        "state": "stale",
+        "coverage": "unknown",
+        "fields": {}
+      }
+    ],
+    "segments": [],
+    "facility_linkages": [],
+    "enforcement": {
+      "version": "operational-answer-v1",
+      "route": "bounded_evidence_default",
+      "status": "validated_envelope"
+    },
+    "coops": [
+      {
+        "id": "coops_battery",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=recent&station=8518750&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.593Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_kings",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8516945&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8516945",
+        "station_name": "Kings Point (LI Sound)",
+        "coordinates": [
+          -73.7659,
+          40.8105
+        ],
+        "role": "primary",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.720Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_montauk",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8510560&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8510560",
+        "station_name": "Montauk",
+        "coordinates": [
+          -71.9594,
+          41.0483
+        ],
+        "role": "primary",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.896Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_sandy",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8531680&product=water_level&datum=MLLW&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8531680",
+        "station_name": "Sandy Hook (outer-harbor ref)",
+        "coordinates": [
+          -74.0094,
+          40.4669
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "water_level",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.896Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_preds",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=today&range=48&station=8518750&product=predictions&datum=MLLW&time_zone=gmt&interval=hilo&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "predictions",
+        "units": "english",
+        "datum": "MLLW",
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.913Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      },
+      {
+        "id": "coops_wind",
+        "url": "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=8518750&product=wind&time_zone=gmt&units=english&format=json&application=EMBER",
+        "station_id": "8518750",
+        "station_name": "Battery Park (NYC surge ref)",
+        "coordinates": [
+          -74.0141,
+          40.7003
+        ],
+        "role": "reference",
+        "timezone": "America/New_York",
+        "product": "wind",
+        "units": "english",
+        "datum": null,
+        "source_timezone": "gmt",
+        "fetched_at": "2026-11-15T12:39:49.940Z",
+        "state": "stale",
+        "events": [],
+        "background": [],
+        "facility_applicability": "unknown",
+        "limitation": "Station evidence only; facility linkage unknown. Tide predictions are astronomical tides, not surge or total-water-level forecasts. Event samples do not establish continuous coverage or flood likelihood."
+      }
+    ]
+  },
+  "selected_references": [
+    {
+      "id": "r0",
+      "source": "Enabled KB/context",
+      "bytes": 181,
+      "sha256": "0458273777c3c963a4d26685ea6ea6935952816d5c4eca4a92725951edcce5ee"
+    },
+    {
+      "id": "r6",
+      "source": "synthetic-plan.txt",
+      "bytes": 5798,
+      "sha256": "dccd6911a55bcec488a04a50ff92fac1d73e9cc770efc62bf943ce7ca5e60434"
+    }
+  ],
+  "sections": [
+    {
+      "section": "Lead/scope",
+      "bytes": 181,
+      "sha256": "4e2197b57170fa4f8e84b7f6ad2291fa11b4949f620099119d5d204aed478f7b"
+    },
+    {
+      "section": "Facts",
+      "bytes": 314,
+      "sha256": "719408c82f2e3ddb98d46b1e1bdf816ddfce5d747bf67a73e602bcf67c4f2cbf"
+    },
+    {
+      "section": "Possible impacts",
+      "bytes": 238,
+      "sha256": "990ea9132d0ed5a2bf7bb675ac7cb1701a6081024df15ffbb8e3711ea2d0d42d"
+    },
+    {
+      "section": "Source references",
+      "bytes": 6004,
+      "sha256": "368ed0bdeb3e2c16465a8da27d8ce0ddcccbcc94fc0d595be862443338741357"
+    },
+    {
+      "section": "Gaps",
+      "bytes": 1776,
+      "sha256": "1ccd20be078c9d36e44a3121f1e879cc3d49c0a86c3171365659ca00a82490be"
+    },
+    {
+      "section": "Suggestions",
+      "bytes": 182,
+      "sha256": "e390e107bfca38ae7f09c9379a9eb8c6f0d4716cd371a7fdd32e022c081ac465"
+    }
+  ],
+  "limitation": "Checks integrity and code provenance, not semantic source applicability or answer utility."
+}

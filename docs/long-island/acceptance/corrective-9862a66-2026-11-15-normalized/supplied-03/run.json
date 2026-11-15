@@ -1,0 +1,76 @@
+{
+  "preview": "https://openember-2dicylzwd-ember-li.vercel.app",
+  "transport": "Vercel CLI authenticated HTTP (buffered delivery to React stream parser)",
+  "curl_timing": {
+    "http_code": 200,
+    "time_starttransfer": 0.911673,
+    "time_total": 1.50529,
+    "size_upload": 431997,
+    "size_download": 95968
+  },
+  "commit": "9862a6667b3bee0655c09b2fed317b67529b3fbf",
+  "live": true,
+  "question": "Using the uploaded plan and enabled KB, explain tonight's weather impacts on this facility. Include CEDAR-731, amber cones, radio channel and incident commander. Give the low, wind and exact forecast URL; distinguish facts from possible impacts.",
+  "enabled_kb": [
+    "floodZones",
+    "evacZones",
+    "criticalInfrastructure",
+    "hazardProfiles",
+    "resources"
+  ],
+  "history": "Clean-start initialization message; original hosted history was not captured.",
+  "upload": {
+    "name": "positive-plan.md",
+    "bytes": 1727,
+    "sha256": "b29a332f9d9137022a72de337c6dba79650928918523fa23757936ad4106df4b"
+  },
+  "weather_capture_sha256": "29b05eb3e0955e98ea62f89be4fc6e7bf3aadcb5c41460184385b0f2365a1d92",
+  "client_request_sha256": "2ccd61611018d075be64e59a1e102212e66be4b12a1cb873135a46687ece64a7",
+  "client_request_canonical_sha256": "96bdc838e5c0fd91224e9f887d64406f1a40665d3da4b98e2671e2abde6981ff",
+  "client_message_bytes": 29521,
+  "provider_egress_observed": true,
+  "provider_config_evidence": {
+    "response_models": [
+      "gpt-oss:120b-cloud"
+    ],
+    "code_default_host": "https://ollama.com",
+    "deployment_environment_independently_verified": false
+  },
+  "http": {
+    "status": 200,
+    "headers": {
+      "content-type": "text/event-stream",
+      "date": "Sun, 15 Nov 2026 14:44:13 GMT",
+      "x-vercel-cache": "MISS",
+      "x-vercel-id": "iad1::iad1::z7ttg-1794753852686-0d3c363fa66a"
+    },
+    "request_started_utc": "2026-11-15T14:44:11.921Z",
+    "headers_received_utc": "2026-11-15T14:44:14.150Z"
+  },
+  "frame_count": 5,
+  "thinking_fields_omitted": 0,
+  "response_models": [
+    "gpt-oss:120b-cloud"
+  ],
+  "final_frames": [
+    {
+      "model": "gpt-oss:120b-cloud",
+      "total_duration": 970710824,
+      "prompt_eval_count": 16726,
+      "eval_count": 213,
+      "done_reason": "stop",
+      "done": true
+    }
+  ],
+  "error": null,
+  "timing_ms": {
+    "buffered_parser_first_content": 2231,
+    "total": 2231
+  },
+  "answer_sha256": "29f472d15de3fbdc5d1e04f28a60a2f9f22eb40b0a0cb7de699c00f51d8c9a60",
+  "limitations": [
+    "Weather is the public snapshot retained in this run directory. Unless separately verified, this is not a byte-identical replay of an earlier weather revision.",
+    "Provider egress was captured at the Edge provider-call boundary. This does not certify source applicability or the whole answer.",
+    "Transport is the production React streaming function invoked from Node against the hosted Edge proxy, not a browser UI acceptance run."
+  ]
+}

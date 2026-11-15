@@ -1,0 +1,25 @@
+{
+  "commit": "9862a6667b3bee0655c09b2fed317b67529b3fbf",
+  "acceptance": "FAIL",
+  "session": "docs/long-island/acceptance/corrective-9862a66-2026-11-15-normalized",
+  "cases": [
+    {
+      "id": "REG-REFERENCE-OPERATIONAL-BYPASS",
+      "capture": "supplied-03/client-request.json",
+      "answer": "supplied-03/answer.md",
+      "required_behavior": "No unchecked mandatory evacuation or numeric heat-protocol text may bypass applicable-source validation by appearing in Source references. Preserve supported exercise procedures and thresholds."
+    },
+    {
+      "id": "REG-CURRENT-MEASURED-SELECTION",
+      "capture": "current-conditions/client-request.json",
+      "answer": "current-conditions/answer.md",
+      "required_behavior": "Resolve current measured conditions as current observations or clarify a genuine ambiguity. Retain the fresh supplied JFK observation with timestamp, coordinates and units; do not silently omit it."
+    },
+    {
+      "id": "REG-ANSWER-SOURCE-DUMP",
+      "capture": "missing-01/client-request.json",
+      "answer": "missing-01/answer.md",
+      "required_behavior": "Keep full KB/uploads as input and provenance while returning bounded relevant facts/evidence references, without reproducing an entire filler paragraph or empty KB heading. Preserve late radio and source-scoped commander state."
+    }
+  ]
+}

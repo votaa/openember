@@ -1,0 +1,1 @@
+Using the plan and enabled sources, describe current measured conditions at the supplied stations, with timestamps, units, location and missing evidence. Do not substitute forecasts for observations.

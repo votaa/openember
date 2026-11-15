@@ -8,6 +8,8 @@ Latest disposition: the [e480f23 review](cloud-preview-e480f23-answer-review-202
 
 Corrective runtime work is now available for review in this checkout; see the [implementation/local verification report](cloud-grounding-corrective-implementation-2026-11-14.md). Local tests and recording-provider browser checks do not close these issues. Repeated complete hosted acceptance on the corrective commit remains required.
 
+**November 15 disposition:** committed corrective code `9862a66` was tested in a 15-run hosted matrix with observed provider egress. **FAIL:** raw KB reference text bypasses the operational-record gate, a current-measured request omits fresh JFK observations, and answer-source dumping fails concise/relevant presentation. Missing/supplied/conflicting core scenarios were each repeated three times; positive facts and typed procedures survived. See the [complete corrective acceptance report](cloud-grounding-9862a66-acceptance-2026-11-15.md). Six earlier capture-harness-invalid generations and one interrupted attempt are retained separately and are not counted as fresh-source acceptance. GROUND-001/002/003 remain open.
+
 ## Evidence and scope
 
 The user tested the mixed-source question on the `codex/cloud-upload-coverage` Vercel preview at commit `4d6d24f8653a8266acd1ec14c43b018693adaeb7`, uploading `synthetic-plan.txt`:
