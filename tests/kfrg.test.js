@@ -36,7 +36,7 @@ test('simple eligible observation answer does not call provider',async()=>{
 import {execFileSync} from 'node:child_process'
 import {buildOperationalEvidence,renderOperationalAnswer} from '../src/data/operationalEvidence.js'
 import {deterministicObservationAnswer} from '../src/data/answerRecords.js'
-test('selected map evidence and direct readout have JS/Python parity',()=>{
+test('selected map evidence and controlled assessment have JS/Python parity',()=>{
  const q='Tell me about emergency considerations for KFRG — Republic Airport — Wind: 13mph from 300° (gusts 18mph) · Clear',selection={kind:'nws_observation',station_id:'KFRG'},weather=[snapshot()]
  const scope=resolveRequestScope({question:q,requestedAt:now,jurisdiction:JURISDICTION,weather,selection}),evidence=buildOperationalEvidence({scope,weather,question:q}),direct=deterministicObservationAnswer(evidence,scope)
  const py=JSON.parse(execFileSync('python3',['-c',"import json,sys;sys.path.insert(0,'streamlit');from request_scope import resolve_request_scope;from operational_evidence import build_operational_evidence;from answer_records import deterministic_observation_answer;x=json.load(sys.stdin);s=resolve_request_scope(x['question'],x['now'],x['jurisdiction'],x['weather'],selection=x['selection']);e=build_operational_evidence(scope=s,weather=x['weather'],question=x['question']);print(json.dumps(dict(scope=s,evidence=e,direct=deterministic_observation_answer(e,s))))"],{input:JSON.stringify({question:q,now,jurisdiction:JURISDICTION,weather,selection}),encoding:'utf8'}))

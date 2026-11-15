@@ -1,4 +1,5 @@
 // The model can select these application-owned records; source paragraphs are never answer records.
+import {kbAnswerRecords} from './kbAnswerRecords.js'
 import {documentEvidence} from './evidenceSummary.js'
 import {scopedWeather} from './requestScope.js'
 import {selectCoops} from './coopsEvidence.js'
@@ -10,7 +11,7 @@ const units={'wmoUnit:degC':'°C','wmoUnit:degF':'°F','wmoUnit:km_h-1':'km/h','
 const labels={temperature:'temperature',windSpeed:'wind',windGust:'gusts',windDirection:'wind direction',relativeHumidity:'humidity',barometricPressure:'pressure',visibility:'visibility',precipitationLastHour:'last-hour precipitation',probabilityOfPrecipitation:'precipitation probability',quantitativePrecipitation:'precipitation interval amounts',snowfallAmount:'snowfall interval amounts',iceAccumulation:'ice interval amounts'}
 export function queryTopics(question='') {
  const q=question.toLowerCase(),has=re=>re.test(q)
- return {weather:has(/weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility/),water:has(/tide|water|flood|surge|coastal|gauge/),assets:has(/cones?|inventory|deploy|equipment/),command:has(/commander|command|assignment/),radio:has(/radio|channel|communications/),procedures:has(/procedure|\bsop\b|protocol|mandatory|authorized|evacuat/),thresholds:has(/threshold|trigger|action limit/),impacts:has(/impacts?|assess|risks?|threat|effects?|likelihood|considerations?/),facility:has(/facility|site/),documents:has(/\bplan\b|document|upload/),contacts:has(/contacts?|phone|telephone/),evacuation:has(/evacuat/),heat:has(/heat|hot|cooling/),humidity:has(/humidity/),visibility:has(/visibility/)}
+ return {emergency:has(/\bemergency\s+(?:considerations?|conditions?|assessment|planning)\b/),weather:has(/weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility/),water:has(/tide|water|flood|surge|coastal|gauge/),assets:has(/cones?|inventory|deploy|equipment/),command:has(/commander|command|assignment/),radio:has(/radio|channel|communications/),procedures:has(/procedure|\bsop\b|protocol|mandatory|authorized|evacuat/),thresholds:has(/threshold|trigger|action limit/),impacts:has(/impacts?|assess|risks?|threat|effects?|likelihood|considerations?/),facility:has(/facility|site/),documents:has(/\bplan\b|document|upload/),contacts:has(/contacts?|phone|telephone/),evacuation:has(/evacuat/),heat:has(/heat|hot|cooling/),humidity:has(/humidity/),visibility:has(/visibility/)}
 }
 const fieldTopic={commander:'command',assignment_status:'command',inventory:'assets',deployment:'assets',cone_specifications:'assets',cone_ballast:'assets',cone_placement:'assets',radio_channel:'radio',facility_id:'facility',facility_coordinates:'facility',radio_authority:'radio',command_succession:'command'}
 // Supported scalar/document grammars, not a classifier or verifier of arbitrary prose.
@@ -34,6 +35,7 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
   if(['cone_specifications','cone_ballast','cone_placement'].includes(field))return t.assets&&t.impacts||new RegExp(field.split('_')[1],'i').test(question)
   return t[fieldTopic[field]]
  }
+ for(const row of kbAnswerRecords(context,question,scope,files))add(row.section,row.text,row.source,row.kind)
  const docs=documentEvidence(files)
  for(const file of files) {
   const missing=[],review=[]
@@ -131,7 +133,7 @@ export function renderAnswerRecords(raw,evidence,scope,complete=true) {
  if(scope.interval)lines.push(`${scope.historical?'Historical analysis: ':''}${escape(scope.interval.start_local||scope.interval.start_utc)} to ${escape(scope.interval.end_local||scope.interval.end_utc)} (${escape(scope.timezone)}; ${escape(scope.method)}).`,'')
  if(scope.clarification)lines.push('Clarification needed: '+escape(scope.clarification),'')
  if(scope.assumptions?.length)lines.push(...scope.assumptions.map(escape),'')
- for(const section of ['Facts','Possible impacts','Gaps','Suggestions','Sources']) {
+ for(const section of ['Facts','Regional KB context','Possible impacts','Gaps','Suggestions','Sources']) {
   const rows=chosen.filter(r=>r.section===section)
   if(rows.length)lines.push('## '+section,'',...rows.map(r=>'- '+r.text),'')
  }
@@ -141,8 +143,8 @@ export function renderAnswerRecords(raw,evidence,scope,complete=true) {
 // A narrow readout of already validated records needs no generative selection.
 export function deterministicObservationAnswer(evidence,scope) {
  const t=evidence.topics
- if(scope.method!=='current_observation'||!t.weather||Object.entries(t).some(([k,v])=>v&&!['weather','impacts','humidity','visibility'].includes(k)))return null
- if(!evidence.records.some(r=>r.kind==='observation'))return null
+ if(scope.method!=='current_observation'||!t.weather||Object.entries(t).some(([k,v])=>v&&!['weather','humidity','visibility'].includes(k)))return null
+ if(evidence.records.some(r=>r.kind.startsWith('kb_'))||!evidence.records.some(r=>r.kind==='observation'))return null
  const result=renderAnswerRecords(JSON.stringify({version:ANSWER_VERSION,records:[]}),evidence,scope)
  return {...result,disposition:'deterministic_observation'}
 }

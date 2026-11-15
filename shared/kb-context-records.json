@@ -1,0 +1,34 @@
+{
+  "version": "kb-context-v1",
+  "jurisdiction": "Long Island",
+  "modules": [
+    {
+      "module": "flood_zones",
+      "header": "Flood Zones [FEMA / Local]",
+      "topic": "flood",
+      "text": "Flooding — regional KB: AE examples include Freeport waterfront and Massapequa bay-front; VE examples include Fire Island and Jones Beach Island. These are regional examples, not a site-specific zone assignment. Source: Flood Zones [FEMA / Local].",
+      "source_text": "Zone AE (Special Flood Hazard): Long Beach (entire city), Atlantic Beach, Lido Beach, Island Park, Oceanside, Freeport waterfront, Merrick, Massapequa bay-front (Nassau); Lindenhurst, Copiague, Amityville Harbor, Bay Shore waterfront, Mastic Beach, Shirley, Patchogue, Westhampton Beach, Hampton Bays, Shinnecock Bay (Suffolk).\nZone VE (Coastal High-Hazard / wave action): Fire Island (entire barrier island), Jones Beach Island, Long Beach ocean side, Montauk Point, Breezy Point (Queens/NYC).\nZone X (moderate risk): Inland Nassau and Suffolk north of Southern State Pkwy.\nStorm Surge Zones A-D: ~220,000 LI residents (15%) in Zone A/B.\nPost-Sandy (2012): ~$5.5B LI damage; Nassau ~$3B, Suffolk ~$2.5B. FEMA maps substantially revised.\n"
+    },
+    {
+      "module": "evac_zones",
+      "header": "Evacuation Zones [Local OEM]",
+      "topic": "evacuation",
+      "text": "Evacuation — regional KB: Nassau shelter references include Nassau Community College (Garden City), Kellenberg Memorial HS (Uniondale) and Carey HS (Franklin Square). South-shore mainland route references include Southern State Pkwy / Sunrise Hwy. Shelter opening, road availability and the selected location’s evacuation-zone membership are not established by these listings. Source: Evacuation Zones [Local OEM].",
+      "source_text": "Zone A (highest): Barrier islands — mandatory evacuation ANY hurricane or tropical storm. Long Beach, Atlantic Beach, Lido Beach, Point Lookout, Island Park (Nassau); Fire Island, Mastic Beach, Shirley, Westhampton Beach oceanside, Hampton Bays oceanside, Montauk tip (Suffolk); Rockaways (NYC Zone 1).\nZone B: Low-lying bay-adjacent areas — evacuate Cat 1+.\nZone C: Moderate risk inland — evacuate Cat 2+.\nZone D: Lower risk — evacuate Cat 3+.\nNassau shelters: Nassau Community College (Garden City), Kellenberg Memorial HS (Uniondale), Carey HS (Franklin Square). Alert: text OneNassau to 888777.\nSuffolk: Fire Island — FERRY ONLY evacuation via Bay Shore, Sayville, Patchogue terminals. South shore mainland: Southern State Pkwy / Sunrise Hwy. Alert: text SuffolkAlerts to 67283.\nRockaway (NYC Zone 1): Cross Bay Veterans Memorial Bridge + Marine Pkwy Bridge egress. Nassau shelters available to NYC Zone 1 evacuees by agreement.\n"
+    },
+    {
+      "module": "critical_infrastructure",
+      "header": "Critical Infrastructure [Local OEM]",
+      "topic": "infrastructure",
+      "text": "Critical facilities — regional KB examples: Nassau University Medical Center (East Meadow), North Shore University Hospital (Manhasset), Good Samaritan University Hospital (West Islip) and Stony Brook University Hospital. This is not a nearest-facility ranking or confirmation of current capacity, access or operating status. Source: Critical Infrastructure [Local OEM].",
+      "source_text": "Hospitals — Nassau Level 1 Trauma (3): North Shore University Hospital (Manhasset, ACS + NYS DOH Regional L1); Nassau University Medical Center (East Meadow, NYS DOH L1); NYU Langone LI (Mineola, ACS L1).\nNassau Level 2: Mount Sinai South Nassau (Oceanside, formerly South Nassau Communities).\nSuffolk Level 1 Trauma (3): Stony Brook University Hospital (ACS + NYS DOH Regional L1, adult + peds); South Shore University Hospital (Bay Shore, ACS L1 Aug 2024, NYS DOH state designation pending); Good Samaritan University Hospital (West Islip, ACS L1 adult / L2 peds).\nSuffolk Level 2: NYU Langone Suffolk (East Patchogue, ACS-verified Jul 2025); Northwell Huntington Hospital.\nSuffolk Level 3 / East End: Southampton Hospital; Peconic Bay Medical Center (Riverhead).\nNOTE: No trauma center on Fire Island, Long Beach barrier island, or Rockaway Peninsula itself. South Shore University Hospital NYS state L1 designation still pending as of 2025.\nHelipads: North Shore UH (FAA 7NY3/6NK3), NUMC (FAA 0NK4), Stony Brook (FAA 6NY6), South Shore UH — critical for medevac routing decisions.\n"
+    },
+    {
+      "module": "resources",
+      "header": "Contacts & Resources [Local OEM]",
+      "topic": "contacts",
+      "text": "Coordination — regional KB contacts: Nassau OEM 516-573-9600; Suffolk OEM 631-852-4900. Their listing does not establish command assignment or authority for the selected facility. Source: Contacts & Resources [Local OEM].",
+      "source_text": "Nassau OEM: 516-573-9600 | 510 Grumman Rd W, Bethpage | nassaucountyny.gov/oem\nSuffolk OEM: 631-852-4900 | 30 Yaphank Ave, Yaphank | scoem.suffolkcountyny.gov\nNYC OEM (Rockaway coordination): 718-422-8700 | nyc.gov/oem\nNYS DHSES Region 1 (LI): 631-952-6599 | 30 Yaphank Ave, Yaphank\nFEMA Region 2: 212-680-3600 | 26 Federal Plaza, Manhattan\nNassau County PD: 516-573-8800 | Suffolk County PD: 631-852-6000\nNYU Langone LI (Level 1 Trauma): 516-663-0333\nStony Brook SUMC (Level 1 Trauma): 631-444-4000\nGood Samaritan (Level 1 Trauma): 631-376-3000\nPSEG Long Island (outages): 1-800-490-0075 | National Grid (gas): 1-800-930-5003\nNWS OKX (Upton): 631-924-0517 | USCG Emergency: VHF Ch 16\nNassau Nixle: text OneNassau to 888777\nSuffolkAlert: text SuffolkAlerts to 67283\nLIRR: 511 | mta.info/lirr\n"
+    }
+  ]
+}

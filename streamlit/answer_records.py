@@ -1,5 +1,6 @@
 """Typed query records and navigation only; no raw source-paragraph answer channel."""
 import json,math,re
+from kb_answer_records import kb_answer_records
 from evidence_summary import document_evidence
 from request_scope import scoped_weather
 from coops_evidence import select_coops
@@ -15,7 +16,7 @@ UNITS={'wmoUnit:degC':'°C','wmoUnit:degF':'°F','wmoUnit:km_h-1':'km/h','wmoUni
 LABELS=dict(temperature='temperature',windSpeed='wind',windGust='gusts',windDirection='wind direction',relativeHumidity='humidity',barometricPressure='pressure',visibility='visibility',precipitationLastHour='last-hour precipitation',probabilityOfPrecipitation='precipitation probability',quantitativePrecipitation='precipitation interval amounts',snowfallAmount='snowfall interval amounts',iceAccumulation='ice interval amounts')
 def query_topics(question=''):
     q=question.lower()
-    patterns=dict(weather=r'weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility',water=r'tide|water|flood|surge|coastal|gauge',assets=r'cones?|inventory|deploy|equipment',command=r'commander|command|assignment',radio=r'radio|channel|communications',procedures=r'procedure|\bsop\b|protocol|mandatory|authorized|evacuat',thresholds=r'threshold|trigger|action limit',impacts=r'impacts?|assess|risks?|threat|effects?|likelihood|considerations?',facility=r'facility|site',documents=r'\bplan\b|document|upload',contacts=r'contacts?|phone|telephone',evacuation=r'evacuat',heat=r'heat|hot|cooling',humidity=r'humidity',visibility=r'visibility')
+    patterns=dict(emergency=r'\bemergency\s+(?:considerations?|conditions?|assessment|planning)\b',weather=r'weather|forecast|conditions|observations?|measured|temperature|\blow\b|wind|gust|rain|snow|precipitation|humidity|visibility',water=r'tide|water|flood|surge|coastal|gauge',assets=r'cones?|inventory|deploy|equipment',command=r'commander|command|assignment',radio=r'radio|channel|communications',procedures=r'procedure|\bsop\b|protocol|mandatory|authorized|evacuat',thresholds=r'threshold|trigger|action limit',impacts=r'impacts?|assess|risks?|threat|effects?|likelihood|considerations?',facility=r'facility|site',documents=r'\bplan\b|document|upload',contacts=r'contacts?|phone|telephone',evacuation=r'evacuat',heat=r'heat|hot|cooling',humidity=r'humidity',visibility=r'visibility')
     return {k:bool(re.search(v,q)) for k,v in patterns.items()}
 FIELD_TOPIC=dict(commander='command',assignment_status='command',inventory='assets',deployment='assets',cone_specifications='assets',cone_ballast='assets',cone_placement='assets',radio_channel='radio',facility_id='facility',facility_coordinates='facility',radio_authority='radio',command_succession='command')
 def document_value(row):
@@ -41,6 +42,7 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
         if field=='facility_coordinates':return t['facility'] and t['impacts'] or bool(re.search('coordinates|facility location|site location',question,re.I))
         if field in ('cone_specifications','cone_ballast','cone_placement'):return t['assets'] and t['impacts'] or bool(re.search(field.split('_')[1],question,re.I))
         return t.get(FIELD_TOPIC.get(field),False)
+    for row in kb_answer_records(context,question,scope,files):add(row['section'],row['text'],row['source'],row['kind'])
     docs=document_evidence(files)
     for file in files:
         missing=[];review=[]
@@ -145,7 +147,7 @@ def render_answer_records(raw,evidence,scope,complete=True):
     if interval:lines+=[f"{'Historical analysis: ' if scope.get('historical') else ''}{escape(interval.get('start_local') or interval.get('start_utc'))} to {escape(interval.get('end_local') or interval.get('end_utc'))} ({escape(scope.get('timezone'))}; {escape(scope.get('method'))}).",'']
     if scope.get('clarification'):lines+=['Clarification needed: '+escape(scope['clarification']),'']
     if scope.get('assumptions'):lines += [escape(a) for a in scope['assumptions']]+['']
-    for section in ['Facts','Possible impacts','Gaps','Suggestions','Sources']:
+    for section in ['Facts','Regional KB context','Possible impacts','Gaps','Suggestions','Sources']:
         rows=[r for r in chosen if r['section']==section]
         if rows:lines+=['## '+section,'']+['- '+r['text'] for r in rows]+['']
     return dict(answer='\n'.join(lines).strip(),disposition=disposition)
@@ -153,8 +155,8 @@ def render_answer_records(raw,evidence,scope,complete=True):
 
 def deterministic_observation_answer(evidence,scope):
     topics=evidence['topics']
-    if scope.get('method')!='current_observation' or not topics['weather'] or any(v and k not in ('weather','impacts','humidity','visibility') for k,v in topics.items()):return None
-    if not any(r['kind']=='observation' for r in evidence['records']):return None
+    if scope.get('method')!='current_observation' or not topics['weather'] or any(v and k not in ('weather','humidity','visibility') for k,v in topics.items()):return None
+    if any(r['kind'].startswith('kb_') for r in evidence['records']) or not any(r['kind']=='observation' for r in evidence['records']):return None
     result=render_answer_records(json.dumps(dict(version=ANSWER_VERSION,records=[])),evidence,scope)
     result['disposition']='deterministic_observation'
     return result

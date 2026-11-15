@@ -203,3 +203,6 @@ November 15 focused correction: [local implementation and verification](cloud-fo
 
 
 KFRG smoke-test disposition: both the typed “most recent” question and the app-generated map-to-chat question failed in the user’s hosted review. A [local corrective candidate](cloud-kfrg-correction-2026-11-15.md) now passes the local gate and actual marker-to-chat browser regression. This does not close hosted acceptance or GROUND-001/002/003.
+
+
+Emergency KB assessment remains a failed hosted case: the prior KFRG candidate answered the map-generated emergency-considerations question as weather-only. A [local correction and evidence](cloud-emergency-kb-correction-2026-11-15.md) now includes reviewed enabled regional KB context, while preserving concise weather-only readouts. This supports the configured source revisions; edited KB revisions require reviewed context records. Local validation does not close hosted acceptance or the grounding issues.

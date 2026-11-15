@@ -1,0 +1,21 @@
+{
+  "base_commit": "79d3ec6",
+  "status": "LOCAL_PASS_HOSTED_FAIL",
+  "gate": {
+    "command": "PATH=\"/Users/anthonyvota/Projects/openember/.venv/bin:$PATH\" npm run phase4:gate",
+    "exit_code": 0,
+    "javascript_checks": 188,
+    "python_test_runs": 151,
+    "sha256": "bf5d9b2c02fc9dc562961472f24328077c8063b9f4044b605044c0801742e7eb"
+  },
+  "browser": {
+    "requests": 2,
+    "local_provider_calls": 1,
+    "cloud_generations": 0,
+    "actual_marker_click": true,
+    "weather_only_preserved": true,
+    "emergency_kb_coverage": true
+  },
+  "limitation": "Contextual summaries support reviewed configured KB source revisions. Edited or new source revisions need reviewed contextual records.",
+  "hosted_acceptance": "FAIL; repeated new-preview evidence remains required"
+}
