@@ -1,3 +1,4 @@
+from location_evidence_bundle import build_location_evidence_bundle,link_answer_claims
 """Source-scoped operational record validation; query rendering is shared in shape with Edge."""
 import json,re,math
 from request_scope import instant
@@ -37,8 +38,9 @@ def operational_records(files,scope,question):
             row['conflicting']=True;issues.append(f"{row['source']}: conflicting operational evidence for {row['kind']} at {row['target']}.")
     return dict(records=[r for r in records if not r.get('conflicting')],issues=issues)
 def build_operational_evidence(scope,files=None,weather=None,coops=None,context='',question=''):
+    scope['evidence_bundle']=build_location_evidence_bundle(scope,weather,coops,files,context)
     operational=operational_records(files or [],scope,question)
     scope['facility_linkages']=[dict(target=r['target'],station_id=r['station_id'],source=r['source'],statement=r['statement']) for r in operational['records'] if r['kind']=='gauge_linkage']
-    return build_answer_records(scope,files,weather,coops,context,question,operational)
+    return link_answer_claims(scope['evidence_bundle'],build_answer_records(scope,files,weather,coops,context,question,operational))
 operational_instruction=answer_instruction
 render_operational_answer=render_answer_records

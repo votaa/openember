@@ -47,6 +47,10 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
   else add('Gaps','The selected location does not match this question. Confirm the intended place before using site evidence.','selected_location','gap')
  }
  for(const row of kbAnswerRecords(context,question,scope,files))add(row.section,row.text,row.source,row.kind)
+ if(scope.selected_location?.status==='selected')for(const s of scopedWeather(weather,scope)) {
+  if(s.coverage==='forecast footprint does not establish selected geometry coverage')add('Gaps',`Forecast ${escape(s.id)} cannot establish coverage of the selected geometry; no site forecast values were used.`,s.id,'gap')
+  if(s.location_relationship?.status==='nearby_reference')add('Gaps',`${escape(s.station_id)} is a nearby station reference (${s.location_relationship.distances_km.minimum_vertex}–${s.location_relationship.distances_km.maximum_vertex} km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.`,s.id,'gap')
+ }
  const docs=documentEvidence(files)
  for(const file of files) {
   const missing=[],review=[]
@@ -71,7 +75,7 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
   if(absent.length)add('Gaps',`${escape(file.name)}: ${escape([...new Set(absent)].join(', '))} not extracted as labelled fields. Consult the full source; non-extraction is not absence.`,file.name,'gap')
   if(review.length)add('Gaps',`${escape(file.name)}: ${escape([...new Set(review)].join(', '))} needs source review before use as an applicable fact or procedure.`,file.name,'gap')
  }
- if(t.weather)for(const s of scopedWeather(weather,scope)) {
+ if(t.weather||t.emergency)for(const s of scopedWeather(weather,scope)) {
   if(s.periods.length) {
    const vals=s.periods.filter(p=>Number.isFinite(p.temperature)),us=new Set(vals.map(p=>p.temperatureUnit))
    if(vals.length&&us.size===1)add('Facts',`${s.granularity==='hourly'?'Minimum in the supplied hourly forecast':'Minimum among supplied overlapping point-period values'}: ${number(Math.min(...vals.map(p=>p.temperature)))} °${escape(vals[0].temperatureUnit)}; coverage ${s.coverage}${vals.length!==s.periods.length?', some temperature values missing':''}. ${s.granularity==='hourly'?'Not a published nighttime low.':'Not an extremum resolved to a sub-period.'}`,s.id,'forecast')
@@ -84,15 +88,17 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
    const data=s.series[field],ns=data.values.map(v=>v.value).filter(v=>typeof v==='number'&&Number.isFinite(v))
    add('Facts',`${labels[field]||field} in supplied grid intervals: ${ns.length?number(Math.min(...ns))+'–'+number(Math.max(...ns))+' '+escape(units[data.uom]||'unknown units'):'unknown'}; coverage ${data.coverage}. ${field==='quantitativePrecipitation'||field==='snowfallAmount'?'Interval amounts are not an accumulated window total.':''} Source: ${escape(s.url)}.`,s.id,'forecast')
   }
-  if(s.observation&&Object.values(s.observation.fields).some(d=>typeof d?.value==='number'&&Number.isFinite(d.value))) {
-   const obs=s.observation,wanted=t.humidity&&!/weather|conditions/i.test(question)?['relativeHumidity']:t.visibility&&!/weather|conditions/i.test(question)?['visibility']:['temperature','windSpeed','windGust','windDirection']
+  const reported=s.latest_reported||s.observation
+  if(reported&&Object.values(reported.fields).some(d=>typeof d?.value==='number'&&Number.isFinite(d.value))) {
+   const obs=reported,wanted=t.humidity&&!/weather|conditions/i.test(question)?['relativeHumidity']:t.visibility&&!/weather|conditions/i.test(question)?['visibility']:['temperature','windSpeed','windGust','windDirection']
    const values=wanted.filter(k=>obs.fields[k]).map(k=>{const d=obs.fields[k];return `${labels[k]} ${typeof d.value==='number'&&Number.isFinite(d.value)?number(d.value):'unknown'} ${escape(units[d.unitCode]||'unknown units')}${d.qualityControl&&d.qualityControl!=='V'?' (quality '+escape(d.qualityControl)+')':''}`})
    const station=s.url.match(/\/stations\/([^/]+)/)?.[1]||obs.station
-   add('Facts',`${escape(station)} (${escape(s.station_role||'station reference')}) at ${escape(obs.timestamp)}: ${values.join('; ')}. Source: ${escape(s.url)}.`,s.id,'observation')
+   add('Facts',`${s.latest_reported?'Latest reported; outside the current freshness window ('+s.latest_reported.age_seconds+' seconds old). ':''}${escape(station)} (${escape(s.station_role||'station reference')}) at ${escape(obs.timestamp)}: ${values.join('; ')}. Source: ${escape(s.url)}.`,s.id,s.latest_reported?'latest_reported':'observation')
   }
  }
+ if(scope.method==='current_observation'&&scope.observation_selection?.stations.length===0)add('Gaps','No station reference could be selected from the supplied geometry; observation coverage remains unresolved.','application','gap')
  if(t.weather&&scope.method==='current_observation')add('Gaps',scope.observation_selection?.mode==='named_station'?'Readings are measured at the named station, not automatically at a facility.':`Regional overview: ${new Set(scopedWeather(weather,scope).filter(s=>s.observation&&Object.keys(s.observation.fields).length).map(s=>s.station_id)).size} of ${scope.observation_selection?.stations.length||0} configured station records selected. Readings do not establish conditions at an unspecified facility.`,'application','gap')
- if(t.weather&&!records.some(r=>['forecast','observation'].includes(r.kind))) {
+ if((t.weather||t.emergency)&&!records.some(r=>['forecast','observation'].includes(r.kind))) {
   if(scope.method==='current_observation')for(const station of scope.observation_selection.stations) {
    const selected=scopedWeather(weather,scope).find(s=>s.url===`https://api.weather.gov/stations/${station}/observations/latest`)
    const reason=!selected?'no observation payload was supplied':selected.state==='stale'?'the observation or source snapshot is stale':selected.state==='unavailable'?(selected.failure_type==='retrieval_failed'?'station retrieval failed':'the observation payload is missing a valid timestamp or fields'):selected.coverage==='observation location unknown'?'observation coordinates are missing or invalid':selected.coverage==='observation station identity mismatch'?'observation station identity does not match the requested station':'no usable measured values were supplied'
@@ -100,7 +106,7 @@ export function buildAnswerRecords({scope,files=[],weather=[],coops=[],context='
   }
   else add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.')
  }
- if(t.weather&&t.impacts&&scope.method==='current_observation'&&/airport|\bKFRG\b/i.test(question))add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
+ if((t.weather||t.emergency)&&t.impacts&&scope.method==='current_observation'&&/airport|\bKFRG\b/i.test(question))add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
  if(t.water)for(const s of selectCoops(coops,scope,question)) {
   if(s.state==='outside_requested_geography')continue
   const events=s.product==='predictions'?s.events:s.events.slice(-1),background=events.length?[]:s.background

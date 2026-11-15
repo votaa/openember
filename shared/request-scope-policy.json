@@ -54,6 +54,12 @@
       "visibility",
       "precipitationLastHour",
       "windDirection"
-    ]
+    ],
+    "background_max_age_seconds": 86400,
+    "source_max_age_seconds": 3600,
+    "source_future_tolerance_seconds": 300,
+    "station_coordinate_tolerance_km": 5,
+    "nearby_station_max_km": 50,
+    "background_policy": "Latest supplied report only, at most 24 elapsed hours old and fetched within one hour. Not current, continuous history, future conditions or an all-clear."
   }
 }

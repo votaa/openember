@@ -56,7 +56,7 @@ test('regional observation overview retains all eligible configured stations and
  assert.ok(text.includes('KISP'));assert.ok(!text.includes('KJFK'))
  body.scope_input.weather.find(s=>s.id==='nws_obs_kisp').data.properties.timestamp='2026-11-15T12:00:00Z'
  out=scopedCloudMessages(body,received);text=answer(out).answer
- assert.ok(!text.includes('8 °C'));assert.ok(text.includes('KISP: the observation or source snapshot is stale'))
+ assert.ok(text.includes('8 °C'));assert.ok(text.includes('Latest reported; outside the current freshness window'));assert.ok(text.includes('KISP: the observation or source snapshot is stale'))
 })
 test('plain policy fields and malformed scalar inventory cannot reproduce mandates through Facts or Gaps',()=>{
  const out=replay('current-conditions')

@@ -55,6 +55,11 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
         if field in ('cone_specifications','cone_ballast','cone_placement'):return t['assets'] and t['impacts'] or bool(re.search(field.split('_')[1],question,re.I))
         return t.get(FIELD_TOPIC.get(field),False)
     for row in kb_answer_records(context,question,scope,files):add(row['section'],row['text'],row['source'],row['kind'])
+    if scope.get('selected_location',{}).get('status')=='selected':
+        for s in scoped_weather(weather or [],scope):
+            if s['coverage']=='forecast footprint does not establish selected geometry coverage':add('Gaps',f"Forecast {escape(s['id'])} cannot establish coverage of the selected geometry; no site forecast values were used.",s['id'],'gap')
+            rel=s.get('location_relationship',{})
+            if rel.get('status')=='nearby_reference':add('Gaps',f"{escape(s['station_id'])} is a nearby station reference ({format(rel['distances_km']['minimum_vertex'],'.3f').rstrip('0').rstrip('.')}–{format(rel['distances_km']['maximum_vertex'],'.3f').rstrip('0').rstrip('.')} km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.",s['id'],'gap')
     docs=document_evidence(files)
     for file in files:
         missing=[];review=[]
@@ -78,7 +83,7 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
         absent=[name for name in missing if name.replace(' ','_') not in recovered]
         if absent:add('Gaps',f"{escape(file['name'])}: {escape(', '.join(dict.fromkeys(absent)))} not extracted as labelled fields. Consult the full source; non-extraction is not absence.",file['name'],'gap')
         if review:add('Gaps',f"{escape(file['name'])}: {escape(', '.join(dict.fromkeys(review)))} needs source review before use as an applicable fact or procedure.",file['name'],'gap')
-    if t['weather']:
+    if t['weather'] or t['emergency']:
         for s in scoped_weather(weather or [],scope):
             if s['periods']:
                 vals=[p for p in s['periods'] if type(p.get('temperature')) in (int,float) and math.isfinite(p['temperature'])];us={p.get('temperatureUnit') for p in vals}
@@ -98,7 +103,7 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
                 value=number(min(ns))+'–'+number(max(ns))+' '+escape(UNITS.get(data.get('uom'),'unknown units')) if ns else 'unknown'
                 note='Interval amounts are not an accumulated window total.' if field in ('quantitativePrecipitation','snowfallAmount') else ''
                 add('Facts',f"{LABELS.get(field,field)} in supplied grid intervals: {value}; coverage {data['coverage']}. {note} Source: {escape(s['url'])}.",s['id'],'forecast')
-            obs=s.get('observation')
+            obs=s.get('latest_reported') or s.get('observation')
             if obs and any(type(d.get('value')) in (int,float) and math.isfinite(d['value']) for d in obs['fields'].values()):
                 wanted=['relativeHumidity'] if t['humidity'] and not re.search('weather|conditions',question,re.I) else ['visibility'] if t['visibility'] and not re.search('weather|conditions',question,re.I) else ['temperature','windSpeed','windGust','windDirection']
                 values=[]
@@ -107,16 +112,18 @@ def build_answer_records(scope,files=None,weather=None,coops=None,context='',que
                     d=obs['fields'][k];value=number(d['value']) if type(d.get('value')) in (int,float) and math.isfinite(d['value']) else 'unknown';quality=' (quality '+escape(d['qualityControl'])+')' if d.get('qualityControl') and d['qualityControl']!='V' else ''
                     values.append(f"{LABELS[k]} {value} {escape(UNITS.get(d.get('unitCode'),'unknown units'))}{quality}")
                 m=re.search(r'/stations/([^/]+)',s['url']);station=m[1] if m else obs['station']
-                add('Facts',f"{escape(station)} ({escape(s.get('station_role') or 'station reference')}) at {escape(obs['timestamp'])}: {'; '.join(values)}. Source: {escape(s['url'])}.",s['id'],'observation')
+                prefix="Latest reported; outside the current freshness window ("+number(s['latest_reported']['age_seconds'])+" seconds old). " if s.get('latest_reported') else ""
+                add('Facts',f"{prefix}{escape(station)} ({escape(s.get('station_role') or 'station reference')}) at {escape(obs['timestamp'])}: {'; '.join(values)}. Source: {escape(s['url'])}.",s['id'],'latest_reported' if s.get('latest_reported') else 'observation')
+    if scope.get('method')=='current_observation' and not scope.get('observation_selection',{}).get('stations'):add('Gaps','No station reference could be selected from the supplied geometry; observation coverage remains unresolved.','application','gap')
     if t['weather'] and scope.get('method')=='current_observation':add('Gaps','Readings are measured at the named station, not automatically at a facility.' if scope.get('observation_selection',{}).get('mode')=='named_station' else f"Regional overview: {len({s.get('station_id') for s in scoped_weather(weather or [],scope) if s.get('observation') and s['observation']['fields']})} of {len(scope.get('observation_selection',{}).get('stations',[]))} configured station records selected. Readings do not establish conditions at an unspecified facility.",'application','gap')
-    if t['weather'] and not any(r['kind'] in ('forecast','observation') for r in records):
+    if (t['weather'] or t['emergency']) and not any(r['kind'] in ('forecast','observation') for r in records):
         if scope.get('method')=='current_observation':
             for station in scope['observation_selection']['stations']:
                 selected=next((s for s in scoped_weather(weather or [],scope) if s['url']==f'https://api.weather.gov/stations/{station}/observations/latest'),None)
                 reason='no observation payload was supplied' if not selected else 'the observation or source snapshot is stale' if selected['state']=='stale' else ('station retrieval failed' if selected.get('failure_type')=='retrieval_failed' else 'the observation payload is missing a valid timestamp or fields') if selected['state']=='unavailable' else 'observation coordinates are missing or invalid' if selected['coverage']=='observation location unknown' else 'observation station identity does not match the requested station' if selected['coverage']=='observation station identity mismatch' else 'no usable measured values were supplied'
                 add('Gaps',f'{station}: {reason}. No other station was substituted.')
         else:add('Gaps','No eligible weather values were selected for this request; refresh the sources or clarify the time/place.')
-    if t['weather'] and t['impacts'] and scope.get('method')=='current_observation' and re.search(r'airport|\bKFRG\b',question,re.I):add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
+    if (t['weather'] or t['emergency']) and t['impacts'] and scope.get('method')=='current_observation' and re.search(r'airport|\bKFRG\b',question,re.I):add('Gaps','Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed.')
     if t['water']:
         for s in select_coops(coops or [],scope,question):
             if s['state']=='outside_requested_geography':continue

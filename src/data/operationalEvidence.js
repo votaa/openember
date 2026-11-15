@@ -1,3 +1,4 @@
+import {buildLocationEvidenceBundle,linkAnswerClaims} from './locationEvidenceBundle.js'
 import {instant} from './requestScope.js'
 import {buildAnswerRecords,answerInstruction,renderAnswerRecords} from './answerRecords.js'
 export {ANSWER_VERSION,OUTPUT_SCHEMA} from './answerRecords.js'
@@ -30,9 +31,10 @@ function operationalRecords(files,scope,question) {
   return {records:records.filter(r=>!r.conflicting),issues}
 }
 export function buildOperationalEvidence(input) {
+  input.scope.evidence_bundle=buildLocationEvidenceBundle(input)
   const operational=operationalRecords(input.files||[],input.scope,input.question||'')
   input.scope.facility_linkages=operational.records.filter(r=>r.kind==='gauge_linkage').map(r=>({target:r.target,station_id:r.station_id,source:r.source,statement:r.statement}))
-  return buildAnswerRecords({...input,operational})
+  return linkAnswerClaims(input.scope.evidence_bundle,buildAnswerRecords({...input,operational}))
 }
 export const operationalInstruction=answerInstruction
 export const renderOperationalAnswer=renderAnswerRecords

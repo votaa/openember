@@ -1,0 +1,2639 @@
+{
+  "kind": "Fixed-clock local projections; no live sources or cloud generations",
+  "results": [
+    {
+      "case": "kfrg-67-minutes",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00+00:00",
+            "station": "https://api.weather.gov/stations/KFRG",
+            "coordinates": [
+              -73.42,
+              40.73
+            ],
+            "fields": {
+              "temperature": {
+                "unitCode": "wmoUnit:degC",
+                "value": 8,
+                "qualityControl": "V"
+              },
+              "windSpeed": {
+                "unitCode": "wmoUnit:km_h-1",
+                "value": 22.212,
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "unitCode": "wmoUnit:km_h-1",
+                "value": 33.336,
+                "qualityControl": "S"
+              },
+              "relativeHumidity": {
+                "unitCode": "wmoUnit:percent",
+                "value": 49.267538618784,
+                "qualityControl": "V"
+              },
+              "barometricPressure": {
+                "unitCode": "wmoUnit:Pa",
+                "value": 101964.16,
+                "qualityControl": "V"
+              },
+              "visibility": {
+                "unitCode": "wmoUnit:m",
+                "value": 16093.44,
+                "qualityControl": "C"
+              },
+              "windDirection": {
+                "unitCode": "wmoUnit:degree_(angle)",
+                "value": 340,
+                "qualityControl": "V"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00+00:00: temperature 8 \u00b0C; wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "too-old",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "outside_background_retention",
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "old-cache",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "unknown",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "invalid-time",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "invalid_observation_time",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: no usable measured values were supplied. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "future-time",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "invalid_observation_time",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: no usable measured values were supplied. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "wrong-identity",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "observation station identity mismatch",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: observation station identity does not match the requested station. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "wrong-coordinates",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "observation coordinates conflict with station catalog",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: no usable measured values were supplied. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "failed",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "unavailable",
+          "coverage": "unknown",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: station retrieval failed. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "missing-values",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "missing_values",
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "fresh",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": null,
+          "current_field_count": 3,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- KFRG (Long Island station) at 2026-11-15T17:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "named-missing",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KISP",
+          "state": "outside_requested_geography",
+          "coverage": "unknown",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: no observation payload was supplied. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "hospital",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 13,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: Example Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- KFRG: the observation or source snapshot is stale. No other station was substituted."
+    },
+    {
+      "case": "road",
+      "stations": [
+        "KFRG",
+        "KHWV",
+        "KJFK"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 12.431,
+              "maximum_vertex": 55.051
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 16.827,
+              "maximum_vertex": 59.894
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KHWV",
+            "coordinates": [
+              -72.8694,
+              40.8219
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 10.463,
+              "maximum_vertex": 79.541
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 15.466,
+              "maximum_vertex": 99.662
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 76.36,
+              "maximum_vertex": 163.419
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KJFK",
+            "coordinates": [
+              -73.7781,
+              40.6413
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 6.783,
+              "maximum_vertex": 87.245
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 10.541,
+              "maximum_vertex": 91.259
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 40.089,
+              "maximum_vertex": 76.552
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 13,
+      "claim_count": 7,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: Road (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n- Latest reported; outside the current freshness window (4030 seconds old). KHWV (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KHWV/observations/latest.\n- Latest reported; outside the current freshness window (4030 seconds old). KJFK (regional reference) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KJFK/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (12.431\u201355.051 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- KHWV is a nearby station reference (10.463\u201379.541 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- KJFK is a nearby station reference (6.783\u201387.245 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- KHWV: the observation or source snapshot is stale. No other station was substituted.\n- KJFK: the observation or source snapshot is stale. No other station was substituted."
+    },
+    {
+      "case": "no-geometry",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KFRG",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KISP",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KHWV",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KFOK",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KMTP",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KJFK",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KLGA",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "No selected geometry.",
+            "station_id": "KBDR",
+            "distances_km": null,
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 13,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: Unknown location (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- No station reference could be selected from the supplied geometry; observation coverage remains unresolved."
+    },
+    {
+      "case": "forecast-inside",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "partial",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "contained",
+            "basis": "All supplied geometry vertices tested against a convex, hole-free forecast polygon; convexity also covers connecting segments and interiors. Client source snapshot, not independently verified geography."
+          },
+          "period_count": 1
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 6,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n- Minimum in the supplied hourly forecast: 9 \u00b0C; coverage partial. Not a published nighttime low.\n- Supplied hourly wind: 10 mph ; precipitation probabilities: unknown%. Coverage partial.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n\n## Sources\n\n- Forecast URL: https://api.weather.gov/gridpoints/OKX/62,50/forecast/hourly."
+    },
+    {
+      "case": "forecast-outside",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "All supplied geometry vertices tested against a convex, hole-free forecast polygon; convexity also covers connecting segments and interiors. Client source snapshot, not independently verified geography."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 3,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    },
+    {
+      "case": "forecast-point",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "Forecast footprint or selected geometry is missing or unsupported."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 3,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    },
+    {
+      "case": "forecast-crossing",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 119.331
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 92.613
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 73.209
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 53.385,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KMTP",
+            "coordinates": [
+              -71.9208,
+              41.0765
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 31.457,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 150.881
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 157.669
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 102.814
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "All supplied geometry vertices tested against a convex, hole-free forecast polygon; convexity also covers connecting segments and interiors. Client source snapshot, not independently verified geography."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 5,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Road (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n- Latest reported; outside the current freshness window (4030 seconds old). KMTP (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KMTP/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u2013119.331 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- KMTP is a nearby station reference (31.457\u2013136.165 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    },
+    {
+      "case": "forecast-hole",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "Forecast footprint or selected geometry is missing or unsupported."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 3,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    },
+    {
+      "case": "current-boundary",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": null,
+          "current_field_count": 3,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- KFRG (Long Island station) at 2026-11-15T16:07:10Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "just-aged",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:07:09Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 3601,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (3601 seconds old). KFRG (Long Island station) at 2026-11-15T16:07:09Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "retention-boundary",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-14T17:07:10Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 86400,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 3,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (86400 seconds old). KFRG (Long Island station) at 2026-11-14T17:07:10Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "past-retention",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "outside_background_retention",
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "missing-cache",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "source snapshot age invalid or outside retention",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "stale-cache",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "source snapshot age invalid or outside retention",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "future-cache",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "source snapshot age invalid or outside retention",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "malformed-field",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "missing_values",
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "station_reference",
+            "basis": "Explicit station identity; facility footprint is not established.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 0.0,
+              "maximum_vertex": 0.0
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: the observation or source snapshot is stale. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "missing-coordinates",
+      "stations": [
+        "KFRG"
+      ],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "available",
+          "coverage": "observation location unknown",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": null,
+          "period_count": 0
+        }
+      ],
+      "source_count": 6,
+      "claim_count": 1,
+      "answer": "2026-11-15T11:07:10-05:00 to 2026-11-15T12:07:10-05:00 (America/New\\_York; current\\_observation).\n\nCurrent means the latest observation no older than one elapsed hour, not continuous historical coverage.\nCurrent observation scope comes from the selected map location.\n\n## Facts\n\n- Selected map location: KFRG \u2014 Republic Airport (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG: observation coordinates are missing or invalid. No other station was substituted.\n- Station observations alone do not establish airport operating status, runway conditions, aircraft-specific wind limits or equipment stability; applicable operating procedures and site conditions are needed."
+    },
+    {
+      "case": "forecast-concave",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "Forecast footprint or selected geometry is missing or unsupported."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 3,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    },
+    {
+      "case": "forecast-self-crossing",
+      "stations": [],
+      "weather": [
+        {
+          "id": "KFRG",
+          "state": "stale",
+          "coverage": "observation only; no continuous historical coverage",
+          "background_disposition": "retained_latest_report",
+          "current_field_count": 0,
+          "latest_reported": {
+            "timestamp": "2026-11-15T16:00:00Z",
+            "station": "KFRG",
+            "coordinates": [
+              -73.4138,
+              40.7288
+            ],
+            "fields": {
+              "windSpeed": {
+                "value": 22.21,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "V"
+              },
+              "windGust": {
+                "value": 33.34,
+                "unitCode": "wmoUnit:km_h-1",
+                "qualityControl": "S"
+              },
+              "windDirection": {
+                "value": 340,
+                "unitCode": "wmoUnit:degree_(angle)"
+              }
+            },
+            "age_seconds": 4030,
+            "source_age_seconds": 0,
+            "current_eligible": false,
+            "reason": "outside the current freshness window",
+            "label": "latest reported; outside the current freshness window"
+          },
+          "location": {
+            "status": "nearby_reference",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFRG",
+            "distances_km": {
+              "minimum_vertex": 10.742,
+              "maximum_vertex": 10.742
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KISP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KISP",
+            "distances_km": {
+              "minimum_vertex": 33.658,
+              "maximum_vertex": 33.658
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KHWV",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KHWV",
+            "distances_km": {
+              "minimum_vertex": 53.127,
+              "maximum_vertex": 53.127
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KFOK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KFOK",
+            "distances_km": {
+              "minimum_vertex": 73.217,
+              "maximum_vertex": 73.217
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KMTP",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KMTP",
+            "distances_km": {
+              "minimum_vertex": 136.165,
+              "maximum_vertex": 136.165
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KJFK",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KJFK",
+            "distances_km": {
+              "minimum_vertex": 29.337,
+              "maximum_vertex": 29.337
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KLGA",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KLGA",
+            "distances_km": {
+              "minimum_vertex": 31.471,
+              "maximum_vertex": 31.471
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "KBDR",
+          "state": "available",
+          "coverage": "station applicability not established",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "excluded",
+            "basis": "Nearest configured station per supplied geometry vertex within 50 km. Interior/segment coverage and representativeness remain unverified.",
+            "station_id": "KBDR",
+            "distances_km": {
+              "minimum_vertex": 51.169,
+              "maximum_vertex": 51.169
+            },
+            "limitation": "Station measurements are not site conditions; distance does not establish representativeness."
+          },
+          "period_count": 0
+        },
+        {
+          "id": "hourly",
+          "state": "available",
+          "coverage": "forecast footprint does not establish selected geometry coverage",
+          "background_disposition": null,
+          "current_field_count": 0,
+          "latest_reported": null,
+          "location": {
+            "status": "unknown",
+            "basis": "Forecast footprint or selected geometry is missing or unsupported."
+          },
+          "period_count": 0
+        }
+      ],
+      "source_count": 14,
+      "claim_count": 3,
+      "answer": "2026-11-15T12:07:10-05:00 to 2026-11-16T12:07:10-05:00 (America/New\\_York; rolling).\n\n## Facts\n\n- Selected map location: Hospital (source snapshot: Map layer). Local jurisdiction and facility footprint are unresolved.\n- Latest reported; outside the current freshness window (4030 seconds old). KFRG (Long Island station) at 2026-11-15T16:00:00Z: wind 22.21 km/h; gusts 33.34 km/h (quality S); wind direction 340 degrees. Source: https://api.weather.gov/stations/KFRG/observations/latest.\n\n## Gaps\n\n- Flood Zones [FEMA / Local]: no enabled module was supplied for the regional assessment.\n- Evacuation Zones [Local OEM]: no enabled module was supplied for the regional assessment.\n- Critical Infrastructure [Local OEM]: no enabled module was supplied for the regional assessment.\n- Contacts & Resources [Local OEM]: no enabled module was supplied for the regional assessment.\n- The regional KB listings do not establish the selected location\u2019s flood or evacuation zone, an active evacuation order, open shelters or available medical capacity. Site mapping and current local-source status are needed for those determinations.\n- KFRG is a nearby station reference (10.742\u201310.742 km to supplied geometry vertices). Nearby measurements do not establish on-site conditions or coverage between vertices.\n- Forecast hourly cannot establish coverage of the selected geometry; no site forecast values were used.\n- No eligible weather values were selected for this request; refresh the sources or clarify the time/place."
+    }
+  ]
+}

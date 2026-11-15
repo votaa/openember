@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "gate": "npm run phase4:gate",
+  "javascript": 215,
+  "python_test_runs": 162,
+  "fixed_clock_cases": 30,
+  "cloud_generations": 0,
+  "browser_walkthrough": false,
+  "hosted_acceptance": "open"
+}

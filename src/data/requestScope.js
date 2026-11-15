@@ -1,3 +1,4 @@
+import {stationRelationship,forecastRelationship,validPoint,distance} from './evidenceLocation.js'
 import {locationScope} from './selectedLocation.js'
 import configuration from '../../config/jurisdiction.generated.json' assert {type:'json'}
 import weatherPolicy from '../../shared/request-scope-policy.json' assert {type:'json'}
@@ -191,6 +192,10 @@ function durationEnd(value) {
 export function scopedWeather(weather,scope) {
   return weather.map(source=>{
     const out={id:source.id,url:source.url,geography:source.geography,area:source.area||null,coordinates:source.data?.geometry?.coordinates||null,updated_at:source.data?.properties?.updated||source.data?.properties?.generatedAt||source.data?.properties?.updateTime||null,fetched_at:source.fetched_at||null,state:source.state||'available',...(source.failure_type?{failure_type:source.failure_type}:{}),coverage:'unknown',periods:[],series:{}}
+    if(typeof source.data?.properties?.timestamp==='string'&&out.state!=='unavailable') {
+      const sourceAge=instant(scope.request_utc)-instant(source.fetched_at)
+      if(!Number.isFinite(sourceAge)||sourceAge>weatherPolicy.weather.source_max_age_seconds*1000||sourceAge < -weatherPolicy.weather.source_future_tolerance_seconds*1000){out.state='stale';out.coverage='source snapshot age invalid or outside retention';return out}
+    }
     if(scope.status!=='resolved'||source.geography!==scope.jurisdiction||['stale','unavailable'].includes(out.state))return out
     const requestedStart=instant(scope.interval.start_utc),requestedEnd=instant(scope.interval.end_utc),now=instant(scope.request_utc),cutoff=now+weatherPolicy.weather.near_term_seconds*1000
     const p0=source.data?.properties||{},hourly=/\/forecast\/hourly(?:[?#]|$)/i.test(source.url)||p0.periods?.every(r=>!r.name)
@@ -203,13 +208,27 @@ export function scopedWeather(weather,scope) {
       const at=instant(p0.timestamp),age=now-at,coords=source.data?.geometry?.coordinates
       out.observation={timestamp:p0.timestamp,station:p0.station||source.url,coordinates:coords||null,fields:{}}
       out.coverage='observation only; no continuous historical coverage'
-      if(!Number.isFinite(age)||age<0||age>weatherPolicy.weather.observation_max_age_seconds*1000){out.state='stale';return out}
+      if(!Number.isFinite(age)||age<0){out.state='invalid_observation_time';return out}
       if(!Array.isArray(coords)||coords.length!==2||coords.some(v=>typeof v!=='number'||!Number.isFinite(v))||Math.abs(coords[0])>180||Math.abs(coords[1])>90){out.coverage='observation location unknown';return out}
       if(p0.station&&p0.station!==stationId&&p0.station!==`https://api.weather.gov/stations/${stationId}`){out.coverage='observation station identity mismatch';return out}
+      out.location_relationship=stationRelationship(scope,stationId)
+      if(['excluded','unknown'].includes(out.location_relationship.status)){out.coverage='station applicability not established';return out}
+      if(distance(coords,[station.lng,station.lat])>weatherPolicy.weather.station_coordinate_tolerance_km){out.coverage='observation coordinates conflict with station catalog';return out}
+      const fetched=instant(source.fetched_at),cacheAge=now-fetched
+      const fields=Object.fromEntries(weatherPolicy.weather.observation_fields.filter(k=>p0[k]&&typeof p0[k].value==='number'&&Number.isFinite(p0[k].value)&&typeof p0[k].unitCode==='string').map(k=>[k,p0[k]]))
+      if(age>weatherPolicy.weather.observation_max_age_seconds*1000) {
+        out.state='stale'
+        out.background_disposition=age>weatherPolicy.weather.background_max_age_seconds*1000?'outside_background_retention':Object.keys(fields).length?'retained_latest_report':'missing_values'
+        if(age<=weatherPolicy.weather.background_max_age_seconds*1000&&Number.isFinite(cacheAge)&&cacheAge>=-weatherPolicy.weather.source_future_tolerance_seconds*1000&&cacheAge<=weatherPolicy.weather.source_max_age_seconds*1000&&Object.keys(fields).length)
+          out.latest_reported={...out.observation,fields,age_seconds:age/1000,source_age_seconds:cacheAge/1000,current_eligible:false,reason:'outside the current freshness window',label:'latest reported; outside the current freshness window'}
+        return out
+      }
       if(requestedStart>=now||!(scope.method==='current_observation'||at>=requestedStart&&at<requestedEnd))return out
-      for(const key of weatherPolicy.weather.observation_fields)if(p0[key])out.observation.fields[key]=p0[key]
+      for(const key of weatherPolicy.weather.observation_fields)if(p0[key]&&typeof p0[key]==='object'&&!Array.isArray(p0[key])&&typeof p0[key].unitCode==='string'&&(p0[key].value===null||typeof p0[key].value==='number'&&Number.isFinite(p0[key].value)))out.observation.fields[key]=p0[key]
       return out
     }
+    out.location_relationship=forecastRelationship(scope,source.data?.geometry)
+    if(scope.selected_location&&out.location_relationship.status!=='contained'){out.coverage='forecast footprint does not establish selected geometry coverage';return out}
     const start=Math.max(requestedStart,now,Array.isArray(p0.periods)&&!hourly?cutoff:now),end=Math.min(requestedEnd,Array.isArray(p0.periods)&&hourly?cutoff:requestedEnd)
     out.selected_interval=start<end?{start_utc:utc(start),end_utc:utc(end)}:null
     out.granularity=Array.isArray(p0.periods)?hourly?'hourly':'point period':'grid interval'
@@ -232,7 +251,7 @@ export function scopedWeather(weather,scope) {
 }
 function covered(intervals,start,end) {let cursor=start;for(const [a,b]of intervals.sort((a,b)=>a[0]-b[0])){if(a>cursor)return false;cursor=Math.max(cursor,b);if(cursor>=end)return true}return false}
 export function renderRequestScope(scope,weather=[]) {
-  return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+JSON.stringify(scope)+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+JSON.stringify(scopedWeather(weather,scope))+'\n'
+  return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+JSON.stringify({...scope,...(scope.evidence_bundle?{evidence_bundle:{version:scope.evidence_bundle.version,source_count:scope.evidence_bundle.sources.length,claim_count:scope.evidence_bundle.claims.length,inspection:'Full bundle retained in request metadata; weather relationships below, full context and uploads follow.'}}:{})})+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+JSON.stringify(scopedWeather(weather,scope))+'\n'
 }
 
 // Keep full relevant source snapshots separately; pass only explicit weather fields.
@@ -261,9 +280,9 @@ export function resolveRequestScope(input) {
   const selectedStation=location?.status==='selected'?location.location.station_id:null
   const candidate=selectedStation || input.selection?.station_id
   const selectedId=configuration.nws.obs_stations.some(s=>s.id===candidate)?candidate:null
-  if(selectedId&&scope.status==='unspecified') {
-    scope=resolveScope({...input,question:'Current observations at '+selectedId})
-    scope.assumptions.push('Current observation scope comes from the selected map station.')
+  if((selectedId||location?.status==='selected')&&scope.status==='unspecified') {
+    scope=resolveScope({...input,question:'Current observations at '+(selectedId||'selected location')})
+    scope.assumptions.push('Current observation scope comes from the selected map location.')
   }
   if(scope.method==='current_observation') {
     const q=input.question.toLowerCase()
@@ -273,6 +292,9 @@ export function resolveRequestScope(input) {
   if(location) {
     scope.selected_location=location
     if(location.status==='clarify') {scope.status='clarify';scope.method='location_clarification';scope.interval=null;delete scope.observation_selection;scope.assumptions.push('Selected location does not match this question. Confirm the intended place before using site evidence.')}
+  }
+  if(location?.status==='selected'&&!location.location.station_id&&scope.method==='current_observation') {
+    scope.observation_selection={mode:'nearby_stations',stations:configuration.nws.obs_stations.filter(s=>stationRelationship(scope,s.id).status==='nearby_reference').map(s=>s.id),facility_applicability:'nearby references only; geometry interior/segments and representativeness remain unverified'}
   }
   scope.segments=scopeSegments(scope)
   if(scope.interval)scope.historical=scope.method!=='current_observation'&&instant(scope.interval.end_utc)<=instant(scope.request_utc)
