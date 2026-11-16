@@ -1,0 +1,16 @@
+{
+  "version": "location-synthesis-proposal-v1",
+  "relations": [
+    {"id":"backup_power","noun":"backup power","check":"Verify backup-power readiness, fuel and the loads it can support with the facility; a source listing does not establish current availability."},
+    {"id":"helipad","noun":"a helipad","check":"Verify helipad availability and applicable operating requirements with the facility before considering air access; a listing does not establish clearance, capacity or a transport route."},
+    {"id":"emergency_department","noun":"an emergency department","check":"Verify current receiving capability and access with the facility; the listing does not establish capacity, trauma designation or a destination ranking."},
+    {"id":"single_access","noun":"a single access road","check":"Verify access redundancy and current road conditions; the described access arrangement does not establish a closure or an evacuation route."},
+    {"id":"waterfront","noun":"a waterfront boundary","check":"Obtain applicable water-level, elevation and site-exposure evidence before assessing flooding; the described boundary alone establishes no flood-zone membership or flooding likelihood."}
+  ],
+  "feature_checks": {
+    "airport":"For the selected airport, verify runway conditions and applicable aircraft and ground-equipment operating requirements against up-to-date site reports. Station wind alone supplies no runway status, aircraft limit or response authority.",
+    "hospital":"For the selected hospital, verify patient access and the readiness of essential services with the facility. Nearby station wind does not establish on-site conditions, service disruption or receiving capacity.",
+    "road":"For the selected road geometry, verify conditions along the affected segments. Station wind does not establish a road closure or a usable alternative route.",
+    "waterway":"For the selected water feature, obtain applicable gauge, datum and site-elevation evidence. Station wind does not establish a water-level impact or flooding likelihood."
+  }
+}

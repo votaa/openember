@@ -1,0 +1,77 @@
+
+> ember-nyc@1.0.0 test:location-synthesis
+> node --test tests/location-synthesis.test.js && python3 -m unittest tests/test_location_synthesis.py
+
+TAP version 13
+# (node:25801) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:25801) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: KFRG preserves aged weather and interprets attributed source facts without runway/aircraft findings
+ok 1 - KFRG preserves aged weather and interprets attributed source facts without runway/aircraft findings
+  ---
+  duration_ms: 0.414208
+  ...
+# Subtest: edited hospital KB has useful patient-access and receiving checks beyond fixed module revisions
+ok 2 - edited hospital KB has useful patient-access and receiving checks beyond fixed module revisions
+  ---
+  duration_ms: 0.101584
+  ...
+# Subtest: conflicting source assertions remain visible and unresolved; no merged readiness inference
+ok 3 - conflicting source assertions remain visible and unresolved; no merged readiness inference
+  ---
+  duration_ms: 0.126125
+  ...
+# Subtest: cited operational text, partial sentences, conditional/quoted fragments and other sites cannot become source facts
+ok 4 - cited operational text, partial sentences, conditional/quoted fragments and other sites cannot become source facts
+  ---
+  duration_ms: 0.15625
+  ...
+# Subtest: well-formed plausible unsupported local claims, cross-source IDs, altered values and categories are rejected individually
+ok 5 - well-formed plausible unsupported local claims, cross-source IDs, altered values and categories are rejected individually
+  ---
+  duration_ms: 0.99225
+  ...
+# Subtest: truncated, malformed, old-envelope and empty proposals preserve useful facts and checks with separate validation metadata
+ok 6 - truncated, malformed, old-envelope and empty proposals preserve useful facts and checks with separate validation metadata
+  ---
+  duration_ms: 0.162041
+  ...
+# Subtest: unknown features receive no airport fallback; road geometry, missing data and ambiguity retain limited evidence
+ok 7 - unknown features receive no airport fallback; road geometry, missing data and ambiguity retain limited evidence
+  ---
+  duration_ms: 0.588125
+  ...
+# Subtest: source excerpts resolve to exact full retained source spans, including UTF-16 context offsets
+ok 8 - source excerpts resolve to exact full retained source spans, including UTF-16 context offsets
+  ---
+  duration_ms: 0.1565
+  ...
+# Subtest: complete JS/Python checkpoint, prompt, accepted/rejected output and fallback agree
+ok 9 - complete JS/Python checkpoint, prompt, accepted/rejected output and fallback agree
+  ---
+  duration_ms: 79.17375
+  ...
+# Subtest: existing source-scoped operational evidence remains separate from the synthesis channel
+ok 10 - existing source-scoped operational evidence remains separate from the synthesis channel
+  ---
+  duration_ms: 2.950958
+  ...
+# Subtest: temperature-only source cannot supply a wind-based feature consideration; station name alone cannot supply a feature type
+ok 11 - temperature-only source cannot supply a wind-based feature consideration; station name alone cannot supply a feature type
+  ---
+  duration_ms: 2.904334
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 199.868834
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.025s
+
+OK

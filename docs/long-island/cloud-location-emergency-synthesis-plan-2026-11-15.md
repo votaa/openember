@@ -8,6 +8,8 @@ Boundary follow-up: the [NYS administrative lookup increment](cloud-boundary-loo
 
 Batch 2 follow-up: the [location-linked evidence increment](cloud-location-evidence-bundle-2026-11-15.md) retains eligible latest-reported readings and source/location/time relationships locally; substantive synthesis and hosted acceptance remain open.
 
+Batch 3 checkpoint follow-up: the [typed synthesis/validation checkpoint](cloud-location-synthesis-checkpoint-2026-11-16.md) passes bounded KFRG and hospital replay locally. It is not enabled in the live answer path; general source interpretation, broad integration and hosted acceptance remain open.
+
 ## Intended outcome
 
 Fold this work into the preview branch's grounding improvements. Restore the hosted product's useful location-centered emergency-considerations behavior for **all locations that can be sent to chat**, while correcting unsupported claims. This is a recovery of expected product behavior, not a new airport-only feature or a replacement with generic regional summaries.

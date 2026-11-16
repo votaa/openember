@@ -1,0 +1,14 @@
+{
+  "kind": "Fixed-clock synthetic checkpoint replay; no browser, cloud generation or deployment",
+  "base_commit": "7ce8c58",
+  "fixtures": 15,
+  "javascript_checks": 226,
+  "python_test_runs": 164,
+  "targeted_javascript_checks": 11,
+  "targeted_python_tests": 2,
+  "checkpoint": "pass_for_bounded_descriptive_contract",
+  "live_integration": "not_enabled",
+  "hosted_acceptance": "open_failed_baseline_unchanged",
+  "weekly_usage_remaining_percent": 14,
+  "weekly_usage_stop_threshold_percent": 5
+}
