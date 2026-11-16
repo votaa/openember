@@ -3,20 +3,19 @@ import copy,json,math
 from pathlib import Path
 from operational_evidence import build_operational_evidence
 from answer_records import escape
+from source_interpretation import interpret_source_formats,source_lines
 POLICY=json.loads((Path(__file__).resolve().parents[1]/'shared/location-synthesis-policy.json').read_text())
 SYNTHESIS_VERSION=POLICY['version']
 def utf16(text,start,end):return text.encode('utf-16-le')[start*2:end*2].decode('utf-16-le')
 def length(text):return len(text.encode('utf-16-le'))//2
 def assertions(text,target):
-    out=[];offset=0;fence=False
-    for line in text.split('\n'):
-        if line.strip().startswith('```'):fence=not fence
-        if not fence:
-            for relation in POLICY['relations']:
-                for verb,value in [(' has ',True),(' does not have ',False)]:
-                    statement=target+verb+relation['noun']+'.'
-                    if line==statement:out.append(dict(relation=relation['id'],value=value,statement=statement,start=offset,end=offset+length(line)))
-        offset+=length(line)+1
+    out=[]
+    for item in source_lines(text):
+        line=item['line'];start=item['start']
+        for relation in [r for r in POLICY['relations'] if not r.get('adapter_only')]:
+            for verb,value in [(' has ',True),(' does not have ',False)]:
+                statement=target+verb+relation['noun']+'.'
+                if line==statement:out.append(dict(relation=relation['id'],value=value,statement=statement,start=start,end=start+length(line)))
     return out
 
 def build_synthesis_checkpoint(scope,files=None,weather=None,coops=None,context='',question=''):
@@ -40,13 +39,20 @@ def build_synthesis_checkpoint(scope,files=None,weather=None,coops=None,context=
                 claim=dict(id='x'+str(len(claims)),source_id=source['id'],category='source_assertion',relation=row['relation'],value=row['value'],target=target,location=dict(status='source_named_target',basis='Exact selected display name in source; identity and applicability are not independently verified.'),time=dict(disposition='source_validity_unresolved'),excerpt=dict(raw,**dict(start=raw.get('start',0)+row['start'],end=raw.get('start',0)+row['end'],offset_unit='utf16',text=row['statement'])))
                 attribution=source['source'].get('name') or source['source'].get('id')
                 add(claim,'source_assertion','attribute',f"{escape(attribution)} states: “{escape(row['statement'])}” This is an attributed source assertion; current status and independent site applicability are unverified.",'Source-supported context')
+    interpreted=interpret_source_formats(scope,bundle,files,context)
+    for row in interpreted['rows']:
+        detail={k:v for k,v in row.items() if k not in ('description','attribution')}
+        add(dict(id='x'+str(len(claims)),category='source_assertion',target=target,**detail),'source_assertion','attribute',row['description'],'Source-supported context')
+    gaps+=interpreted['gaps']
     assertions_only=[c for c in claims if c['category']=='source_assertion']
     for relation in POLICY['relations']:
-        rows=[c for c in assertions_only if c['relation']==relation['id']]
-        if len({c['value'] for c in rows})>1:
-            gaps.append(f"Supplied sources conflict about {relation['noun']} at {escape(target)}. Both assertions are retained; no precedence or current status is established.");continue
-        if rows:
-            claim=rows[0];candidates.append(dict(proposal=dict(category='conditional_consideration',claim_id=claim['id'],source_id=claim['source_id'],interpretation='verify_'+relation['id'],value=claim['value']),text=relation['check'],section='Conditional considerations'))
+        relation_rows=[c for c in assertions_only if c['relation']==relation['id']]
+        for subject in dict.fromkeys(c.get('subject') or target for c in relation_rows):
+            rows=[c for c in relation_rows if (c.get('subject') or target)==subject]
+            if len({c['value'] for c in rows})>1:
+                gaps.append(f"Supplied sources conflict about {relation['noun']} at {escape(subject)}. Both assertions are retained; no precedence or current status is established.");continue
+            if rows:
+                claim=rows[0];candidates.append(dict(proposal=dict(category='conditional_consideration',claim_id=claim['id'],source_id=claim['source_id'],interpretation='verify_'+relation['id'],value=claim['value']),text=relation['check'],section='Conditional considerations'))
     weather_claim=next((c for c in claims if c['category']=='weather_fact' and c['time'].get('disposition') in ('current_observation','latest_reported') and any(x['source_id']==c['source_id'] and any(type(x.get('payload',{}).get('fields',{}).get(k,{}).get('value')) in (int,float) and math.isfinite(x['payload']['fields'][k]['value']) for k in ('windSpeed','windGust')) for x in bundle['claims'])),None)
     feature_type=selected['location'].get('feature_type') if active else None
     if weather_claim and feature_type in POLICY['feature_checks']:
@@ -56,7 +62,7 @@ def build_synthesis_checkpoint(scope,files=None,weather=None,coops=None,context=
     gaps += [r['text'] for r in evidence['records'] if r['section']=='Gaps' and not r['kind'].startswith('kb_')]
     gaps.append('Only supported descriptive relations and bounded facts are represented. Other enabled source text remains available for review; missing extraction does not establish absence, safe conditions or normal operations.')
     if not assertions_only and not weather_claim:gaps.append('Obtain a site-linked source describing relevant conditions and a valid observation or applicable forecast before assessing hazards. Location identity alone is insufficient.')
-    return dict(version=SYNTHESIS_VERSION,scope=scope,claims=claims,candidates=candidates,gaps=list(dict.fromkeys(gaps)),coverage=dict(location='selected' if active else 'unresolved',weather='bounded_facts_available' if any(c['category']=='weather_fact' for c in claims) else 'unresolved',source_assertions=len(assertions_only),unrepresented_source_text=True),operational=dict(route='existing_source_scoped_validator_only',eligible_records=[r for r in evidence['records'] if r['kind'] in ('threshold','procedure','gauge_linkage')]))
+    return dict(version=SYNTHESIS_VERSION,scope=scope,claims=claims,candidates=candidates,gaps=list(dict.fromkeys(gaps)),coverage=dict(location='selected' if active else 'unresolved',weather='bounded_facts_available' if any(c['category']=='weather_fact' for c in claims) else 'unresolved',source_assertions=len(assertions_only),adapter_claims=len(interpreted['rows']),unrepresented_source_text=True),operational=dict(route='existing_source_scoped_validator_only',eligible_records=[r for r in evidence['records'] if r['kind'] in ('threshold','procedure','gauge_linkage')]))
 
 def synthesis_instruction(checkpoint):
     return '\nSYNTHESIS CHECKPOINT CONTRACT: Return JSON with only version and statements. Version: '+SYNTHESIS_VERSION+'. Statements are exact proposal objects chosen from this request registry. Select source-supported facts and useful conditional considerations. No prose, additional values, local findings, operational directions or new references. References and interpretation compatibility are independently checked. Registry: '+json.dumps([c['proposal'] for c in checkpoint['candidates']],ensure_ascii=False,separators=(',',':'))

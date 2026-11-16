@@ -1,0 +1,37 @@
+{
+  "kind": "Frozen repository sources and fixture derivatives; no current verification",
+  "sources": [
+    {
+      "path": "config/jurisdiction.generated.json",
+      "sha256": "c9a13676f37994fac669f4aba27f8822b83cf2f2d1f5a568e032c7fa7b090828"
+    },
+    {
+      "path": "shared/kb-context-records.json",
+      "sha256": "bda247c638ffeb58d6cb7636277df9a9ed58f9e210ebf5d9bd1829efb460f9d0"
+    },
+    {
+      "path": "tests/fixtures/jurisdiction/kfrg-2.json",
+      "sha256": "02bce0f9b060df5cf37b9146175edcd5c539abe49ca5f846eee7dd1b191718ed"
+    },
+    {
+      "path": "tests/fixtures/jurisdiction/hospital-2.json",
+      "sha256": "116305c4d9001a35b05e450247f327b2b151a6e88ffcc475638efaca527ac486"
+    },
+    {
+      "path": "docs/long-island/acceptance/corrective-9862a66-2026-11-15/supplied-01/upload.txt",
+      "sha256": "b29a332f9d9137022a72de337c6dba79650928918523fa23757936ad4106df4b"
+    },
+    {
+      "path": "tests/fixtures/locations/evidence-bundle.json",
+      "sha256": "1e1f1159f6c0f51288b18b66adf24460e43cb8e33f9fa4bdcb1e98249624d221"
+    },
+    {
+      "path": "tests/fixtures/locations/source-adapters.json",
+      "sha256": "baf342c65c228e744e9b8f5f4e51e112369ed103647d2d4b35e5415259e824dc"
+    }
+  ],
+  "clock_policy": "Boundary response contents are retained; fetched_at is set to the fixed request clock for replay, then modified in stale/future/boundary variants. No new boundary fetch occurred.",
+  "weather": "Existing fixed-clock evidence-bundle fixtures; station values outside the supplied KFRG capture are test data.",
+  "upload": "Retained synthetic exercise plan; no real operational inventory.",
+  "provider": "Deterministic typed registry selection; no model generation."
+}

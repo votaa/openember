@@ -2,6 +2,7 @@
 import policy from '../../shared/location-synthesis-policy.json' assert {type:'json'}
 import {buildOperationalEvidence} from './operationalEvidence.js'
 import {escape} from './answerRecords.js'
+import {interpretSourceFormats,sourceLines} from './sourceInterpretation.js'
 export const SYNTHESIS_VERSION=policy.version
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b)
 const keys=o=>o&&typeof o==='object'&&!Array.isArray(o)?Object.keys(o).sort().join(','):''
@@ -12,14 +13,12 @@ const utf16=(text,start,end)=>text.slice(start,end)
 // Whole declarative lines only: no partial quotes from imperatives, conditions,
 // negated/uncertain prose, JSON blocks or invented provider excerpts.
 function assertions(text,target) {
- const out=[];let offset=0,fence=false
- for(const line of text.split('\n')) {
-  if(line.trim().startsWith('```'))fence=!fence
-  if(!fence)for(const relation of policy.relations)for(const [verb,value] of [[' has ',true],[' does not have ',false]]) {
+ const out=[]
+ for(const {line,start} of sourceLines(text)) {
+  for(const relation of policy.relations.filter(r=>!r.adapter_only))for(const [verb,value] of [[' has ',true],[' does not have ',false]]) {
    const statement=target+verb+relation.noun+'.'
-   if(line===statement)out.push({relation:relation.id,value,statement,start:offset,end:offset+line.length})
+   if(line===statement)out.push({relation:relation.id,value,statement,start,end:start+line.length})
   }
-  offset+=line.length+1
  }
  return out
 }
@@ -50,17 +49,25 @@ export function buildSynthesisCheckpoint(input) {
    add(claim,'source_assertion','attribute',`${escape(attribution)} states: “${escape(row.statement)}” This is an attributed source assertion; current status and independent site applicability are unverified.`,'Source-supported context')
   }
  }
+ const interpreted=interpretSourceFormats({...input,scope},bundle)
+ for(const row of interpreted.rows) {
+  const {description,attribution,...detail}=row
+  add({id:'x'+claims.length,category:'source_assertion',target,...detail},'source_assertion','attribute',description,'Source-supported context')
+ }
+ gaps.push(...interpreted.gaps)
  const assertionsOnly=claims.filter(c=>c.category==='source_assertion')
  for(const relation of policy.relations) {
-  const rows=assertionsOnly.filter(c=>c.relation===relation.id)
-  if(new Set(rows.map(c=>c.value)).size>1) {
-   gaps.push(`Supplied sources conflict about ${relation.noun} at ${escape(target)}. Both assertions are retained; no precedence or current status is established.`)
-   continue
-  }
-  // The check is planning guidance, not a local finding or an operational rule.
-  if(rows.length) {
-   const claim=rows[0]
-   candidates.push({proposal:{category:'conditional_consideration',claim_id:claim.id,source_id:claim.source_id,interpretation:'verify_'+relation.id,value:claim.value},text:relation.check,section:'Conditional considerations'})
+  const relationRows=assertionsOnly.filter(c=>c.relation===relation.id)
+  for(const subject of new Set(relationRows.map(c=>c.subject||target))) {
+   const rows=relationRows.filter(c=>(c.subject||target)===subject)
+   if(new Set(rows.map(c=>c.value)).size>1) {
+    gaps.push(`Supplied sources conflict about ${relation.noun} at ${escape(subject)}. Both assertions are retained; no precedence or current status is established.`)
+    continue
+   }
+   if(rows.length) {
+    const claim=rows[0]
+    candidates.push({proposal:{category:'conditional_consideration',claim_id:claim.id,source_id:claim.source_id,interpretation:'verify_'+relation.id,value:claim.value},text:relation.check,section:'Conditional considerations'})
+   }
   }
  }
  const weather=claims.find(c=>c.category==='weather_fact'&&['current_observation','latest_reported'].includes(c.time.disposition)&&bundle.claims.some(x=>x.source_id===c.source_id&&['windSpeed','windGust'].some(k=>typeof x.payload?.fields?.[k]?.value==='number'&&Number.isFinite(x.payload.fields[k].value))))
@@ -72,7 +79,7 @@ export function buildSynthesisCheckpoint(input) {
  for(const record of evidence.records.filter(r=>r.section==='Gaps'&&!r.kind.startsWith('kb_')))gaps.push(record.text)
  gaps.push('Only supported descriptive relations and bounded facts are represented. Other enabled source text remains available for review; missing extraction does not establish absence, safe conditions or normal operations.')
  if(!assertionsOnly.length&&!weather)gaps.push('Obtain a site-linked source describing relevant conditions and a valid observation or applicable forecast before assessing hazards. Location identity alone is insufficient.')
- return {version:SYNTHESIS_VERSION,scope,claims,candidates,gaps:[...new Set(gaps)],coverage:{location:active?'selected':'unresolved',weather:claims.some(c=>c.category==='weather_fact')?'bounded_facts_available':'unresolved',source_assertions:assertionsOnly.length,unrepresented_source_text:true},operational:{route:'existing_source_scoped_validator_only',eligible_records:evidence.records.filter(r=>['threshold','procedure','gauge_linkage'].includes(r.kind))}}
+ return {version:SYNTHESIS_VERSION,scope,claims,candidates,gaps:[...new Set(gaps)],coverage:{location:active?'selected':'unresolved',weather:claims.some(c=>c.category==='weather_fact')?'bounded_facts_available':'unresolved',source_assertions:assertionsOnly.length,adapter_claims:interpreted.rows.length,unrepresented_source_text:true},operational:{route:'existing_source_scoped_validator_only',eligible_records:evidence.records.filter(r=>['threshold','procedure','gauge_linkage'].includes(r.kind))}}
 }
 export function synthesisInstruction(checkpoint) {
  return '\nSYNTHESIS CHECKPOINT CONTRACT: Return JSON with only version and statements. Version: '+SYNTHESIS_VERSION+'. Statements are exact proposal objects chosen from this request registry. Select source-supported facts and useful conditional considerations. No prose, additional values, local findings, operational directions or new references. References and interpretation compatibility are independently checked. Registry: '+JSON.stringify(checkpoint.candidates.map(c=>c.proposal))

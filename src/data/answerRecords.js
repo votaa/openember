@@ -15,7 +15,7 @@ export function queryTopics(question='') {
 }
 const fieldTopic={commander:'command',assignment_status:'command',inventory:'assets',deployment:'assets',cone_specifications:'assets',cone_ballast:'assets',cone_placement:'assets',radio_channel:'radio',facility_id:'facility',facility_coordinates:'facility',radio_authority:'radio',command_succession:'command'}
 // Supported scalar/document grammars, not a classifier or verifier of arbitrary prose.
-function documentValue(row) {
+export function documentValue(row) {
  const v=row.value||'',scalar=/^[\p{L}\p{N}][\p{L}\p{N} .'-]{0,79}$/u
  if(['commander','cone_specifications','cone_placement'].includes(row.field)&&scalar.test(v))return v
  if(['facility_id','radio_channel'].includes(row.field)&&/^[A-Z0-9_-]{1,64}$/.test(v))return v

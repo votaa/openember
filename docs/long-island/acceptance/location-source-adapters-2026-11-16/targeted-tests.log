@@ -1,0 +1,77 @@
+
+> ember-nyc@1.0.0 test:source-interpretation
+> node --test tests/source-interpretation.test.js && python3 -m unittest tests/test_source_interpretation.py
+
+TAP version 13
+# (node:35448) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:35448) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: KFRG consumes unchanged configured KB and recorded Suffolk geometry, without Nassau inventory expansion
+ok 1 - KFRG consumes unchanged configured KB and recorded Suffolk geometry, without Nassau inventory expansion
+  ---
+  duration_ms: 0.469167
+  ...
+# Subtest: real hospital list supports interpretation without new sentence formats or current trauma designation
+ok 2 - real hospital list supports interpretation without new sentence formats or current trauma designation
+  ---
+  duration_ms: 0.111417
+  ...
+# Subtest: missing, stale, future and mismatched county evidence cannot select a contact; crossings preserve both references
+ok 3 - missing, stale, future and mismatched county evidence cannot select a contact; crossings preserve both references
+  ---
+  duration_ms: 0.343667
+  ...
+# Subtest: contact conflicts are source-specific, visible, unresolved and cannot pick an authority
+ok 4 - contact conflicts are source-specific, visible, unresolved and cannot pick an authority
+  ---
+  duration_ms: 0.139625
+  ...
+# Subtest: retained upload yields distinct inventory/deployed counts and preserves attribution without operational directions
+ok 5 - retained upload yields distinct inventory/deployed counts and preserves attribution without operational directions
+  ---
+  duration_ms: 0.494667
+  ...
+# Subtest: operational tails, fenced source listings and unsupported channels cannot bypass typed adapters
+ok 6 - operational tails, fenced source listings and unsupported channels cannot bypass typed adapters
+  ---
+  duration_ms: 2.020167
+  ...
+# Subtest: uploaded KB remains an upload assertion; exact UTF-16 spans survive CRLF and emoji
+ok 7 - uploaded KB remains an upload assertion; exact UTF-16 spans survive CRLF and emoji
+  ---
+  duration_ms: 0.165125
+  ...
+# Subtest: complete JS/Python actual-source registries, provenance, proposal, visible answer and metadata agree
+ok 8 - complete JS/Python actual-source registries, provenance, proposal, visible answer and metadata agree
+  ---
+  duration_ms: 143.2375
+  ...
+# Subtest: water, shelter, road and missing-geometry cases do not inherit regional zones, open status or route directions
+ok 9 - water, shelter, road and missing-geometry cases do not inherit regional zones, open status or route directions
+  ---
+  duration_ms: 0.199917
+  ...
+# Subtest: fence length, fence character and CRLF rules apply equally to legacy assertions and new source adapters
+ok 10 - fence length, fence character and CRLF rules apply equally to legacy assertions and new source adapters
+  ---
+  duration_ms: 2.724333
+  ...
+# Subtest: county reference freshness boundary is explicit and source identity/geometry relationship must match
+ok 11 - county reference freshness boundary is explicit and source identity/geometry relationship must match
+  ---
+  duration_ms: 5.4835
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 289.21275
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.037s
+
+OK

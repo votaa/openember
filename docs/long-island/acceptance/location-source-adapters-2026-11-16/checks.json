@@ -1,0 +1,14 @@
+{
+  "base_commit": "904ac73",
+  "kind": "Frozen-source local checkpoint tests; no live integration or model generation",
+  "shared_cases": 24,
+  "targeted_javascript_checks": 11,
+  "targeted_python_tests": 1,
+  "full_gate_javascript_checks": 237,
+  "full_gate_python_test_runs": 165,
+  "full_gate_passed": true,
+  "weekly_usage_remaining_percent_initial": 13,
+  "weekly_usage_remaining_percent_final": 12,
+  "stop_below_percent": 5,
+  "hosted_acceptance": "open; prior failed disposition unchanged"
+}
