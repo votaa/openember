@@ -56,5 +56,6 @@
     "hospital": "For the selected hospital, verify patient access and the readiness of essential services with the facility. Nearby station wind does not establish on-site conditions, service disruption or receiving capacity.",
     "road": "For the selected road geometry, verify conditions along the affected segments. Station wind does not establish a road closure or a usable alternative route.",
     "waterway": "For the selected water feature, obtain applicable gauge, datum and site-elevation evidence. Station wind does not establish a water-level impact or flooding likelihood."
-  }
+  },
+  "boundary_future_tolerance_seconds": 300
 }

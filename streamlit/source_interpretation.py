@@ -5,13 +5,14 @@ from request_scope import instant
 from answer_records import escape,document_value
 from evidence_summary import document_evidence
 BOUNDARY=json.loads((Path(__file__).resolve().parents[1]/'shared/jurisdiction-lookup-policy.json').read_text())
+SYNTHESIS_POLICY=json.loads((Path(__file__).resolve().parents[1]/'shared/location-synthesis-policy.json').read_text())
 COUNTY_FIPS=dict(Nassau='36059',Suffolk='36103')
 def county_references(scope):
     selected=scope.get('selected_location') or {};local=selected.get('local_jurisdiction') or {}
     if selected.get('status')!='selected' or not selected['location'].get('geometry') or local.get('version')!=BOUNDARY['version'] or local.get('relation')!='intersects' or local.get('geometry_reference')!='selected_location.location.geometry':return []
     layer=next((l for l in local.get('levels',[]) if l['level']=='county'),None)
     age=instant(scope.get('request_utc'))-instant((layer or {}).get('fetched_at'))
-    if not layer or layer.get('layer_id')!=2 or layer.get('source_url')!=BOUNDARY['service_root']+'/2/query' or layer.get('status') not in ('matched','multiple') or not math.isfinite(age) or age<0 or age>3600000:return []
+    if not layer or layer.get('layer_id')!=2 or layer.get('source_url')!=BOUNDARY['service_root']+'/2/query' or layer.get('status') not in ('matched','multiple') or not math.isfinite(age) or age< -SYNTHESIS_POLICY['boundary_future_tolerance_seconds']*1000 or age>3600000:return []
     return [dict(name=m['name'],fips=m['fips'],source_url=layer['source_url'],fetched_at=layer['fetched_at'],relation='intersects',containment='not_established') for m in layer.get('matches',[]) if m.get('kind')=='County' and m.get('name') in COUNTY_FIPS and COUNTY_FIPS[m['name']]==m.get('fips')]
 def length(text):return len(text.encode('utf-16-le'))//2
 def utf16(text,start,end):return text.encode('utf-16-le')[start*2:end*2].decode('utf-16-le')

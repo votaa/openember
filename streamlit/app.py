@@ -936,7 +936,7 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
     if not OLLAMA_API_KEY:
         yield "⚠ No API key. Set OLLAMA_API_KEY. Get one at https://ollama.com/settings/keys"
         return
-    from operational_evidence import build_operational_evidence,operational_instruction,render_operational_answer
+    from live_answer import build_live_answer,live_answer_instruction,render_live_answer,record_answer_result
     import datetime
     from coops_evidence import select_coops,CONFIG
     if request_scope is None:
@@ -944,7 +944,7 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
         jurisdiction=CONFIG.get('jurisdiction',dict(name=CFG.name,timezone='America/New_York',center=[40.7891,-73.135]))
         request_scope=resolve_request_scope(messages[-1]['content'],clock,jurisdiction,weather or [],files or [])
     context = strip_weather_context(context, files)
-    evidence=build_operational_evidence(request_scope,files,weather,coops,context,messages[-1]['content'])
+    evidence=build_live_answer(request_scope,files,weather,coops,context,messages[-1]['content'])
     from answer_records import deterministic_observation_answer
     direct=deterministic_observation_answer(evidence,request_scope)
     if direct:
@@ -955,13 +955,14 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
     request_scope['coops']=select_coops(coops or [],request_scope,messages[-1]['content'])
     scope_context = render_request_scope(request_scope, weather or []) + evidence_summary(request_scope, weather or [], files)
     scope_context += '\nCO-OPS WINDOW EVIDENCE:\n'+json.dumps(request_scope['coops'])
-    system_prompt = build_copilot_system_prompt(CFG.name, context, scope_context)+operational_instruction(evidence)
+    system_prompt = build_copilot_system_prompt(CFG.name, context, scope_context)+live_answer_instruction(evidence)
     payload = {"model": OLLAMA_MODEL, "stream": True,
                "options": {"num_predict": UPLOAD_LIMITS['outputReserveTokens']},
                "messages": [{"role": "system", "content": system_prompt}] + messages[-10:]}
     try:
         validate_cloud_messages(payload['messages'])
     except UploadError as exc:
+        request_scope['enforcement'].update(status='request_rejected',completion_reason='prompt_limit',provider_called=False)
         yield f"⚠ {exc}"
         return
     try:
@@ -977,12 +978,13 @@ def stream_ollama(messages, context, request_scope=None, weather=None, files=Non
                     content+=obj.get('message',{}).get('content','')
                     if obj.get('done'):
                         terminal=obj;break
-            rendered=render_operational_answer(content,evidence,request_scope,bool(terminal) and terminal.get('done_reason') in (None,'stop'))
-            request_scope['enforcement']['status']=rendered['disposition']
+            rendered=render_live_answer(content,evidence,request_scope,bool(terminal) and terminal.get('done_reason') in (None,'stop'))
+            record_answer_result(request_scope,rendered,completion_reason=terminal.get('done_reason','stop') if terminal else 'missing_terminal',output_characters=len(content),provider_called=True)
             yield rendered['answer']
     except Exception:
-        request_scope['enforcement']['status']='incomplete'
-        yield render_operational_answer('',evidence,request_scope,False)['answer']
+        rendered=render_live_answer('',evidence,request_scope,False)
+        record_answer_result(request_scope,rendered,completion_reason='invalid_or_interrupted_provider_stream',output_characters=len(content) if 'content' in locals() else 0,provider_called=True)
+        yield rendered['answer']
 
 def search_agol(query, filter_expr="", item_type="", num=8, start=1):
     q      = query.strip() or "*"
@@ -1326,6 +1328,12 @@ def user_operational_visibility(layer_id):
 
 def operational_map_event():
     data = st.session_state.get(map_component_key(st.session_state.map_interaction_revision)) or {}
+    # Preserve the clicked snapshot before refreshed source data can change the
+    # component hash and reset the value returned during the following rerun.
+    if not st.session_state.chat_response_pending:
+        clicked = map_feature_from_map_data(data)
+        if clicked:
+            st.session_state.selected_map_feature = clicked
     if data.get("center"):
         st.session_state.operational_center = data["center"]
     if data.get("zoom") is not None:
@@ -2546,7 +2554,7 @@ with tab_chat:
             with st.expander('Request sources (raw)'):
                 st.caption('Original source material for inspection; not validated operational guidance.')
                 st.code(ctx,language='text')
-            st.caption("Preparing an evidence-backed answer; source claims are displayed after format validation.")
+            st.caption("Preparing an answer from the available evidence…")
             placeholder = st.empty()
             full = ""
             try:

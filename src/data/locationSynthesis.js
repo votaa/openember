@@ -1,4 +1,4 @@
-// Checkpoint only: not wired into the live provider route. No free-prose channel.
+// Typed synthesis contract shared by checkpoint replay and selected-location routing.
 import policy from '../../shared/location-synthesis-policy.json' assert {type:'json'}
 import {buildOperationalEvidence} from './operationalEvidence.js'
 import {escape} from './answerRecords.js'
@@ -22,8 +22,8 @@ function assertions(text,target) {
  }
  return out
 }
-export function buildSynthesisCheckpoint(input) {
- const scope=structuredClone(input.scope),evidence=buildOperationalEvidence({...input,scope}),bundle=scope.evidence_bundle
+export function buildSynthesisCheckpoint(input,preparedEvidence=null) {
+ const scope=structuredClone(input.scope),evidence=preparedEvidence||buildOperationalEvidence({...input,scope}),bundle=scope.evidence_bundle
  const selected=scope.selected_location,active=selected?.status==='selected',target=active?selected.location.display_name:null
  const claims=[],candidates=[],gaps=[]
  const add=(claim,category,interpretation,text,section)=>{

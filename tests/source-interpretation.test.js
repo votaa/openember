@@ -101,7 +101,7 @@ test('fence length, fence character and CRLF rules apply equally to legacy asser
 
 test('county reference freshness boundary is explicit and source identity/geometry relationship must match',()=>{
  const base=cases[0]
- for(const [age,expected] of [[3600,1],[3601,0]]) {
+ for(const [age,expected] of [[3600,1],[3601,0],[-1,1],[-300,1],[-301,0]]) {
   const x=structuredClone(base);x.localJurisdiction.levels[0].fetched_at=new Date(Date.parse(x.requestedAt)-age*1000).toISOString()
   assert.equal(project(x).checkpoint.claims.filter(c=>c.relation==='coordination_contact').length,expected)
  }

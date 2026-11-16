@@ -12,6 +12,8 @@ Batch 3 checkpoint follow-up: the [typed synthesis/validation checkpoint](cloud-
 
 Batch 3 source-coverage follow-up: [configured KB and retained upload adapters](cloud-location-source-adapters-2026-11-16.md) extend the checkpoint to existing hospital lists, geometry-linked county contacts and attributed inventory/deployment fields. Live integration and hosted acceptance remain open.
 
+Batch 3 live-integration follow-up: [selected-location synthesis now reaches both provider/history paths](cloud-location-live-integration-2026-11-16.md), with local recording-browser checks and the full gate passing. Batch 4 presentation and repeated real hosted acceptance remain open.
+
 ## Intended outcome
 
 Fold this work into the preview branch's grounding improvements. Restore the hosted product's useful location-centered emergency-considerations behavior for **all locations that can be sent to chat**, while correcting unsupported claims. This is a recovery of expected product behavior, not a new airport-only feature or a replacement with generic regional summaries.

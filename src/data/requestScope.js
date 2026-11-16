@@ -251,7 +251,10 @@ export function scopedWeather(weather,scope) {
 }
 function covered(intervals,start,end) {let cursor=start;for(const [a,b]of intervals.sort((a,b)=>a[0]-b[0])){if(a>cursor)return false;cursor=Math.max(cursor,b);if(cursor>=end)return true}return false}
 export function renderRequestScope(scope,weather=[]) {
-  return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+JSON.stringify({...scope,...(scope.evidence_bundle?{evidence_bundle:{version:scope.evidence_bundle.version,source_count:scope.evidence_bundle.sources.length,claim_count:scope.evidence_bundle.claims.length,inspection:'Full bundle retained in request metadata; weather relationships below, full context and uploads follow.'}}:{})})+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+JSON.stringify(scopedWeather(weather,scope))+'\n'
+ const modelScope={...scope}
+ if(scope.synthesis)modelScope.synthesis={version:scope.synthesis.version,claim_count:scope.synthesis.claims.length,coverage:scope.synthesis.coverage}
+
+  return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+JSON.stringify({...modelScope,...(scope.evidence_bundle?{evidence_bundle:{version:scope.evidence_bundle.version,source_count:scope.evidence_bundle.sources.length,claim_count:scope.evidence_bundle.claims.length,inspection:'Full bundle retained in request metadata; weather relationships below, full context and uploads follow.'}}:{})})+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+JSON.stringify(scopedWeather(weather,scope))+'\n'
 }
 
 // Keep full relevant source snapshots separately; pass only explicit weather fields.

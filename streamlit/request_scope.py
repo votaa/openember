@@ -276,7 +276,9 @@ def scoped_weather(weather,scope):
 
 
 def render_request_scope(scope,weather=None):
-    return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+json.dumps(dict(scope,**(dict(evidence_bundle=dict(version=scope['evidence_bundle']['version'],source_count=len(scope['evidence_bundle']['sources']),claim_count=len(scope['evidence_bundle']['claims']),inspection='Full bundle retained in request metadata; weather relationships below, full context and uploads follow.')) if scope.get('evidence_bundle') else {})),ensure_ascii=False,separators=(',',':'))+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+json.dumps(scoped_weather(weather or [],scope),ensure_ascii=False,separators=(',',':'))+'\n'
+    model_scope=dict(scope)
+    if scope.get('synthesis'):model_scope['synthesis']=dict(version=scope['synthesis']['version'],claim_count=len(scope['synthesis']['claims']),coverage=scope['synthesis']['coverage'])
+    return 'REQUEST SCOPE (application resolved; source snapshots are client-supplied evidence):\n'+json.dumps(dict(model_scope,**(dict(evidence_bundle=dict(version=scope['evidence_bundle']['version'],source_count=len(scope['evidence_bundle']['sources']),claim_count=len(scope['evidence_bundle']['claims']),inspection='Full bundle retained in request metadata; weather relationships below, full context and uploads follow.')) if scope.get('evidence_bundle') else {})),ensure_ascii=False,separators=(',',':'))+'\nWINDOW MATCHES (only these weather intervals may establish facts for this window; partial/missing/null coverage is unknown):\n'+json.dumps(scoped_weather(weather or [],scope),ensure_ascii=False,separators=(',',':'))+'\n'
 
 
 def weather_snapshots(results,jurisdiction):

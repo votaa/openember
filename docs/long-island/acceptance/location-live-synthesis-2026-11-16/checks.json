@@ -1,0 +1,17 @@
+{
+  "base_commit": "c3f6528",
+  "local_integration": "pass",
+  "hosted_acceptance": "open; prior failed disposition unchanged",
+  "javascript_checks": 241,
+  "python_test_runs": 169,
+  "full_gate_passed": true,
+  "shared_integration_cases": 24,
+  "targeted_javascript_checks": 4,
+  "targeted_python_tests": 4,
+  "react_recording_provider_calls": 3,
+  "streamlit_recording_provider_calls": 2,
+  "cloud_model_calls": 0,
+  "weekly_usage_remaining_initial_percent": 12,
+  "weekly_usage_remaining_final_percent": 7,
+  "stop_below_percent": 5
+}

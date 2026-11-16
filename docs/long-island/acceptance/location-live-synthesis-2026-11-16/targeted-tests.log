@@ -1,0 +1,42 @@
+
+> ember-nyc@1.0.0 test:live-answer
+> node --test tests/live-answer.test.js && python3 -m unittest tests/test_live_answer.py
+
+TAP version 13
+# (node:52516) ExperimentalWarning: Import assertions are not a stable feature of the JavaScript language. Avoid relying on their current behavior and syntax as those might change in a future version of Node.js.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# (node:52516) ExperimentalWarning: Importing JSON modules is an experimental feature and might change at any time
+# Subtest: selected map assessments enter synthesis; ordinary, weather and changed-location questions keep the bounded route
+ok 1 - selected map assessments enter synthesis; ordinary, weather and changed-location questions keep the bounded route
+  ---
+  duration_ms: 30.07625
+  ...
+# Subtest: complete live route, retained registry, validation, instruction and model-facing scope agree in JS/Python
+ok 2 - complete live route, retained registry, validation, instruction and model-facing scope agree in JS/Python
+  ---
+  duration_ms: 425.537375
+  ...
+# Subtest: prompts retain full enabled sources and uploads with a compact scope and conditional-only registry
+ok 3 - prompts retain full enabled sources and uploads with a compact scope and conditional-only registry
+  ---
+  duration_ms: 5.385792
+  ...
+# Subtest: actual Edge buffering emits validated synthesis and persistent scope for valid, unsupported, truncated and malformed outputs
+ok 4 - actual Edge buffering emits validated synthesis and persistent scope for valid, unsupported, truncated and malformed outputs
+  ---
+  duration_ms: 88.454584
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 750.591292
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.038s
+
+OK

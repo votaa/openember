@@ -1,6 +1,7 @@
 // Source-format adapters. Claims are attributed listings, never live status or authority.
 import boundaryPolicy from '../../shared/jurisdiction-lookup-policy.json' assert {type:'json'}
 import {instant} from './requestScope.js'
+import synthesisPolicy from '../../shared/location-synthesis-policy.json' assert {type:'json'}
 import {escape,documentValue} from './answerRecords.js'
 import {documentEvidence} from './evidenceSummary.js'
 const countyFips={Nassau:'36059',Suffolk:'36103'}
@@ -8,7 +9,7 @@ export function countyReferences(scope) {
  const selected=scope.selected_location,local=selected?.local_jurisdiction
  if(selected?.status!=='selected'||!selected.location.geometry||local?.version!==boundaryPolicy.version||local.relation!=='intersects'||local.geometry_reference!=='selected_location.location.geometry')return []
  const layer=local.levels?.find(l=>l.level==='county'),age=instant(scope.request_utc)-instant(layer?.fetched_at)
- if(!layer||layer.layer_id!==2||layer.source_url!==boundaryPolicy.service_root+'/2/query'||!['matched','multiple'].includes(layer.status)||!Number.isFinite(age)||age<0||age>3600000)return []
+ if(!layer||layer.layer_id!==2||layer.source_url!==boundaryPolicy.service_root+'/2/query'||!['matched','multiple'].includes(layer.status)||!Number.isFinite(age)||age< -synthesisPolicy.boundary_future_tolerance_seconds*1000||age>3600000)return []
  return (layer.matches||[]).filter(m=>m.kind==='County'&&Object.hasOwn(countyFips,m.name)&&countyFips[m.name]===m.fips).map(m=>({name:m.name,fips:m.fips,source_url:layer.source_url,fetched_at:layer.fetched_at,relation:'intersects',containment:'not_established'}))
 }
 export function sourceLines(text) {

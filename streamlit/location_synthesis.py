@@ -1,4 +1,4 @@
-"""Checkpoint only; typed source interpretation without a free-prose channel."""
+"""Typed source interpretation shared by checkpoint and selected-location routing."""
 import copy,json,math
 from pathlib import Path
 from operational_evidence import build_operational_evidence
@@ -18,9 +18,9 @@ def assertions(text,target):
                 if line==statement:out.append(dict(relation=relation['id'],value=value,statement=statement,start=start,end=start+length(line)))
     return out
 
-def build_synthesis_checkpoint(scope,files=None,weather=None,coops=None,context='',question=''):
+def build_synthesis_checkpoint(scope,files=None,weather=None,coops=None,context='',question='',prepared_evidence=None):
     files=files or [];scope=copy.deepcopy(scope)
-    evidence=build_operational_evidence(scope,files,weather,coops,context,question);bundle=scope['evidence_bundle']
+    evidence=prepared_evidence if prepared_evidence is not None else build_operational_evidence(scope,files,weather,coops,context,question);bundle=scope['evidence_bundle']
     selected=scope.get('selected_location');active=bool(selected and selected['status']=='selected');target=selected['location']['display_name'] if active else None
     claims=[];candidates=[];gaps=[]
     def add(claim,category,interpretation,text,section):
